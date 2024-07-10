@@ -3,7 +3,8 @@ from datetime import datetime
 from fastapi import APIRouter
 from fastapi.requests import Request
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
+
+from db.context import Database
 
 
 router = APIRouter(
@@ -12,9 +13,9 @@ router = APIRouter(
     default_response_class=HTMLResponse
 )
 
-templates = Jinja2Templates(directory="templates")
-
 @router.get("/")
 def main(req: Request):
     now = datetime.now()
-    return templates.TemplateResponse(req, "main.jinja", {"date": now.replace(microsecond=0)})
+    collection = Database.client.list_database_names()
+    print(f"Databases: {collection}")
+    return "collection"
