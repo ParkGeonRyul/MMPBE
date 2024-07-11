@@ -9,7 +9,7 @@ from typing_extensions import Annotated
 
 class RoleField:
     roleId = Field(
-        description="역할 ID"
+        description="역할 ID(Index)"
     ) 
     roleNm = Field(
         description="역할 이름"

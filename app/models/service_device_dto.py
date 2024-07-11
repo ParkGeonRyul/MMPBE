@@ -10,7 +10,7 @@ from typing_extensions import Annotated
 
 class ServiceDeviceField:
     companyId = Field(
-        description="고객사 ID"
+        description="고객사 ID(ObjectID)"
     )
     deviceNm = Field(
         description="장비명",

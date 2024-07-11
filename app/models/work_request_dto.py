@@ -10,7 +10,7 @@ from typing_extensions import Annotated
 
 class WorkRequestField:
     userId = Field(
-        description="고객 ID"
+        description="고객 ID(ObjectID)"
     )
     deviceNm = Field(
         description="장비 이름",
@@ -18,7 +18,7 @@ class WorkRequestField:
         min_length=1
     )
     contactNm = Field(
-        description="담당자 이름",
+        description="담당자 이름(Maven)",
         example="Aiden",
         min_length=1
     )
@@ -44,31 +44,27 @@ class WorkRequestField:
         example="Zone파일.zip",
         min_length=1
     )
-    approvalYn = Field(
+    status = Field(
         description="승인 여부",
-        example="Y, N",
+        example="보류, 승인, 거절",
         default=None
-    )
-    statusYn = Field(
-        description="",
-        example=""
     )
     acceptorNm = Field(
         description="승인자 이름",
         example="Aiden"
     )
-    requestStatus = Field(
+    regYn = Field(
         description="작업 요청 상태",
-        example="회수, 요청",
-        default="요청"
+        examples="Y(요청), N(회수)",
+        default="Y"
     )
     createdAt = Field(
         description="생성 날짜(UTC + 0)",
-        default=datetime.now()
+        default=None
     )
     updatedAt = Field(
         description="유저 정보 업데이트 된 마지막 날짜(UTC + 0)",
-        default=None
+        default=datetime.now()
     )
     delYn = Field(
         description="삭제된 여부",
@@ -85,10 +81,9 @@ class WorkRequestDTO(BaseModel):
     requestDt: datetime = WorkRequestField.requestDt
     workContent: str = WorkRequestField.workContent
     file: str = WorkRequestField.file
-    approvalYn: str = WorkRequestField.approvalYn
-    statusYn: str = WorkRequestField.statusYn
+    status: str = WorkRequestField.status
     acceptorNm: str = WorkRequestField.acceptorNm
-    requestStatus: str = WorkRequestField.requestStatus
+    regYn: str = WorkRequestField.regYn
     createdAt: datetime = WorkRequestField.createdAt
     updatedAt: datetime = WorkRequestField.updatedAt
     delYn: str = WorkRequestField.delYn

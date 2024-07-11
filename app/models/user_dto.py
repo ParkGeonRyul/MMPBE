@@ -9,7 +9,7 @@ from typing_extensions import Annotated
 
 class UsersFields:
     companyId = Field(
-        description="회사 Object ID"
+        description="회사 ID(ObjectID)"
     )
     userNm = Field(
         description="사용자 이름",
@@ -38,10 +38,10 @@ class UsersFields:
         examples="엔지니어"
     )
     role = Field(
-        description = "관리자 여부",
-        examples="0 = 고객, 1 = 관리자",
+        description = "역할 ID(INDEX)",
+        examples="0 = client, 1 = admin, 2 = Super admin",
         ge=0,
-        le=1
+        le=2
     )
     createdAt = Field(
         description="오늘 날짜(UTC + 0)",

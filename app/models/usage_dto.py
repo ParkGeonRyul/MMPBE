@@ -13,7 +13,7 @@ class UsageField:
         description="고객 ID"
     )
     serviceDeviceId = Field(
-        description="서비스 장비 ID"
+        description="서비스 장비 ID(ObjectID)"
     )
     cpu = Field(
         description="CPU 사용량",

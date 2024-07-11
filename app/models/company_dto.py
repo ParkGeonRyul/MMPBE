@@ -11,8 +11,8 @@ from typing_extensions import Annotated
 class CompanyFields:
     companyNm = Field(
         description = "회사 이름",
-        examples = "메이븐클라우드서비스",
-        min_length = 2
+        examples = "메이븐클라우드서비스"
+        # NOT NULL 테스트
     )
 
 class CompanyDTO(BaseModel):

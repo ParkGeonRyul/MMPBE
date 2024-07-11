@@ -10,7 +10,7 @@ from typing_extensions import Annotated
 
 class ContractField:
     companyId = Field(
-        description="회사 ID"
+        description="회사 ID(ObjectID)"
     )
     workType = Field(
         description="계약 타입",

@@ -10,7 +10,7 @@ from typing_extensions import Annotated
 
 class TaxField:
     userId = Field(
-        description="고객 ID"
+        description="고객 ID(ObjectID)"
     )
     taxAmt = Field(
         description="과금 내역",

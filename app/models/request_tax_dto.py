@@ -10,7 +10,7 @@ from typing_extensions import Annotated
 
 class RequestTaxField:
     userId = Field(
-        description="고객 ID"
+        description="고객 ID(ObjectID)"
     )
     requestDt = Field(
         description="요청 날짜(UTC + 0)"

@@ -10,7 +10,7 @@ from typing_extensions import Annotated
 
 class MaintenanceField:
     userId = Field(
-        description="고객 ID"
+        description="고객 ID(ObjectID)"
     )
     title = Field(
         description="계약 자료 제목",
@@ -39,12 +39,12 @@ class MaintenanceField:
         default=None
     )
     createdAt = Field(
-        description="생성 날짜(UTC + 0), 임시저장 상태일 때는 NULL 처리",
+        description="생성 날짜(UTC + 0), 임시저장 상태일 때는 NULL",
         default=None
     )
     updatedAt = Field(
         description="유저 정보 업데이트 된 마지막 날짜(UTC + 0)",
-        default=None
+        default=datetime.now()
     )
     delYn = Field(
         description="삭제된 여부",
