@@ -9,8 +9,6 @@ from fastapi.responses import JSONResponse
 from fastapi.requests import Request
 
 from utils import formating
-from models import db
-from models import dto
 from services import user_service
 from utils import dependencies
 from constants import COOKIES_KEY_NAME
@@ -39,7 +37,7 @@ async def login( res: Response):
     # token = jwt_service.encode(user.id, user.role, exp_date)
     # res.set_cookie(COOKIES_KEY_NAME, token, expires=exp_date)
     # return token
-    return ;
+    return 
 
 @router.get("/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(res: Response) -> JSONResponse:
@@ -55,4 +53,4 @@ async def check_session( req: Request, res: Response) -> JSONResponse:
     #     raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token is invalid")
         
     # return data
-    return ;
+    return 

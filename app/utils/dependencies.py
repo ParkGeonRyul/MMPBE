@@ -6,14 +6,14 @@ from fastapi import Response
 from fastapi import HTTPException
 
 from constants import COOKIES_KEY_NAME
-from models import db
+# from models import db
 from services import user_service
 
 
-def get_user(req: Request, res: Response) -> db.User:
-    session_token = req.cookies.get(COOKIES_KEY_NAME)
-    if session_token is None:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+# def get_user(req: Request, res: Response) -> db.User:
+    # session_token = req.cookies.get(COOKIES_KEY_NAME)
+    # if session_token is None:
+        # raise HTTPException(status_code=401, detail="Unauthorized")
     
     # token = jwt_service.decode(session_token)
     # if token is None:
@@ -26,6 +26,6 @@ def get_user(req: Request, res: Response) -> db.User:
     #     raise HTTPException(status_code=401, detail="Unauthorized")
     
     # return user
-    return ;
+    # return ;
 
-user_dependency = Annotated[db.User, Depends(get_user)]
+# user_dependency = Annotated[db.User, Depends(get_user)]

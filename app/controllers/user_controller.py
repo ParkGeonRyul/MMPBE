@@ -3,8 +3,6 @@ from fastapi import Query
 from fastapi import Path
 from fastapi import HTTPException
 
-from models import db
-from models import dto
 from services import user_service
 from utils import dependencies
 
