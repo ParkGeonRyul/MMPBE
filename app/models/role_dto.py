@@ -1,9 +1,21 @@
 from datetime import datetime
 
-from pydantic import BaseModel
-from pydantic import Field
+from pydantic import BaseModel, Field, ValidationError
+from pydantic.functional_validators import AfterValidator
+from datetime import datetime
+from typing import Any, List
+from typing_extensions import Annotated
 
-class RoleDTO:
-    def __init__(self, role_id, role_nm):
-        self.role_id = role_id
-        self.role_nm = role_nm
+
+class RoleField:
+    roleId = Field(
+        description="역할 ID"
+    ) 
+    roleNm = Field(
+        description="역할 이름"
+    )
+
+class roldDTO(BaseModel):
+    _id: str
+    roldId: int = RoleField.roleId
+    roleNm: str = RoleField.roleNm

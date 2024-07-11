@@ -1,9 +1,20 @@
 from datetime import datetime
+from pydantic import BaseModel, Field, ValidationError
+from pydantic.functional_validators import AfterValidator
+from datetime import datetime
 
-from pydantic import BaseModel
-from pydantic import Field
+from typing import Any, List
 
-class CompanyDTO:
-    def __init__(self, company_id, company_name):
-        self.company_id = company_id
-        self.company_name = company_name
+from typing_extensions import Annotated
+
+
+class CompanyFields:
+    companyNm = Field(
+        description = "회사 이름",
+        examples = "메이븐클라우드서비스",
+        min_length = 2
+    )
+
+class CompanyDTO(BaseModel):
+    _id: str
+    componyNm : str = CompanyFields.companyNm

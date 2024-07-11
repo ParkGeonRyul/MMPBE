@@ -1,36 +1,72 @@
 from datetime import datetime
 
-from pydantic import BaseModel
-from pydantic import Field
+from pydantic import BaseModel, Field, ValidationError
+from pydantic.functional_validators import AfterValidator
+from datetime import datetime
+from typing import Any, List
+from typing_extensions import Annotated
 
-class UserDTO:
-    def __init__(
-            self,
-            user_id,
-            company_id,
-            user_email,
-            user_nm,
-            rank,
-            company_contact,
-            mobile_contact,
-            email,
-            responsible_party,
-            role,
-            created_at,
-            updated_at,
-            del_yn
-            ):
-        self.user_id = user_id
-        self.company_id = company_id
-        self.user_email = user_email
-        self.user_nm = user_nm
-        self.rank = rank
-        self.company_contact = company_contact
-        self.mobile_contact = mobile_contact
-        self.email = email
-        self.responsible_party = responsible_party
-        self.role = role
-        self.created_at = created_at
-        self.updated_at = updated_at
-        self.del_yn = del_yn
-        self.del_yn = del_yn
+
+class UsersFields:
+    companyId = Field(
+        description="회사 Object ID"
+    )
+    userNm = Field(
+        description="사용자 이름",
+        min_length=2,
+        max_length=20
+    )
+    rank = Field(
+        description="직급",
+        examples="프로"
+    )
+    companyContact=Field(
+        description="회사 전화번호",
+        examples="02)000-0000"
+    )
+    mobileContact = Field(
+        description="모바일 전화번호",
+        examples="010-0000-0000"
+    )
+    email = Field(
+        description="사용자 이메일",
+        examples="maven.kim@mavencloudservice.com",
+        pattern=r"^\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,3}$"
+    )
+    responsibleParty = Field(
+        description="분류",
+        examples="엔지니어"
+    )
+    role = Field(
+        description = "관리자 여부",
+        examples="0 = 고객, 1 = 관리자",
+        ge=0,
+        le=1
+    )
+    createdAt = Field(
+        description="오늘 날짜(UTC + 0)",
+        default=datetime.now()
+    )
+    updatedAt = Field(
+        description="유저 정보 업데이트 된 마지막 날짜(UTC + 0)",
+        default=None
+    )
+    delYn = Field(
+        description="삭제된 여부",
+        default="N"
+    )
+
+class UserDTO(BaseModel):
+    _id: str
+    companyId: str = UsersFields.companyId
+    userNm : str = UsersFields.userNm
+    rank: str = UsersFields.rank
+    companyContact: str = UsersFields.companyContact
+    mobileContact: str = UsersFields.mobileContact
+    email: str = UsersFields.email
+    responsibleParty: str = UsersFields.responsibleParty
+    role: int = UsersFields.role
+    createdAt: datetime = UsersFields.createdAt
+    updatedAt: datetime = UsersFields.updatedAt
+    delYn: str = UsersFields.delYn
+

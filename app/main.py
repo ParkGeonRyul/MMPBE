@@ -17,4 +17,3 @@ cors_middleware.add(app)
 app.include_router(auth_controller.router)
 app.include_router(page_controller.router)
 app.include_router(user_controller.router)
-
