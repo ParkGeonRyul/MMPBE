@@ -2,11 +2,11 @@
 # from sqlalchemy import Update
 # from sqlalchemy.sql.functions import current_timestamp
 
-from models.db import User
+# from models.db import User
 # from .context import session_maker
 
 
-def add(name: str, surname: str, role: User.Role, email: str, password: str)-> User:
+# def add(name: str, surname: str, role: User.Role, email: str, password: str)-> User:
     # with session_maker.begin() as session:
     #     user = User()
     #     user.name = name
@@ -19,9 +19,9 @@ def add(name: str, surname: str, role: User.Role, email: str, password: str)-> U
     #     session.flush()
 
     #     return user
-    return ;
+    # return ;
 
-def update(id: int, name: str, surname: str, role: User.Role, email: str, password: str) -> None:
+# def update(id: int, name: str, surname: str, role: User.Role, email: str, password: str) -> None:
     # with session_maker.begin() as session:
     #     session.execute(Update(User).where(User.id == id).values({
     #         User.name: name,
@@ -31,28 +31,28 @@ def update(id: int, name: str, surname: str, role: User.Role, email: str, passwo
     #         User.password: password,
     #         User.updated_at: current_timestamp()
     #     }))
-    return ;
+    # return ;
 
-def delete(id: int) -> None:
+# def delete(id: int) -> None:
     # with session_maker.begin() as session:
     #     session.execute(Delete(User).where(User.id == id))
-    return ;
+    # return ;
     
-def get(limit:int = 1000, offset: int = 0) -> list[User]:
+# def get(limit:int = 1000, offset: int = 0) -> list[User]:
     # with session_maker() as session:
     #     return session.query(User).limit(limit).offset(offset).all()
-    return []
+    # return []
 
-def get_by_id(id: int) -> User | None:
+# def get_by_id(id: int) -> User | None:
     # with session_maker() as session:
     #     return session.query(User).where(
     #         User.id == id          
     #     ).first()
-    return ;
+    # return ;
 
-def get_by_email(email: str) -> User | None:
+# def get_by_email(email: str) -> User | None:
     # with session_maker.begin() as session:
     #     return session.query(User).where(
     #         User.email == email          
     #     ).first()
-    return ;
+    # return ;

@@ -9,8 +9,6 @@ from fastapi.responses import JSONResponse
 from fastapi.requests import Request
 
 from utils import formating
-from models import db
-from models import dto
 from services import user_service
 from utils import dependencies
 from constants import COOKIES_KEY_NAME
@@ -91,4 +89,4 @@ async def check_session( req: Request, res: Response) -> JSONResponse:
     #     raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token is invalid")
         
     # return data
-    return ;
+    return 

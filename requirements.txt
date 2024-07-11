@@ -3,3 +3,8 @@ fastapi
 alembic
 apscheduler # cron scheduler
 pymongo
+pydantic
+pydantic-settings
+pytest
+pytest-asyncio
+httpx
