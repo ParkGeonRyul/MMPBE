@@ -92,7 +92,7 @@ class ContractField:
         default="N"
     )
 
-class ContractModel(BaseModel):
+class UpdateContractModel(BaseModel):
     id: Optional[PyObjectId] = ContractField.id
     companyId : str = ContractField.companyId
     workType : str = ContractField.workType

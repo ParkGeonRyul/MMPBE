@@ -9,6 +9,11 @@ from bson import ObjectId
 
 
 class RequestTaxField:
+    id = Field(
+        description="ObjectID",
+        alias="_id",
+        default_factory=PyObjectId
+    )
     userId = Field(
         description="고객 ID(ObjectID)"
     )
@@ -26,7 +31,7 @@ class RequestTaxField:
     )
 
 class RequestTaxDTO(BaseModel):
-    _id: str
+    id: str
     userId: str = RequestTaxField.userId
     requestDt: datetime = RequestTaxField.requestDt
     requestContent: str = RequestTaxField.requestContent

@@ -56,7 +56,7 @@ class MaintenanceField:
         default="N"
     )
 
-class ContractDataDTO(BaseModel):
+class MaintenanceModel(BaseModel):
     id: Optional[PyObjectId] = MaintenanceField.id
     userId: str = MaintenanceField.userId
     title: str = MaintenanceField.title
@@ -68,6 +68,33 @@ class ContractDataDTO(BaseModel):
     createdAt: Optional[datetime] = MaintenanceField.createdAt
     updatedAt: Optional[datetime] = MaintenanceField.updatedAt
     delYn: Optional[str] = MaintenanceField.delYn
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+        json_schema_extra={
+            "example": {
+                "userId": "6690cf7fa4897bf6b90541c1(ObjectId)",
+                "title": "제목",
+                "content": "내용",
+                "file": "파일 경로",
+                "contractDt": "계약 날짜"
+            }
+        }
+    )
+
+class UpdateMaintenanceModel(BaseModel):
+    id: Optional[PyObjectId] = None
+    userId: Optional[str] = None
+    title: Optional[str] = None
+    content: Optional[str] = None
+    file: Optional[str] = None
+    contractDt: Optional[datetime] = None
+    approvalYn: Optional[str] = None
+    status: Optional[str] = None
+    createdAt: Optional[datetime] = None
+    updatedAt: Optional[datetime] = None
+    delYn: Optional[str] = None
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
