@@ -8,6 +8,8 @@ from controllers import user_controller
 from middlewares import cors_middleware
 # from middlewares import static_middleware
 
+from models.company_dto import CompanyModel, UpdateCompanyModel
+
 
 app = FastAPI(lifespan=lifespan.lifespan)
 
@@ -17,3 +19,8 @@ cors_middleware.add(app)
 app.include_router(auth_controller.router)
 app.include_router(page_controller.router)
 app.include_router(user_controller.router)
+
+
+@app.post("/test")
+async def create_item(item: CompanyModel):
+    return item
