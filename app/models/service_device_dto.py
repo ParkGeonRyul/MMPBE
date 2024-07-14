@@ -1,14 +1,19 @@
-from datetime import datetime
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ConfigDict, ValidationError
+from utils.pymongo_object_id import PyObjectId
+
 from pydantic.functional_validators import AfterValidator
 from datetime import datetime
-
-from typing import Any, List
-
+from typing import Any, List, Optional
 from typing_extensions import Annotated
+from bson import ObjectId
 
 
 class ServiceDeviceField:
+    id = Field(
+        description="ObjectID",
+        alias="_id",
+        default_factory=PyObjectId
+    )
     companyId = Field(
         description="고객사 ID(ObjectID)"
     )
@@ -45,13 +50,50 @@ class ServiceDeviceField:
         default="N"
     )
 
-class ServiceDeviceDTO(BaseModel):
-    _id: str
+class ServiceDeviceModel(BaseModel):
+    id: Optional[PyObjectId] = ServiceDeviceField.id
     companyId: str = ServiceDeviceField.companyId
     deviceNm: str = ServiceDeviceField.deviceNm
     deviceType: str = ServiceDeviceField.deviceType
     publicIP: str = ServiceDeviceField.publicIP
     privateIP: str = ServiceDeviceField.privateIP
-    createdAt: datetime = ServiceDeviceField.createdAt
-    updatedAt: datetime = ServiceDeviceField.updatedAt
-    delYn: str = ServiceDeviceField.delYn
+    createdAt: Optional[datetime] = ServiceDeviceField.createdAt
+    updatedAt: Optional[datetime] = ServiceDeviceField.updatedAt
+    delYn: Optional[str] = ServiceDeviceField.delYn
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+        json_schema_extra={
+            "example": {
+                "companyId": "6690cf7fa4897bf6b90541c1(ObjectId)",
+                "deviceNm": "장비 이름",
+                "publicIP": "장비 외부 IP",
+                "privateIP": "장비 내부 IP"
+            }
+        }
+    )
+
+class ServiceDeviceModel(BaseModel):
+    id: Optional[PyObjectId] = None
+    companyId: Optional[str] = None
+    deviceNm: Optional[str] = None
+    deviceType: Optional[str] = None
+    publicIP: Optional[str] = None
+    privateIP: Optional[str] = None
+    createdAt: Optional[datetime] = None
+    updatedAt: Optional[datetime] = None
+    delYn: Optional[str] = None
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+        json_schema_extra={
+            "example": {
+                "companyId": "6690cf7fa4897bf6b90541c1(ObjectId)",
+                "deviceNm": "장비 이름",
+                "publicIP": "장비 외부 IP",
+                "privateIP": "장비 내부 IP"
+            }
+        }
+    )

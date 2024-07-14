@@ -1,14 +1,19 @@
-from datetime import datetime
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ConfigDict, ValidationError
+from utils.pymongo_object_id import PyObjectId
+
 from pydantic.functional_validators import AfterValidator
 from datetime import datetime
-
-from typing import Any, List
-
+from typing import Any, List, Optional
 from typing_extensions import Annotated
+from bson import ObjectId
 
 
 class WorkRequestField:
+    id = Field(
+        description="ObjectID",
+        alias="_id",
+        default_factory=PyObjectId
+    )
     userId = Field(
         description="고객 ID(ObjectID)"
     )
@@ -71,8 +76,8 @@ class WorkRequestField:
         default="N"
     )
 
-class WorkRequestDTO(BaseModel):
-    _id: str
+class WorkRequestModel(BaseModel):
+    id: Optional[PyObjectId] = WorkRequestField.id
     userId: str = WorkRequestField.userId
     deviceNm: str = WorkRequestField.deviceNm
     contactNm: str = WorkRequestField.contactNm
@@ -84,6 +89,63 @@ class WorkRequestDTO(BaseModel):
     status: str = WorkRequestField.status
     acceptorNm: str = WorkRequestField.acceptorNm
     regYn: str = WorkRequestField.regYn
-    createdAt: datetime = WorkRequestField.createdAt
-    updatedAt: datetime = WorkRequestField.updatedAt
-    delYn: str = WorkRequestField.delYn
+    createdAt: Optional[datetime] = WorkRequestField.createdAt
+    updatedAt: Optional[datetime] = WorkRequestField.updatedAt
+    delYn: Optional[str] = WorkRequestField.delYn
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+        json_schema_extra={
+            "example": {
+                "userId": "6690cf7fa4897bf6b90541c1(ObjectId)",
+                "diviceNm": "장비 이름",
+                "contactNm": "담당자 이름(Maven)",
+                "requestTitle": "요청 제목",
+                "customerNm": "고객 이름",
+                "requestDt": "요청 일자 (UTC + 0)",
+                "workContent": "작업 내용",
+                "file": "파일 명",
+                "status": "승인 여부",
+                "acceptorNm": "승인자 이름",
+                "regYn": "작업 요청"
+            }
+        }
+    )
+
+class  UpdateWorkRequestModel(BaseModel):
+    id: Optional[PyObjectId] = None
+    userId: Optional[str] = None
+    deviceNm: Optional[str] = None
+    contactNm: Optional[str] = None
+    requestTitle: Optional[str] = None
+    customerNm: Optional[str] = None
+    requestDt: Optional[datetime] = None
+    workContent: Optional[str] = None
+    file: Optional[str] = None
+    status: Optional[str] = None
+    acceptorNm: Optional[str] = None
+    regYn: Optional[str] = None
+    createdAt: Optional[datetime] = None
+    updatedAt: Optional[datetime] = None
+    delYn: Optional[str] = None
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+        json_schema_extra={
+            "example": {
+                "userId": "6690cf7fa4897bf6b90541c1(ObjectId)",
+                "diviceNm": "장비 이름",
+                "contactNm": "담당자 이름(Maven)",
+                "requestTitle": "요청 제목",
+                "customerNm": "고객 이름",
+                "requestDt": "요청 일자 (UTC + 0)",
+                "workContent": "작업 내용",
+                "file": "파일 명",
+                "status": "승인 여부",
+                "acceptorNm": "승인자 이름",
+                "regYn": "작업 요청"
+            }
+        }
+    )

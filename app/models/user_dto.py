@@ -1,13 +1,19 @@
-from datetime import datetime
+from pydantic import BaseModel, Field, ConfigDict, ValidationError
+from utils.pymongo_object_id import PyObjectId
 
-from pydantic import BaseModel, Field, ValidationError
 from pydantic.functional_validators import AfterValidator
 from datetime import datetime
-from typing import Any, List
+from typing import Any, List, Optional
 from typing_extensions import Annotated
+from bson import ObjectId
 
 
 class UsersFields:
+    id = Field(
+        description="ObjectID",
+        alias="_id",
+        default_factory=PyObjectId
+    )
     companyId = Field(
         description="회사 ID(ObjectID)"
     )
@@ -21,11 +27,11 @@ class UsersFields:
         examples="프로"
     )
     companyContact=Field(
-        description="회사 전화번호",
+        description="고객사 연락처",
         examples="02)000-0000"
     )
     mobileContact = Field(
-        description="모바일 전화번호",
+        description="고객사 mobile",
         examples="010-0000-0000"
     )
     email = Field(
@@ -56,8 +62,8 @@ class UsersFields:
         default="N"
     )
 
-class UserDTO(BaseModel):
-    _id: str
+class UserModel(BaseModel):
+    id: Optional[PyObjectId] = UsersFields.id
     companyId: str = UsersFields.companyId
     userNm : str = UsersFields.userNm
     rank: str = UsersFields.rank
@@ -66,7 +72,25 @@ class UserDTO(BaseModel):
     email: str = UsersFields.email
     responsibleParty: str = UsersFields.responsibleParty
     role: int = UsersFields.role
-    createdAt: datetime = UsersFields.createdAt
-    updatedAt: datetime = UsersFields.updatedAt
-    delYn: str = UsersFields.delYn
+    createdAt: Optional[datetime] = UsersFields.createdAt
+    updatedAt: Optional[datetime] = UsersFields.updatedAt
+    delYn: Optional[str] = UsersFields.delYn
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+        json_schema_extra={
+            "example": {
+                "companyId": "6690cf7fa4897bf6b90541c1(ObjectId)",
+                "userNm": "고객 이름",
+                "rank": "직급",
+                "conpamyContact": "고객사 연락처",
+                "mobileContact": "고객사 mobile",
+                "email": "고객사 Email",
+                "responsibleParty": "고객 분류",
+                "role": "역할(Integer)"
+            }
+        }
+    )
+    
 

@@ -1,14 +1,19 @@
-from datetime import datetime
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ConfigDict, ValidationError
+from utils.pymongo_object_id import PyObjectId
+
 from pydantic.functional_validators import AfterValidator
 from datetime import datetime
-
-from typing import Any, List
-
+from typing import Any, List, Optional
 from typing_extensions import Annotated
+from bson import ObjectId
 
 
 class MaintenanceField:
+    id = Field(
+        description="ObjectID",
+        alias="_id",
+        default_factory=PyObjectId
+    )
     userId = Field(
         description="고객 ID(ObjectID)"
     )
@@ -51,15 +56,56 @@ class MaintenanceField:
         default="N"
     )
 
-class ContractDataDTO(BaseModel):
-    _id: str
+class MaintenanceModel(BaseModel):
+    id: Optional[PyObjectId] = MaintenanceField.id
     userId: str = MaintenanceField.userId
     title: str = MaintenanceField.title
     content: str = MaintenanceField.content
-    file: str = MaintenanceField.file
+    file: Optional[str] = MaintenanceField.file
     contractDt: datetime = MaintenanceField.contractDt
-    approvalYn: str = MaintenanceField.approvalYn
-    status: str = MaintenanceField.status
-    createdAt: datetime = MaintenanceField.createdAt
-    updatedAt: datetime = MaintenanceField.updatedAt
-    delYn: str = MaintenanceField.delYn
+    approvalYn: Optional[str] = MaintenanceField.approvalYn
+    status: Optional[str] = MaintenanceField.status
+    createdAt: Optional[datetime] = MaintenanceField.createdAt
+    updatedAt: Optional[datetime] = MaintenanceField.updatedAt
+    delYn: Optional[str] = MaintenanceField.delYn
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+        json_schema_extra={
+            "example": {
+                "userId": "6690cf7fa4897bf6b90541c1(ObjectId)",
+                "title": "제목",
+                "content": "내용",
+                "file": "파일 경로",
+                "contractDt": "계약 날짜"
+            }
+        }
+    )
+
+class UpdateMaintenanceModel(BaseModel):
+    id: Optional[PyObjectId] = None
+    userId: Optional[str] = None
+    title: Optional[str] = None
+    content: Optional[str] = None
+    file: Optional[str] = None
+    contractDt: Optional[datetime] = None
+    approvalYn: Optional[str] = None
+    status: Optional[str] = None
+    createdAt: Optional[datetime] = None
+    updatedAt: Optional[datetime] = None
+    delYn: Optional[str] = None
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+        json_schema_extra={
+            "example": {
+                "userId": "6690cf7fa4897bf6b90541c1(ObjectId)",
+                "title": "제목",
+                "content": "내용",
+                "file": "파일 경로",
+                "contractDt": "계약 날짜"
+            }
+        }
+    )

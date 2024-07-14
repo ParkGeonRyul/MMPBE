@@ -1,14 +1,19 @@
-from datetime import datetime
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ConfigDict, ValidationError
+from utils.pymongo_object_id import PyObjectId
+
 from pydantic.functional_validators import AfterValidator
 from datetime import datetime
-
-from typing import Any, List
-
+from typing import Any, List, Optional
 from typing_extensions import Annotated
+from bson import ObjectId
 
 
 class ContractDataField:
+    id = Field(
+        description="ObjectID",
+        alias="_id",
+        default_factory=PyObjectId
+    )
     userId = Field(
         description="고객 ID(ObjectID)"
     )
@@ -38,22 +43,68 @@ class ContractDataField:
         default=None
     )
     updatedAt = Field(
-        description="유저 정보 업데이트 된 마지막 날짜(UTC + 0)",
-        default=None
+        description="유저 정보 업데이트 된 마지막 날짜(UTC + 0)"
     )
     delYn = Field(
         description="삭제된 여부",
         default="N"
     )
 
-class ContractDataDTO(BaseModel):
-    _id: str
+class ContractDataModel(BaseModel):
+    id: Optional[PyObjectId] = ContractDataField.id
     userId: str = ContractDataField.userId
     title: str = ContractDataField.title
     content: str = ContractDataField.content
-    file: str = ContractDataField.file
+    file: Optional[str] = ContractDataField.file
     contractDt: datetime = ContractDataField.contractDt
-    approvalYn: str = ContractDataField.approvalYn
-    createdAt: datetime = ContractDataField.createdAt
+    approvalYn: Optional[str] = ContractDataField.approvalYn
+    createdAt: Optional[datetime] = ContractDataField.createdAt
     updatedAt: datetime = ContractDataField.updatedAt
-    delYn: str = ContractDataField.delYn
+    delYn: Optional[str] = ContractDataField.delYn
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+        json_schema_extra={
+            "example": {
+                "userId": "6690cf7fa4897bf6b90541c1(ObjectId)",
+                "title": "제목",
+                "content": "내용",
+                "file": "파일 경로명 or """,
+                "contractDt": "UTC + 0",
+                "createdAt": "UTC + 0",
+                "updatedAt": "UTC + 0"
+            }
+        }
+    )
+
+class UpdateContractDataModel(BaseModel):
+    userId: Optional[str] = None
+    title: Optional[str] = None
+    content: Optional[str] = None
+    file: Optional[str] = None
+    contractDt: Optional[datetime] = None
+    approvalYn: Optional[str] = None
+    createdAt: Optional[datetime] = None
+    updatedAt: Optional[datetime] = None
+    delYn: Optional[str] = None
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+        json_schema_extra={
+            "example": {
+                "userId": "6690cf7fa4897bf6b90541c1(ObjectId)",
+                "title": "제목",
+                "content": "내용",
+                "file": "파일 경로명",
+                "contractDt": "UTC + 0",
+                "approvalYn": "Y or N or """,
+                "createdAt": "UTC + 0",
+                "updatedAt": "UTC + 0",
+                "delYn": "Y or N or """
+            }
+        }
+    )
+
+class ContractDataCollection(BaseModel):
+    contracts: List[ContractDataModel]
