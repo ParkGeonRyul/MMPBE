@@ -9,6 +9,11 @@ from bson import ObjectId
 
 
 class UsageField:
+    id = Field(
+        description="ObjectID",
+        alias="_id",
+        default_factory=PyObjectId
+    )
     userId = Field(
         description="고객 ID"
     )
@@ -28,9 +33,22 @@ class UsageField:
         default=0
     )
 
-class UsageDTO(BaseModel):
-    _id: str
+class UsageModel(BaseModel):
+    id: Optional[PyObjectId] = UsageField.id
     userId: str = UsageField.userId
     serviceDeviceId: str = UsageField.serviceDeviceId
     cpu: int = UsageField.cpu
     disk: int = UsageField.disk
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+        json_schema_extra={
+            "example": {
+                "userId": "6690cf7fa4897bf6b90541c1(ObjectId)",
+                "serviceDeviceId": "6690cf7fa4897bf6b90541c1(ObjectId)",
+                "cpu": "CPU 사용량",
+                "disk": "disk 사용량"
+            }
+        }
+    )
