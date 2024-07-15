@@ -3,8 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 # from db import context
-def start():
-    print("test complete")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -20,6 +19,5 @@ async def lifespan(app: FastAPI):
     # context.init()
     
     # before start
-    start()
     yield
     # before stop
