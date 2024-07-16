@@ -6,5 +6,4 @@ services:
       - 3000:3000
     volumes:
       - ./app:/code
-    container_name:
-      - maven-member-portal
+    container_name: "mavenmembersportalbe"
