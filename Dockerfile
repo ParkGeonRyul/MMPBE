@@ -11,7 +11,7 @@ COPY ./requirements.txt /code/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 #
-COPY . .
+COPY app .
 
 # uvicorn 서버 실행
-CMD ["sh", "./app/dev.bash"]
+CMD ["sh", "dev.bash"]
