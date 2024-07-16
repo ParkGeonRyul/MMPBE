@@ -5,6 +5,6 @@ services:
     ports:
       - 3000:3000
     volumes:
-      - ./app:/app/code
+      - ./app:/code
     container_name:
       - maven-member-portal
