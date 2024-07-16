@@ -1,19 +1,8 @@
 services:
   fastapi:
-    image: fastapi
+    image: mavenmembersportalbe:latest
     ports:
       - 3000:3000
     volumes:
       - ./app:/code
-    container_name:
-      - mavenmembersportalbe
-    environment:
-      - MONGO_DATABASE=$[variable-FastAPI.MONGO_DATABASE]
-      - MONGO_HOST=$[variable-FastAPI.MONGO_HOST]
-      - MONGO_PASSWORD=$[variable-FastAPI.MONGO_PASSWORD]
-      - MONGO_USERNAME=$[variable-FastAPI.MONGO_USERNAME]
-      - MS_CLIENT_ID=$[variable-FastAPI.MS_CLIENT_ID]
-      - MS_CLIENT_SECRET=$[variable-FastAPI.MS_CLIENT_SECRET]
-      - MS_CLIENT_SECRET_=$[variable-FastAPI.MS_CLIENT_SECRET_]
-      - MS_CLIENT_VALUE_=$[variable-FastAPI.MS_CLIENT_VALUE_]
-      - MS_REDIRECT_URI=$[variable-FastAPI.MS_REDIRECT_URI]
+    container_name: "mavenmembersportalbe"
