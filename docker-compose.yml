@@ -1,10 +1,9 @@
 services:
   fastapi:
     image: fastapi
-    command: sh ./app/dev.bash
     ports:
       - 3000:3000
     volumes:
       - ./app:/app/code
     container_name:
-      - maven-member-portal
+      - maven-member-portal-be
