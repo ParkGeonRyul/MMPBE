@@ -1,23 +1,18 @@
-from datetime import datetime
-from datetime import timezone
+from datetime import datetime, timezone
 
-from fastapi import APIRouter
-from fastapi import HTTPException
-from fastapi import status
-from fastapi import Response
-from fastapi.responses import JSONResponse
-from fastapi.requests import Request
+from fastapi import APIRouter, HTTPException, status, Response, Request
+from fastapi.responses import JSONResponse, RedirectResponse
+from httpx import AsyncClient
 
 from utils import formating
 from services import user_service
 from utils import dependencies
-from constants import COOKIES_KEY_NAME
-from constants import SESSION_TIME
+from constants import COOKIES_KEY_NAME, SESSION_TIME
 
 import os
-from fastapi.responses import RedirectResponse
-from httpx import AsyncClient
 from dotenv import load_dotenv
+import msal
+
 
 load_dotenv()
 router = APIRouter()
@@ -28,18 +23,22 @@ MS_REDIRECT_URI = os.getenv("MS_REDIRECT_URI")
 MS_AUTH_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
 MS_TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 MS_USER_INFO_URL = "https://graph.microsoft.com/v1.0/me"
+MS_AUTHORITY = "https://login.microsoftonline.com/common"
+PARTNER_CENTER_URL = os.getenv("PARTNER_CENTER_URL")
+
+msal_app = msal.ConfidentialClientApplication(
+    MS_CLIENT_ID,
+    authority=MS_AUTHORITY,
+    client_credential=MS_CLIENT_SECRET
+)
 
 @router.get("/login")
-def login_with_ms():
-    params = {
-        "client_id": MS_CLIENT_ID,
-        "redirect_uri": MS_REDIRECT_URI,
-        "response_type": "code",
-        "scope": "User.Read",
-        "response_mode": "query"
-    }
-    url = MS_AUTH_URL + "?" + "&".join([f"{key}={value}" for key, value in params.items()])
-    return RedirectResponse(url)
+def login_on_ms():
+    auth_url = msal_app.get_authorization_request_url(
+        scopes=["User.Read", "https://accountmgmtservice.dce.mp.microsoft.com/user_impersonation"],
+        redirect_uri=MS_REDIRECT_URI
+    )
+    return RedirectResponse(auth_url)
 
 @router.get("/auth/callback")
 async def auth_callback(request: Request):
@@ -47,33 +46,39 @@ async def auth_callback(request: Request):
     if not code:
         raise HTTPException(status_code=400, detail="Code not found")
 
-    async with AsyncClient() as client:
-        token_response = await client.post(
-            MS_TOKEN_URL,
-            data={
-                "client_id": MS_CLIENT_ID,
-                "client_secret": MS_CLIENT_SECRET,
-                "redirect_uri": MS_REDIRECT_URI,
-                "code": code,
-                "grant_type": "authorization_code"
-            },
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
-        )
-        if token_response.status_code != 200:
-            raise HTTPException(status_code=token_response.status_code, detail=token_response.text)
+    result = msal_app.acquire_token_by_authorization_code(
+        code,
+        scopes=["User.Read", "https://accountmgmtservice.dce.mp.microsoft.com/user_impersonation"],
+        redirect_uri=MS_REDIRECT_URI
+    )
 
-        token_data = token_response.json()
-        access_token = token_data.get("access_token")
+    if "access_token" not in result:
+        raise HTTPException(status_code=400, detail=result.get("error_description"))
+
+    access_token = result["access_token"]
+
+    async with AsyncClient() as client:
         user_response = await client.get(
             MS_USER_INFO_URL,
             headers={"Authorization": f"Bearer {access_token}"}
         )
+
         if user_response.status_code != 200:
             raise HTTPException(status_code=user_response.status_code, detail=user_response.text)
 
         user_data = user_response.json()
+        partner_response = await client.get(
+            PARTNER_CENTER_URL,
+            headers={"Authorization": f"Bearer {access_token}"}
+        )
 
-    return user_data
+        if partner_response.status_code != 200:
+            raise HTTPException(status_code=partner_response.status_code, detail=partner_response.text)
+
+        partner_data = partner_response.json()
+
+    return JSONResponse(content={"user_data": user_data, "partner_data": partner_data})
+
 
 @router.get("/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(res: Response) -> JSONResponse:
