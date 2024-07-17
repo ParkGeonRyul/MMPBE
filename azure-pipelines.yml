@@ -37,8 +37,6 @@ stages:
               targetType: "inline"
               script: |
                 sshpass -p '$(sshPassword)' ssh -o StrictHostKeyChecking=no $(sshUsername)@$(sshHost) -p $(sshPort) << EOF
-                  sudo docker pull $(containerRegistry)/$(imageRepository):$(tag)
-                  $(sshPassword)
-                  sudo docker run -d -p 3000:3000 $(containerRegistry)/$(imageRepository):$(tag)
-                  $(sshPassword)
+                  /usr/bin/docker pull $(containerRegistry)/$(imageRepository):$(tag)
+                  /usr/bin/docker run -d -p 3000:3000 $(containerRegistry)/$(imageRepository):$(tag)
                 EOF
