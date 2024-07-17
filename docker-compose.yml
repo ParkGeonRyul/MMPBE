@@ -1,7 +1,6 @@
 services:
   fastapi:
-    image: fastapi
-    command: sh ./app/dev.bash
+    image: mavenmembersportalbe:latest
     ports:
       - 3000:3000
     volumes:
