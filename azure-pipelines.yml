@@ -12,8 +12,6 @@ variables:
   dockerfilePath: "Dockerfile"
   tag: "$(Build.BuildId)"
   vmImageName: "ubuntu-latest"
-  - name: sshUsername
-    value: $[sshUsername]
 
 stages:
   - script: echo "name is test $(sshUsername)"
