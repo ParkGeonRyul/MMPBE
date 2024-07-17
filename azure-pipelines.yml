@@ -59,7 +59,9 @@ stages:
                 sshpass -p $(sshPassword) ssh -o StrictHostKeyChecking=no $(sshUsername)@$(sshHost) -p $(sshPort) << EOF
               # sudo docker login $(containerRegistry) -u $(acrUsername) -p $(acrPassword)
                   sudo docker pull $(containerRegistry)/$(imageRepository):$(tag)
-                  sudo docker run -d -p 80:80 $(containerRegistry)/$(imageRepository):$(tag)
+                  $(sshPassword)
+                  sudo docker run -d -p 3000:3000 $(containerRegistry)/$(imageRepository):$(tag)
+                  $(sshPassword)
                 EOF
             env:
               sshPassword: $(sshPassword)
