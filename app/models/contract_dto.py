@@ -192,3 +192,7 @@ class ContractModel(BaseModel):
             }
         }
     )
+
+
+class ContractCollection(BaseModel):
+    contracts: List[ContractModel]

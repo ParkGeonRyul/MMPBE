@@ -149,3 +149,6 @@ class  UpdateWorkRequestModel(BaseModel):
             }
         }
     )
+
+class WorkRequestCollection(BaseModel):
+    workRequests: List[WorkRequestModel]

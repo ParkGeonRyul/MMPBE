@@ -36,3 +36,6 @@ class roldModel(BaseModel):
             }
         }
     )
+
+class RoleCollection(BaseModel):
+    roles: List[roldModel]

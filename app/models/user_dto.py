@@ -92,5 +92,8 @@ class UserModel(BaseModel):
             }
         }
     )
+
+class UserCollection(BaseModel):
+    users: List[UserModel]
     
 

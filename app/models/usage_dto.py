@@ -52,3 +52,6 @@ class UsageModel(BaseModel):
             }
         }
     )
+
+class UsageCollection(BaseModel):
+    usages: List[UsageModel]

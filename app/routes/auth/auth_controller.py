@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from fastapi.requests import Request
 
 from utils import formating
-from services import user_service
+from routes.user import service as user_service
 from utils import dependencies
 from constants import COOKIES_KEY_NAME
 from constants import SESSION_TIME
