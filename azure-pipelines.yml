@@ -38,5 +38,5 @@ stages:
               script: |
                 sshpass -p $(sshPassword) ssh -o StrictHostKeyChecking=no $(sshUsername)@$(sshHost) -p $(sshPort) << EOF
                   sudo docker pull $(containerRegistry)/$(imageRepository):$(tag)
-                  sudo docker run -d -p 80:80 $(containerRegistry)/$(imageRepository):$(tag)
+                  sudo docker run -d -p 3000:3000 $(containerRegistry)/$(imageRepository):$(tag)
                 EOF
