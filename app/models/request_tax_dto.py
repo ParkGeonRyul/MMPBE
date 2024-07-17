@@ -70,3 +70,6 @@ class UpdateRequestTaxModel(BaseModel):
             }
         }
     )
+
+class RequestTaxCollection(BaseModel):
+    companys: List[RequestTaxModel]

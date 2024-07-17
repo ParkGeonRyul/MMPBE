@@ -44,3 +44,6 @@ class TaxModel(BaseModel):
             }
         }
     )
+
+class TaxCollection(BaseModel):
+    companys: List[TaxModel]

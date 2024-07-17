@@ -92,5 +92,8 @@ class UserModel(BaseModel):
             }
         }
     )
+
+class UserCollection(BaseModel):
+    companys: List[UserModel]
     
 

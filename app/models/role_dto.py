@@ -36,3 +36,6 @@ class roldModel(BaseModel):
             }
         }
     )
+
+class RoleCollection(BaseModel):
+    companys: List[roldModel]
