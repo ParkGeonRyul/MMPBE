@@ -11,14 +11,6 @@ variables:
   containerRegistry: "mavenmemberportal.azurecr.io"
   dockerfilePath: "Dockerfile"
   tag: "$(Build.BuildId)"
-
-  # SSH connection details
-  sshServiceConnection: "sshServiceConnectionID"
-  sshUsername: $[variable-YAML.ssh-user]
-  sshPassword: $[variable-YAML.ssh-password]
-  sshHost: $[variable-YAML.ssh-host]
-  sshPort: "22"
-
   vmImageName: "ubuntu-latest"
 
 stages:
@@ -39,31 +31,14 @@ stages:
               containerRegistry: $(dockerRegistryServiceConnection)
               tags: |
                 $(tag)
-
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: "3.x"
-              addToPath: true
-
-          - script: |
-              echo "Installing sshpass"
-              sudo apt-get update
-              sudo apt-get install -y sshpass
-            displayName: Install sshpass
-
           - task: Bash@3
             displayName: Pull and Run Docker Container on Remote Host
             inputs:
               targetType: "inline"
               script: |
                 sshpass -p $(sshPassword) ssh -o StrictHostKeyChecking=no $(sshUsername)@$(sshHost) -p $(sshPort) << EOF
-              # sudo docker login $(containerRegistry) -u $(acrUsername) -p $(acrPassword)
                   sudo docker pull $(containerRegistry)/$(imageRepository):$(tag)
                   $(sshPassword)
                   sudo docker run -d -p 3000:3000 $(containerRegistry)/$(imageRepository):$(tag)
                   $(sshPassword)
                 EOF
-            env:
-              sshPassword: $(sshPassword)
-              # acrUsername: $(acrUsername)
-              # acrPassword: $(acrPassword)
