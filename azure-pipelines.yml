@@ -14,7 +14,6 @@ variables:
   vmImageName: "ubuntu-latest"
 
 stages:
-  - script: echo "name is test $(sshUsername)"
   - stage: Build
     displayName: Build, push, and deploy stage
     jobs:
