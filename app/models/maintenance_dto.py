@@ -111,4 +111,4 @@ class UpdateMaintenanceModel(BaseModel):
     )
 
 class MaintenanceCollection(BaseModel):
-    companys: List[MaintenanceModel]
+    maintenances: List[MaintenanceModel]

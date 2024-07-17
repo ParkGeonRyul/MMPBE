@@ -151,4 +151,4 @@ class  UpdateWorkRequestModel(BaseModel):
     )
 
 class WorkRequestCollection(BaseModel):
-    companys: List[WorkRequestModel]
+    workRequests: List[WorkRequestModel]

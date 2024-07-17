@@ -72,4 +72,4 @@ class UpdateRequestTaxModel(BaseModel):
     )
 
 class RequestTaxCollection(BaseModel):
-    companys: List[RequestTaxModel]
+    requestTaxs: List[RequestTaxModel]

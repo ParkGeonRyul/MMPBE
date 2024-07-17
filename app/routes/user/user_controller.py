@@ -3,7 +3,7 @@ from fastapi import Query
 from fastapi import Path
 from fastapi import HTTPException
 
-from services import user_service
+from user import user_service
 from utils import dependencies
 
 

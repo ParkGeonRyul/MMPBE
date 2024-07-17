@@ -195,4 +195,4 @@ class ContractModel(BaseModel):
 
 
 class ContractCollection(BaseModel):
-    companys: List[ContractModel]
+    contracts: List[ContractModel]

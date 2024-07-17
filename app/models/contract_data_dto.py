@@ -107,4 +107,4 @@ class UpdateContractDataModel(BaseModel):
     )
 
 class ContractDataCollection(BaseModel):
-    contracts: List[ContractDataModel]
+    contractDatas: List[ContractDataModel]

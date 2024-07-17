@@ -54,4 +54,4 @@ class UsageModel(BaseModel):
     )
 
 class UsageCollection(BaseModel):
-    companys: List[UsageModel]
+    usages: List[UsageModel]
