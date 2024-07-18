@@ -1,6 +1,5 @@
 trigger:
   - develop
-  - azure-pipelines
 
 resources:
   - repo: self
