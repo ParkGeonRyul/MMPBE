@@ -5,14 +5,12 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from fastapi import FastAPI
 from utils import lifespan
-from routes.auth import controller as auth_controller
-from routes.page import controller as page_controller
-from routes.user import controller as user_controller
+from routes.auth import auth_controller
+from routes.page import page_controller
+from routes.user import user_controller
 
 from middlewares import cors_middleware
 # from middlewares import static_middleware
-
-from routes import index
 
 app = FastAPI(lifespan=lifespan.lifespan)
 
