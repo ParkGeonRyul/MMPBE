@@ -35,5 +35,17 @@ stages:
                   /usr/bin/docker stop $(dockerName)
                   /usr/bin/docker rm $(dockerName)
                   /usr/bin/docker pull $(containerRegistry)/$(imageRepository):$(tag)
-                  /usr/bin/docker run -d --name $(dockerName) -p $(port) $(containerRegistry)/$(imageRepository):$(tag)
+                  /usr/bin/docker run -d \
+                                      --name $(dockerName) \
+                                      -p $(port) \
+                                      --env MONGO_DATABASE=$(MONGO_DATABASE) \
+                                      --env MONGO_HOST=$(MONGO_HOST) \
+                                      --env MONGO_PASSWORD=$(MONGO_PASSWORD) \
+                                      --env MONGO_USERNAME=$(MONGO_USERNAME) \
+                                      --env MS_CLIENT_ID=$(MS_CLIENT_ID) \
+                                      --env MS_CLIENT_SECRET=$(MS_CLIENT_SECRET) \
+                                      --env MS_CLIENT_SECRET=$(MS_CLIENT_SECRET_) \
+                                      --env MS_CLIENT_VALUE_=$(MS_CLIENT_VALUE_) \
+                                      --env MS_REDIRECT_URI=$(MS_REDIRECT_URI) \
+                                      $(containerRegistry)/$(imageRepository):$(tag)
                 EOF
