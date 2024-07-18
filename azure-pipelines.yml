@@ -5,7 +5,19 @@ resources:
   - repo: self
 
 variables:
-  - group: variable-FastAPI
+  - group: MavenMembersPortal
+  - name: dockerRegistryServiceConnection
+    value: "e909f23a-a587-4be3-8554-6cc79cbd78c0"
+  - name: imageRepository
+    value: "mavenmembersportalbe"
+  - name: containerRegistry
+    value: "mavenmemberportal.azurecr.io"
+  - name: dockerfilePath
+    value: "**/Dockerfile"
+  - name: tag
+    value: "$(Build.BuildId)"
+  - name: vmImageName
+    value: "ubuntu-latest"
 
 stages:
   - stage: Build
@@ -32,8 +44,20 @@ stages:
               script: |
                 sshpass -p '$(sshPassword)' ssh -o StrictHostKeyChecking=no $(sshUsername)@$(sshHost) -p $(sshPort) << EOF
                   az acr login --name $(dockerLogin)
-                  /usr/bin/docker stop $(dockerName)
-                  /usr/bin/docker rm $(dockerName)
+                  /usr/bin/docker stop $(dockerbackname)
+                  /usr/bin/docker rm $(dockerbackname)
                   /usr/bin/docker pull $(containerRegistry)/$(imageRepository):$(tag)
-                  /usr/bin/docker run -d --name $(dockerName) -p $(port) $(containerRegistry)/$(imageRepository):$(tag)
+                  /usr/bin/docker run -d \
+                                      --name $(dockerbackname) \
+                                      -p $(BE_PORT) \
+                                      --env MONGO_DATABASE=$(MONGO_DATABASE) \
+                                      --env MONGO_HOST=$(MONGO_HOST) \
+                                      --env MONGO_PASSWORD=$(MONGO_PASSWORD) \
+                                      --env MONGO_USERNAME=$(MONGO_USERNAME) \
+                                      --env MS_CLIENT_ID=$(MS_CLIENT_ID) \
+                                      --env MS_CLIENT_SECRET=$(MS_CLIENT_SECRET) \
+                                      --env MS_CLIENT_SECRET=$(MS_CLIENT_SECRET_) \
+                                      --env MS_CLIENT_VALUE_=$(MS_CLIENT_VALUE_) \
+                                      --env MS_REDIRECT_URI=$(MS_REDIRECT_URI) \
+                                      $(containerRegistry)/$(imageRepository):$(tag)
                 EOF
