@@ -6,12 +6,7 @@ resources:
   - repo: self
 
 variables:
-  dockerRegistryServiceConnection: "e909f23a-a587-4be3-8554-6cc79cbd78c0"
-  imageRepository: "mavenmembersportalbe"
-  containerRegistry: "mavenmemberportal.azurecr.io"
-  dockerfilePath: "Dockerfile"
-  tag: "$(Build.BuildId)"
-  vmImageName: "ubuntu-latest"
+  - group: variable-FastAPI
 
 stages:
   - stage: Build
@@ -37,6 +32,9 @@ stages:
               targetType: "inline"
               script: |
                 sshpass -p '$(sshPassword)' ssh -o StrictHostKeyChecking=no $(sshUsername)@$(sshHost) -p $(sshPort) << EOF
+                  az acr login --name $(dockerLogin)
+                  /usr/bin/docker stop $(dockerName)
+                  /usr/bin/docker rm $(dockerName)
                   /usr/bin/docker pull $(containerRegistry)/$(imageRepository):$(tag)
-                  /usr/bin/docker run -d -p 3000:3000 $(containerRegistry)/$(imageRepository):$(tag)
+                  /usr/bin/docker run -d --name $(dockerName) -p $(port) $(containerRegistry)/$(imageRepository):$(tag)
                 EOF
