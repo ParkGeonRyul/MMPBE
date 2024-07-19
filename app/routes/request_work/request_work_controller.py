@@ -60,28 +60,24 @@ async def updateModifyWorkRequest(item: UpdateWorkRequestModel):
         requestDt=item.requestDt,
         workContent=item.workContent,
         file=item.file
-    )
-    return {"message": "Request Update"}
+        )
+
+    return {"message": "Request Create"}
 
 @router.put(
-    "/recovery-work",
+    "/modify-work",
     status_code=status.HTTP_200_OK,
     response_model_by_alias=False
 )
-async def updateRecoveryWorkRequest(item: UpdateWorkRequestModel):
-    await request_work_service.updateRecoveryRequestWork(
-        id=item.id
+async def updateModifyWorkRequest(item: UpdateWorkRequestModel):
+    await request_work_service.updateModifyRequestWork(
+        id=item.id,
+        userId=item.userId,
+        deviceNm=item.deviceNm,
+        requestTitle=item.requestTitle,
+        customerNm=item.customerNm,
+        requestDt=item.requestDt,
+        workContent=item.workContent,
+        file=item.file
     )
-    return {"message": "Request Change"}
-
-
-@router.post(
-    "/test",
-    status_code=status.HTTP_200_OK,
-    response_model_by_alias=False)
-async def testDrive(item: WorkRequestModel):
-    test = await request_work_service.testDrive(
-        item = item
-    )
-
-    return test
+    return {"message": "Request Update"}
