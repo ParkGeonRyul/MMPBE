@@ -1,23 +1,18 @@
-from datetime import datetime
-from datetime import timezone
-
-from fastapi import APIRouter
-from fastapi import HTTPException
-from fastapi import status
-from fastapi import Response
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, HTTPException, status, Response, Cookie
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.requests import Request
 
+import os
+
+from datetime import datetime, timezone
 from utils import formating
 from routes.request_work import request_work_service
 from utils import dependencies
-from constants import COOKIES_KEY_NAME
-from constants import SESSION_TIME
+from constants import COOKIES_KEY_NAME, SESSION_TIME
 from models.work_request_dto import WorkRequestModel, UpdateWorkRequestModel
-
-import os
-from fastapi.responses import RedirectResponse
 from httpx import AsyncClient
+from typing import List, Optional
+
 from dotenv import load_dotenv
 
 from modules.custom_error import testId
@@ -26,50 +21,73 @@ from modules.custom_error import testId
 load_dotenv()
 router = APIRouter()
 
+class Router:
+    def __init__(self):
+        pass
+        
+
 @router.post(
-        "/create-work",
+        "/createRequest",
         status_code=status.HTTP_201_CREATED,
         response_model_by_alias=False
         )       
-async def postWorkRequest(item: WorkRequestModel):
-    await request_work_service.postRequestWork(
-        userId=item.userId,
-        deviceNm=item.deviceNm,
-        requestTitle=item.requestTitle,
-        customerNm=item.customerNm,
-        requestDt=item.requestDt,
-        workContent=item.workContent,
-        file=item.file,
-        delYn=item.delYn
+async def post_work_request(item: WorkRequestModel):
+    await request_work_service.post_request_work(
+        user_id=item.userId,
+        device_nm=item.deviceNm,
+        request_title=item.requestTitle,
+        customer_nm=item.customerNm,
+        request_date=item.requestDt,
+        work_content=item.workContent,
+        file=item.file
         )
 
-    return {"message": "Request Create"}
+    return {"message": "Request Created"}
 
 @router.put(
-    "/modify-work",
+    "/updateRequest/modify",
     status_code=status.HTTP_200_OK,
     response_model_by_alias=False
 )
-async def updateModifyWorkRequest(item: UpdateWorkRequestModel):
-    await request_work_service.updateModifyRequestWork(
+async def update_modify_work_request(item: UpdateWorkRequestModel):
+    await request_work_service.update_modify_request_work(
         id=item.id,
-        userId=item.userId,
-        deviceNm=item.deviceNm,
-        requestTitle=item.requestTitle,
-        customerNm=item.customerNm,
-        requestDt=item.requestDt,
-        workContent=item.workContent,
-        file=item.file
+        user_id=item.userId,
+        device_nm=item.deviceNm,
+        request_title=item.requestTitle,
+        customer_nm=item.customerNm,
+        request_date=item.requestDt,
+        work_content=item.workContent,
+        file=item.file,
+        del_yn=item.delYn
     )
-    return {"message": "Request Update"}
+    return {"message": "Request Updated"}
 
 @router.put(
-    "/recovery-work",
+    "/updateRequest/delete",
     status_code=status.HTTP_200_OK,
     response_model_by_alias=False
 )
-async def updateRecoveryWorkRequest(item: UpdateWorkRequestModel):
-    await request_work_service.updateRecoveryRequestWork(
+async def update_delete_work_request(item: UpdateWorkRequestModel):
+    await request_work_service.update_recovery_request_work(
         id=item.id
     )
-    return {"message": "Request Change"}
+    return {"message": "Request Changed"}
+
+@router.get(
+        "/readRequest",
+        status_code=status.HTTP_200_OK,
+        response_model_by_alias=False
+)
+async def get_request_list(page: int, token: Optional[str] = Cookie(None)):
+    request_list = request_work_service.get_request_work_list(page=page, token=token)
+    return request_list
+
+@router.get(
+    "/readDetailRequest",
+    status_code=status.HTTP_200_OK,
+    response_model_by_alias=False
+)
+async def test(requestId: str, token: Optional[str] = Cookie(None)):
+    request_dtl = request_work_service.get_request_work_dtl(request_id=requestId, token=token)
+    return {"requestDtl": request_dtl}
