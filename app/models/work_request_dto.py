@@ -151,5 +151,5 @@ class  UpdateWorkRequestModel(BaseModel):
         }
     )
 
-class WorkRequestCollection(BaseModel):
-    workRequests: List[WorkRequestModel]
+class UpdateDelYnWorkRequestModel(BaseModel):
+    id: str

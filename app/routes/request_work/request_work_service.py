@@ -13,7 +13,8 @@ async def postRequestWork(
         customerNm: str,
         requestDt: str,
         workContent: str,
-        file: str
+        file: str,
+        delYn: str
         ):
     document = {
         "userId": userId,
@@ -22,7 +23,8 @@ async def postRequestWork(
         "customerNm": customerNm,
         "requestDt": requestDt,
         "workContent": workContent,
-        "file":file
+        "file":file,
+        "delYn":delYn
     }
     workRequestCollection.insert_one(document)
 
@@ -46,4 +48,12 @@ async def updateModifyRequestWork(
         "workContent": workContent
         })
     workRequestCollection.update_one(filter, {"$set": reqData})
-    workRequestCollection.update_one(filter,{"$set":{"file":file}})
+    workRequestCollection.update_one(filter, {"$set":{"file": file}})
+
+async def updateRecoveryRequestWork(
+        id: str
+        ):
+    filter = {"_id": id}
+    workRequestCollection.update_one(filter, {"$set":{"delYn": "Y"}})
+
+    return "success"

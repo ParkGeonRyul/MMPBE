@@ -23,7 +23,7 @@ async def testCode_postWork():
         "requestDt": "2024-07-19",
         "workContent": "test"
     }
-    response = client.post("/request-work", json=document)
+    response = client.post("/create-work", json=document)
     
     if response.status_code == 201:
         filter_query = {"userId": document.get('userId')}
@@ -39,7 +39,19 @@ async def testCode_putWork():
         "userId": "6690cf7fa4997bf6ba0546c2",
         "deviceNm": "tesststststt"
     }
-    response = client.post("/request-work", json=document)
+    response = client.post("/modify-work", json=document)
+    
+    if response.status_code == 200:
+        return True
+    else:
+        return False
+    
+@pytest.mark.anyio
+async def testCode_delWork():
+    document = {
+        "id": "6699f50f39111c39d9792ef7"
+    }
+    response = client.post("/recovery-work")
     
     if response.status_code == 200:
         return True
