@@ -39,7 +39,8 @@ async def postWorkRequest(item: WorkRequestModel):
         customerNm=item.customerNm,
         requestDt=item.requestDt,
         workContent=item.workContent,
-        file=item.file
+        file=item.file,
+        delYn=item.delYn
         )
 
     return {"message": "Request Create"}
