@@ -10,4 +10,4 @@ class Config:
     HOST = os.getenv("MONGO_HOST")
     DATABASE = os.getenv("MONGO_DATABASE")
 
-    MONGO_URI = f"mongodb://{USERNAME}:{PASSWORD}@{HOST}:27017/{DATABASE}"
+    MONGO_URI = f"mongodb://{USERNAME}:{PASSWORD}@{HOST}:27017/{DATABASE}?authSource=admin"

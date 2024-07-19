@@ -16,6 +16,6 @@ router = APIRouter(
 @router.get("/")
 def main(req: Request):
     now = datetime.now()
-    collection = Database.client.list_database_names()
+    collection = Database.db.list_collection_names()
     print(f"Databases: {collection}")
     return "collection"

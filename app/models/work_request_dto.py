@@ -25,7 +25,7 @@ class WorkRequestField:
     contactNm = Field(
         description="담당자 이름(Maven)",
         example="Aiden",
-        min_length=1
+        default=None
     )
     requestTitle = Field(
         description="요청 제목",
@@ -47,7 +47,7 @@ class WorkRequestField:
     file = Field(
         description="첨부 파일",
         example="Zone파일.zip",
-        min_length=1
+        default=None
     )
     status = Field(
         description="승인 여부",
@@ -56,7 +56,8 @@ class WorkRequestField:
     )
     acceptorNm = Field(
         description="승인자 이름",
-        example="Aiden"
+        example="Aiden",
+        default=None
     )
     regYn = Field(
         description="작업 요청 상태",
@@ -80,30 +81,30 @@ class WorkRequestModel(BaseModel):
     id: Optional[PyObjectId] = WorkRequestField.id
     userId: str = WorkRequestField.userId
     deviceNm: str = WorkRequestField.deviceNm
-    contactNm: str = WorkRequestField.contactNm
+    contactNm: Optional[str] = WorkRequestField.contactNm
     requestTitle: str = WorkRequestField.requestTitle
     customerNm: str = WorkRequestField.customerNm
     requestDt: datetime = WorkRequestField.requestDt
     workContent: str = WorkRequestField.workContent
-    file: str = WorkRequestField.file
-    status: str = WorkRequestField.status
-    acceptorNm: str = WorkRequestField.acceptorNm
-    regYn: str = WorkRequestField.regYn
+    file: Optional[str] = WorkRequestField.file
+    status: Optional[str] = WorkRequestField.status
+    acceptorNm: Optional[str] = WorkRequestField.acceptorNm
+    regYn: Optional[str] = WorkRequestField.regYn
     createdAt: Optional[datetime] = WorkRequestField.createdAt
     updatedAt: Optional[datetime] = WorkRequestField.updatedAt
     delYn: Optional[str] = WorkRequestField.delYn
     model_config = ConfigDict(
         populate_by_name=True,
-        arbitrary_types_allowed=True,
         json_encoders={ObjectId: str},
+        arbitrary_types_allowed = True,
         json_schema_extra={
             "example": {
-                "userId": "6690cf7fa4897bf6b90541c1(ObjectId)",
+                "userId": "6690cf7fa4897bf6b90541c1",
                 "diviceNm": "장비 이름",
                 "contactNm": "담당자 이름(Maven)",
                 "requestTitle": "요청 제목",
                 "customerNm": "고객 이름",
-                "requestDt": "요청 일자 (UTC + 0)",
+                "requestDt": "2024-07-19 08:06:05.064246",
                 "workContent": "작업 내용",
                 "file": "파일 명",
                 "status": "승인 여부",
@@ -150,5 +151,5 @@ class  UpdateWorkRequestModel(BaseModel):
         }
     )
 
-class WorkRequestCollection(BaseModel):
-    workRequests: List[WorkRequestModel]
+class UpdateDelYnWorkRequestModel(BaseModel):
+    id: str
