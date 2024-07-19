@@ -81,3 +81,14 @@ async def updateModifyWorkRequest(item: UpdateWorkRequestModel):
         file=item.file
     )
     return {"message": "Request Update"}
+
+@router.put(
+    "/recovery-work",
+    status_code=status.HTTP_200_OK,
+    response_model_by_alias=False
+)
+async def updateRecoveryWorkRequest(item: UpdateWorkRequestModel):
+    await request_work_service.updateRecoveryRequestWork(
+        id=item.id
+    )
+    return {"message": "Request Change"}
