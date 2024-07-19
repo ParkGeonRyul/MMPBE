@@ -43,23 +43,25 @@ async def postWorkRequest(item: WorkRequestModel):
         delYn=item.delYn
         )
 
-    return {"message": "Request Create"}
+    # return {"message": "Request Created"}
+    return item
 
 @router.put(
-    "/modify-work",
+    "/updateRequest/modify",
     status_code=status.HTTP_200_OK,
     response_model_by_alias=False
 )
-async def updateModifyWorkRequest(item: UpdateWorkRequestModel):
-    await request_work_service.updateModifyRequestWork(
+async def update_modify_work_request(item: UpdateWorkRequestModel):
+    await request_work_service.update_modify_request_work(
         id=item.id,
-        userId=item.userId,
-        deviceNm=item.deviceNm,
-        requestTitle=item.requestTitle,
-        customerNm=item.customerNm,
-        requestDt=item.requestDt,
-        workContent=item.workContent,
-        file=item.file
+        user_id=item.userId,
+        device_nm=item.deviceNm,
+        request_title=item.requestTitle,
+        customer_nm=item.customerNm,
+        request_date=item.requestDt,
+        work_content=item.workContent,
+        file=item.file,
+        del_yn=item.delYn
     )
     return {"message": "Request Updated"}
 

@@ -3,8 +3,6 @@ from db.context import work_request_collection
 import pymongo
 from db.context import Database
 from datetime import datetime
-from bson import ObjectId
-from utils import objectCleaner
 
 from utils import objectCleaner
 
