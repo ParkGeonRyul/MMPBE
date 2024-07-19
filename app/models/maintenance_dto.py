@@ -109,3 +109,6 @@ class UpdateMaintenanceModel(BaseModel):
             }
         }
     )
+
+class MaintenanceCollection(BaseModel):
+    maintenances: List[MaintenanceModel]

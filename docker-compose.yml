@@ -1,0 +1,8 @@
+services:
+  fastapi:
+    image: mavenmembersportalbe:latest
+    ports:
+      - 3000:3000
+    volumes:
+      - ./app:/code
+    container_name: "mavenmembersportalbe"

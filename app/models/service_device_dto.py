@@ -97,3 +97,6 @@ class ServiceDeviceModel(BaseModel):
             }
         }
     )
+
+class ServiceDeviceCollection(BaseModel):
+    serviceDevices: List[ServiceDeviceModel]

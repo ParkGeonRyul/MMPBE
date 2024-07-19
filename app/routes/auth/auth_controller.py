@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from httpx import AsyncClient
 
 from utils import formating
-from services import user_service
+from routes.user import user_service
 from utils import dependencies
 from constants import COOKIES_KEY_NAME, SESSION_TIME
 
