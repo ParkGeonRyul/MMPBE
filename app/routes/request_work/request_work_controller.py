@@ -13,7 +13,7 @@ from routes.request_work import request_work_service
 from utils import dependencies
 from constants import COOKIES_KEY_NAME
 from constants import SESSION_TIME
-from models.work_request_dto import WorkRequestModel
+from models.work_request_dto import WorkRequestModel, UpdateWorkRequestModel
 
 import os
 from fastapi.responses import RedirectResponse
@@ -27,12 +27,12 @@ load_dotenv()
 router = APIRouter()
 
 @router.post(
-        "/request-work",
+        "/create-work",
         status_code=status.HTTP_201_CREATED,
         response_model_by_alias=False
         )       
 async def postWorkRequest(item: WorkRequestModel):
-    await request_work_service.requestWork(
+    await request_work_service.postRequestWork(
         userId=item.userId,
         deviceNm=item.deviceNm,
         requestTitle=item.requestTitle,
@@ -43,3 +43,21 @@ async def postWorkRequest(item: WorkRequestModel):
         )
 
     return {"message": "Request Create"}
+
+@router.put(
+    "/modify-work",
+    status_code=status.HTTP_200_OK,
+    response_model_by_alias=False
+)
+async def updateModifyWorkRequest(item: UpdateWorkRequestModel):
+    await request_work_service.updateModifyRequestWork(
+        id=item.id,
+        userId=item.userId,
+        deviceNm=item.deviceNm,
+        requestTitle=item.requestTitle,
+        customerNm=item.customerNm,
+        requestDt=item.requestDt,
+        workContent=item.workContent,
+        file=item.file
+    )
+    return {"message": "Request Update"}
