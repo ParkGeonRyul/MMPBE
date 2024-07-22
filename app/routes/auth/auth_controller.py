@@ -1,5 +1,6 @@
 from datetime import datetime
 from datetime import timezone
+from datetime import timedelta
 
 from fastapi import APIRouter
 from fastapi import HTTPException
@@ -18,12 +19,19 @@ from constants import SESSION_TIME
 import json
 import pymongo
 import os
+import msal
+
+from bson import ObjectId
 from fastapi.responses import RedirectResponse
 from httpx import AsyncClient
 from dotenv import load_dotenv
 from db.context import authCollection
+from db.context import userCollection
+from db.context import ttl_seconds
 from typing import Annotated
-import msal
+from utils import objectCleaner
+from utils.objectId_convert import objectIdConvert
+
 
 load_dotenv()
 router = APIRouter()
@@ -44,59 +52,32 @@ msal_app = msal.ConfidentialClientApplication(
 
 @router.get("/login")
 async def accessCookie(ads_id: Annotated[str | None, Cookie()] = None):
-    if ads_id == None:
+    readAccessToken = authCollection.find_one(ObjectId(ads_id))
+    if ads_id == None or readAccessToken == None:
         url = msal_app.get_authorization_request_url(
             scopes=["User.Read", "https://accountmgmtservice.dce.mp.microsoft.com/user_impersonation"],
             redirect_uri=MS_REDIRECT_URI
-            )
-
+            )        
         return RedirectResponse(url)
     else:
-        params = {
-            "client_id": MS_CLIENT_ID
-        }
-        test = authCollection.find_one({ "accessToken": ads_id })
-        if test:
-            test['_id'] = str(test['_id'])
-
-        result = msal_app.acquire_token_by_refresh_token(test["refreshToken"], scopes=["User.Read"])
+        objectIdConvert(readAccessToken)
         async with AsyncClient() as client:
             user_response = await client.get(
             MS_USER_INFO_URL,
-            headers={"Authorization": f"Bearer {test['accessToken']}"}
+            headers={"Authorization": f"Bearer {readAccessToken['accessToken']}"}
         )
-        return result
         if user_response.status_code == 200:
-            return True
+            return {"message": "access token is valid"}
         else:
-            async with AsyncClient() as client:
-                accessToken = await client.get(
-                    MS_TOKEN_URL,
-                    headers={'Content-Type': 'application/x-www-form-urlencoded'},
-                    data={
-                        "client_id": MS_CLIENT_ID,
-                        "scope": "User.Read",
-                        "refresh_token": test['refreshToken'],
-                        "grant_type": "refresh_token",
-                        "client_secret": MS_CLIENT_SECRET
-                        }
-                )
-                return accessToken
-        # # if test:
-        #     test['_id'] = str(test['_id'])
-        #     return json.dumps(test)
+            updateAccessId = msal_app.acquire_token_by_refresh_token(readAccessToken["refreshToken"], scopes=["User.Read"])
+            document = {
+                "accessToken": updateAccessId["access_token"],
+                "refreshToken": updateAccessId["refresh_token"]
+            }
 
-# @router.get("/testt")
-# def login_with_ms():
-#     params = {
-#         "client_id": MS_CLIENT_ID,
-#         "redirect_uri": MS_REDIRECT_URI,
-#         "response_type": "code",
-#         "scope": "User.Read",
-#         "response_mode": "query"
-#     }
-#     url = MS_AUTH_URL + "?" + "&".join([f"{key}={value}" for key, value in params.items()])
-#     return RedirectResponse(url)
+            filter = {"_id": ObjectId(ads_id)}
+            authCollection.update_one(filter, {"$set": document})
+            return {"message": "token has been refresh"}
 
 @router.get("/auth/callback")
 async def auth_callback(request: Request):
@@ -129,17 +110,29 @@ async def auth_callback(request: Request):
         )
         if user_response.status_code != 200:
             raise HTTPException(status_code=user_response.status_code, detail=user_response.text)
-        
-        document = {
-        "accessToken": access_token,
-        "refreshToken": refresh_token
-        }
-
-        authCollection.insert_one(document)
 
         user_data = user_response.json()
 
-    return refresh_token
+        findUser = userCollection.find_one({"email": user_data['mail']})
+        objectIdConvert(findUser)
+
+        if findUser != None:  
+            expiration_time = datetime.utcnow() + timedelta(seconds=ttl_seconds)                          
+
+            document = {
+            "accessToken": access_token,
+            "refreshToken": refresh_token,
+            "userId": findUser['_id'],
+            "expireAt": expiration_time
+            }
+
+            authCollection.insert_one(document)
+
+            accessId = authCollection.find_one({"accessToken": document["accessToken"]})
+            objectIdConvert(accessId)
+            return {"accessId": accessId['_id']}
+        else:
+            return {"message": "Invalid User"}
 
 @router.get("/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(res: Response) -> JSONResponse:
@@ -155,4 +148,4 @@ async def check_session( req: Request, res: Response) -> JSONResponse:
     #     raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token is invalid")
         
     # return data
-    return 
+    return "a"

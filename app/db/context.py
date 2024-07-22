@@ -1,4 +1,4 @@
-from pymongo import MongoClient
+from pymongo import MongoClient, ASCENDING
 from config import Config
 
 
@@ -22,3 +22,11 @@ usageCollection = Database.db["usage"]
 userCollection = Database.db["users"]
 workRequestCollection = Database.db["workRequest"]
 authCollection = Database.db["auth"]
+
+authCollection.drop_index("expireAt_1")
+
+ttl_seconds = 3600
+authCollection.create_index(
+    [("expireAt", ASCENDING)],
+    expireAfterSeconds=ttl_seconds
+)
