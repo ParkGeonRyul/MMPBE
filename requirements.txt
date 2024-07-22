@@ -38,6 +38,8 @@ watchfiles==0.22.0
 websockets==12.0
 pytest
 pytest-asyncio
+httpx
+msal
 pymongo
 alembic
 apscheduler

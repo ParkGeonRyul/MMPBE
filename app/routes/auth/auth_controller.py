@@ -23,6 +23,7 @@ from httpx import AsyncClient
 from dotenv import load_dotenv
 from db.context import authCollection
 from typing import Annotated
+import msal
 
 load_dotenv()
 router = APIRouter()
@@ -33,18 +34,21 @@ MS_REDIRECT_URI = os.getenv("MS_REDIRECT_URI")
 MS_AUTH_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
 MS_TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 MS_USER_INFO_URL = "https://graph.microsoft.com/v1.0/me"
+MS_AUTHORITY = "https://login.microsoftonline.com/common"
+
+msal_app = msal.ConfidentialClientApplication(
+    MS_CLIENT_ID,
+    authority=MS_AUTHORITY,
+    client_credential=MS_CLIENT_SECRET
+)
 
 @router.get("/login")
 async def accessCookie(ads_id: Annotated[str | None, Cookie()] = None):
     if ads_id == None:
-        params = {
-            "client_id": MS_CLIENT_ID,
-            "redirect_uri": MS_REDIRECT_URI,
-            "response_type": "code",
-            "scope": "https%3A%2F%2Fgraph.microsoft.com%2F.default%20offline_access",
-            "response_mode": "query"
-        }
-        url = MS_AUTH_URL + "?" + "&".join([f"{key}={value}" for key, value in params.items()])
+        url = msal_app.get_authorization_request_url(
+            scopes=["User.Read", "https://accountmgmtservice.dce.mp.microsoft.com/user_impersonation"],
+            redirect_uri=MS_REDIRECT_URI
+            )
 
         return RedirectResponse(url)
     else:
@@ -55,13 +59,13 @@ async def accessCookie(ads_id: Annotated[str | None, Cookie()] = None):
         if test:
             test['_id'] = str(test['_id'])
 
-
+        result = msal_app.acquire_token_by_refresh_token(test["refreshToken"], scopes=["User.Read"])
         async with AsyncClient() as client:
             user_response = await client.get(
             MS_USER_INFO_URL,
             headers={"Authorization": f"Bearer {test['accessToken']}"}
         )
-        
+        return result
         if user_response.status_code == 200:
             return True
         else:
@@ -135,7 +139,7 @@ async def auth_callback(request: Request):
 
         user_data = user_response.json()
 
-    return token_data
+    return refresh_token
 
 @router.get("/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(res: Response) -> JSONResponse:
