@@ -14,25 +14,25 @@ class RoleField:
         alias="_id",
         default_factory=PyObjectId
     )
-    roleId = Field(
+    role_id = Field(
         description="역할 ID(Integer Index)"
     ) 
-    roleNm = Field(
+    role_nm = Field(
         description="역할 이름"
     )
 
 class roldModel(BaseModel):
     id: Optional[PyObjectId] = RoleField.id
-    roldId: int = RoleField.roleId
-    roleNm: str = RoleField.roleNm
+    roldId: int = RoleField.role_id
+    role_nm: str = RoleField.role_nm
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str},
         json_schema_extra={
             "example": {
-                "roleId": "역할 ID(Integer)",
-                "roleNm": "역할 이름"
+                "role_id": "역할 ID(Integer)",
+                "role_nm": "역할 이름"
             }
         }
     )

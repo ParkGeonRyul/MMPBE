@@ -14,11 +14,11 @@ class authFields:
         alias="_id",
         default_factory=PyObjectId
     )
-    accessToken = Field(
+    access_token = Field(
         description="회사 이름",
         examples="메이븐클라우드서비스"
     )
-    refreshToken = Field(
+    refresh_token = Field(
         description="회사 이름",
         examples="메이븐클라우드서비스"
     )
@@ -26,16 +26,16 @@ class authFields:
 
 class CompanyModel(BaseModel):
     id: Optional[PyObjectId] = authFields.id
-    accessToken: str = authFields.accessToken
-    refreshToken: str = authFields.refreshToken
+    access_token: str = authFields.access_token
+    refresh_token: str = authFields.refresh_token
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str},
         json_schema_extra={
             "example": {
-                "accessToken": "sEcRet",
-                "refreshToken": "SeCrEt"
+                "access_token": "sEcRet",
+                "refresh_token": "SeCrEt"
             }
         }
     )
