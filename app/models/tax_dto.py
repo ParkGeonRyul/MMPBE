@@ -14,33 +14,33 @@ class TaxField:
         alias="_id",
         default_factory=PyObjectId
     )
-    userId = Field(
+    user_id = Field(
         description="고객 ID(ObjectID)"
     )
-    taxAmt = Field(
+    tax_amt = Field(
         description="과금 내역",
         examples="100000",
         ge=0,
         default=0
     )
-    taxDt = Field(
+    tax_date = Field(
         description="과금 날짜(UTC + 0)"
     )
 
 class TaxModel(BaseModel):
     id: Optional[PyObjectId] = TaxField.id
-    userId: str = TaxField.userId
-    taxAmt: int = TaxField.taxAmt
-    taxDt: datetime = TaxField.taxDt
+    user_id: str = TaxField.user_id
+    tax_amt: int = TaxField.tax_amt
+    tax_date: datetime = TaxField.tax_date
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str},
         json_schema_extra={
             "example": {
-                "userId": "6690cf7fa4897bf6b90541c1(ObjectId)",
-                "taxAmt": "과금 내역",
-                "taxDt": "과금 날짜(UTC + 0)"
+                "user_id": "6690cf7fa4897bf6b90541c1(ObjectId)",
+                "tax_amt": "과금 내역",
+                "tax_date": "과금 날짜(UTC + 0)"
             }
         }
     )

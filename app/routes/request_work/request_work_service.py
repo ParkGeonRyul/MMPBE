@@ -1,5 +1,5 @@
 import json
-from db.context import workRequestCollection
+from db.context import work_request_collection
 import pymongo
 from db.context import Database
 from datetime import datetime
@@ -27,7 +27,7 @@ async def postRequestWork(
         "file":file,
         "delYn":delYn
     }
-    workRequestCollection.insert_one(document)
+    work_request_collection.insert_one(document)
 
 async def updateModifyRequestWork(
         id: str,
@@ -48,14 +48,14 @@ async def updateModifyRequestWork(
         "requestDt": requestDt,
         "workContent": workContent
         })
-    workRequestCollection.update_one(filter, {"$set": reqData})
-    workRequestCollection.update_one(filter, {"$set":{"file": file}})
+    work_request_collection.update_one(filter, {"$set": reqData})
+    work_request_collection.update_one(filter, {"$set":{"file": file}})
 
 async def updateRecoveryRequestWork(
         id: str
         ):
     filter = {"_id": id}
-    workRequestCollection.update_one(filter, {"$set":{"delYn": "Y"}})
+    work_request_collection.update_one(filter, {"$set":{"delYn": "Y"}})
 
     return "success"
 

@@ -14,13 +14,13 @@ class RequestTaxField:
         alias="_id",
         default_factory=PyObjectId
     )
-    userId = Field(
+    user_id = Field(
         description="고객 ID(ObjectID)"
     )
-    requestDt = Field(
+    request_date = Field(
         description="요청 날짜(UTC + 0)"
     )
-    requestContent = Field(
+    request_content = Field(
         description="요청 내용",
         examples="202301 ~ 202302",
         min_length=1
@@ -33,9 +33,9 @@ class RequestTaxField:
 
 class RequestTaxModel(BaseModel):
     id: Optional[PyObjectId] = RequestTaxField.id
-    userId: str = RequestTaxField.userId
-    requestDt: datetime = RequestTaxField.requestDt
-    requestContent: str = RequestTaxField.requestContent
+    user_id: str = RequestTaxField.user_id
+    request_date: datetime = RequestTaxField.request_date
+    request_content: str = RequestTaxField.request_content
     status: Optional[str] = RequestTaxField.status
     model_config = ConfigDict(
         populate_by_name=True,
@@ -43,9 +43,9 @@ class RequestTaxModel(BaseModel):
         json_encoders={ObjectId: str},
         json_schema_extra={
             "example": {
-                "userId": "6690cf7fa4897bf6b90541c1(ObjectId)",
-                "requestDt": "요청 날짜",
-                "requestContent": "요청 내용",
+                "user_id": "6690cf7fa4897bf6b90541c1(ObjectId)",
+                "request_date": "요청 날짜",
+                "request_content": "요청 내용",
                 "status": "요청 진행 상황",
             }
         }
@@ -53,9 +53,9 @@ class RequestTaxModel(BaseModel):
 
 class UpdateRequestTaxModel(BaseModel):
     id: Optional[PyObjectId] = None
-    userId: Optional[str] = None
-    requestDt: Optional[datetime] = None
-    requestContent: Optional[str] = None
+    user_id: Optional[str] = None
+    request_date: Optional[datetime] = None
+    request_content: Optional[str] = None
     status: Optional[str] = None
     model_config = ConfigDict(
         populate_by_name=True,
@@ -63,13 +63,13 @@ class UpdateRequestTaxModel(BaseModel):
         json_encoders={ObjectId: str},
         json_schema_extra={
             "example": {
-                "userId": "6690cf7fa4897bf6b90541c1(ObjectId)",
-                "requestDt": "요청 날짜",
-                "requestContent": "요청 내용",
+                "user_id": "6690cf7fa4897bf6b90541c1(ObjectId)",
+                "request_date": "요청 날짜",
+                "request_content": "요청 내용",
                 "status": "요청 진행 상황",
             }
         }
     )
 
 class RequestTaxCollection(BaseModel):
-    requestTaxs: List[RequestTaxModel]
+    request_taxs: List[RequestTaxModel]
