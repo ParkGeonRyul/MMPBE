@@ -17,10 +17,10 @@ from bson import ObjectId
 from fastapi.responses import RedirectResponse
 from httpx import AsyncClient
 from dotenv import load_dotenv
-from db.context import authCollection, userCollection
+from db.context import auth_collection, user_collection
 from typing import Annotated
 from utils import objectCleaner
-from utils.objectId_convert import objectIdConvert
+from utils.objectId_convert import objectId_convert
 
 
 load_dotenv()
@@ -41,24 +41,25 @@ msal_app = msal.ConfidentialClientApplication(
 )
 
 
-async def getAccessId(
-        accessToken: str, 
-        refreshToken: str, 
-        userId: str, 
+async def get_access_id(
+        access_token: str, 
+        refresh_token: str, 
+        user_id: str, 
         email: str
         ):                       
     document = {
-        "accessToken": accessToken,
-        "refreshToken": refreshToken,
-        "userId": userId,
+        "accessToken": access_token,
+        "refreshToken": refresh_token,
+        "userId": user_id,
         "email": email
-        }
-    authCollection.insert_one(document)
-    accessToken = authCollection.find_one({"accessToken": document["accessToken"]})
-    objectIdConvert(accessToken)
-    return accessToken
+    }
+    auth_collection.insert_one(document)
+    access_token = auth_collection.find_one({"accessToken": document["accessToken"]})
+    objectId_convert(access_token)
+    
+    return access_token
 
-async def accessCookie(ads_id):
+async def access_cookie(ads_id):
     if ads_id == None:
         url = msal_app.get_authorization_request_url(
             scopes=["User.Read", "https://accountmgmtservice.dce.mp.microsoft.com/user_impersonation"],
@@ -74,16 +75,17 @@ async def accessCookie(ads_id):
         if user_response.status_code == 200:
             return {"message": "access token is valid"}
         else:
-            readAccessToken = authCollection.find_one(ObjectId(ads_id))
-            objectIdConvert(readAccessToken)
-            updateAccessId = msal_app.acquire_token_by_refresh_token(readAccessToken["refreshToken"], scopes=["User.Read"])
+            readaccess_token = auth_collection.find_one(ObjectId(ads_id))
+            objectId_convert(readaccess_token)
+            update_access_id = msal_app.acquire_token_by_refresh_token(readaccess_token["refreshToken"], scopes=["User.Read"])
             document = {
-                "accessToken": updateAccessId["access_token"],
-                "refreshToken": updateAccessId["refresh_token"]
+                "accessToken": update_access_id["accessToken"],
+                "refreshToken": update_access_id["refreshToken"]
             }
 
             filter = {"_id": ObjectId(ads_id)}
-            authCollection.update_one(filter, {"$set": document})
+            auth_collection.update_one(filter, {"$set": document})
+
             return {"message": "token has been refresh"}
 
 async def auth_callback(code):
@@ -107,8 +109,8 @@ async def auth_callback(code):
             raise HTTPException(status_code=token_response.status_code, detail=token_response.text)
 
         token_data = token_response.json()
-        access_token = token_data.get("access_token")
-        refresh_token = token_data.get("refresh_token")
+        access_token = token_data.get("accessToken")
+        refresh_token = token_data.get("refreshToken")
         user_response = await client.get(
             MS_USER_INFO_URL,
             headers={"Authorization": f"Bearer {access_token}"}
@@ -118,9 +120,9 @@ async def auth_callback(code):
 
         user_data = user_response.json()
 
-        findUser = userCollection.find_one({"email": user_data['mail']})
+        find_user = user_collection.find_one({"email": user_data['mail']})
 
-        if findUser == None:
+        if find_user == None:
             document = {
                 "userNm": user_data['displayName'],
                 "rank": user_data['jobTitle'],
@@ -128,15 +130,15 @@ async def auth_callback(code):
                 "email": user_data['mail'],
                 "role": 1
             }
-            createUser = userCollection.insert_one(document)
-            accessUser = await getAccessId(access_token, refresh_token, createUser.inserted_id)
+            create_user = user_collection.insert_one(document)
+            access_user = await get_access_id(access_token, refresh_token, create_user.inserted_id)
             
-            return {"accessToken": accessUser['accessToken']}
+            return {"accessToken": access_user['accessToken']}
         else:
-            objectIdConvert(findUser)
-            accessUser = await getAccessId(access_token, refresh_token, findUser["_id"], findUser["email"])
+            objectId_convert(find_user)
+            access_user = await get_access_id(access_token, refresh_token, find_user["_id"], find_user["email"])
             
-            return {"accessToken": accessUser['accessToken']}
+            return {"accessToken": access_user['accessToken']}
 
 
 @router.get("/logout", status_code=status.HTTP_204_NO_CONTENT)

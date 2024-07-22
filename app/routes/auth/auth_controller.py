@@ -5,6 +5,7 @@ from fastapi import Cookie
 from fastapi.responses import JSONResponse
 from fastapi.requests import Request
 
+from routes.auth import auth_service
 from constants import COOKIES_KEY_NAME
 from constants import SESSION_TIME
 
@@ -12,7 +13,6 @@ import os
 
 from dotenv import load_dotenv
 from typing import Annotated
-from routes.auth import auth_service
 
 
 load_dotenv()
@@ -29,9 +29,9 @@ MS_AUTHORITY = "https://login.microsoftonline.com/common"
 
 @router.get("/login")
 async def accessCookie(ads_id: Annotated[str | None, Cookie()] = None):
-    redirectCallback = await auth_service.accessCookie(ads_id)
+    redirect_callback = await auth_service.access_cookie(ads_id)
 
-    return redirectCallback
+    return redirect_callback
 
 @router.get("/auth/callback")
 async def auth_callback(request: Request):
