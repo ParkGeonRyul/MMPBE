@@ -8,7 +8,7 @@ from typing_extensions import Annotated
 from bson import ObjectId
 
 
-class UsersFields:
+class usersFields:
     id = Field(
         description="ObjectID",
         alias="_id",
@@ -62,19 +62,19 @@ class UsersFields:
         default="N"
     )
 
-class UserModel(BaseModel):
-    id: Optional[PyObjectId] = UsersFields.id
-    companyId: str = UsersFields.companyId
-    userNm : str = UsersFields.userNm
-    rank: str = UsersFields.rank
-    companyContact: str = UsersFields.companyContact
-    mobileContact: str = UsersFields.mobileContact
-    email: str = UsersFields.email
-    responsibleParty: str = UsersFields.responsibleParty
-    role: int = UsersFields.role
-    createdAt: Optional[datetime] = UsersFields.createdAt
-    updatedAt: Optional[datetime] = UsersFields.updatedAt
-    delYn: Optional[str] = UsersFields.delYn
+class userModel(BaseModel):
+    id: Optional[PyObjectId] = usersFields.id
+    companyId: str = usersFields.companyId
+    userNm : str = usersFields.userNm
+    rank: str = usersFields.rank
+    companyContact: str = usersFields.companyContact
+    mobileContact: str = usersFields.mobileContact
+    email: str = usersFields.email
+    responsibleParty: str = usersFields.responsibleParty
+    role: int = usersFields.role
+    createdAt: Optional[datetime] = usersFields.createdAt
+    updatedAt: Optional[datetime] = usersFields.updatedAt
+    delYn: Optional[str] = usersFields.delYn
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
@@ -93,7 +93,7 @@ class UserModel(BaseModel):
         }
     )
 
-class UserCollection(BaseModel):
-    users: List[UserModel]
+class userCollection(BaseModel):
+    users: List[userModel]
     
 

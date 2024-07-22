@@ -8,7 +8,7 @@ from typing_extensions import Annotated
 from bson import ObjectId
 
 
-class ContractField:
+class contractField:
     id = Field(
         description="ObjectID",
         alias="_id",
@@ -92,29 +92,29 @@ class ContractField:
         default="N"
     )
 
-class UpdateContractModel(BaseModel):
-    id: Optional[PyObjectId] = ContractField.id
-    companyId : str = ContractField.companyId
-    workType : str = ContractField.workType
-    tenantId : str = ContractField.tenantId
-    inflowPath : str = ContractField.inflowPath
-    customerLevel : str = ContractField.customerLevel
-    productFamily : str = ContractField.productFamily
-    contractAmt : int = ContractField.contractAmt
-    joinService : str = ContractField.joinService
-    mD : str = ContractField.mD
-    mM : str = ContractField.mH
-    mH : str = ContractField.mH
-    salesManager : str = ContractField.salesManager
-    techManager : str = ContractField.techManager
-    taxMail : Optional[str] = ContractField.taxMail
-    paymentStandard : str = ContractField.paymentStandard
-    contractDt : datetime = ContractField.contractDt
-    contractStartDt : datetime = ContractField.contractStartDt
-    contractEndDt : datetime = ContractField.contactEndDt
-    createdAt : Optional[datetime] = ContractField.createdAt
-    updatedAt : Optional[datetime] = ContractField.updatedAt
-    delYn : Optional[str] = ContractField.delYn
+class updateContractModel(BaseModel):
+    id: Optional[PyObjectId] = contractField.id
+    companyId : str = contractField.companyId
+    workType : str = contractField.workType
+    tenantId : str = contractField.tenantId
+    inflowPath : str = contractField.inflowPath
+    customerLevel : str = contractField.customerLevel
+    productFamily : str = contractField.productFamily
+    contractAmt : int = contractField.contractAmt
+    joinService : str = contractField.joinService
+    mD : str = contractField.mD
+    mM : str = contractField.mH
+    mH : str = contractField.mH
+    salesManager : str = contractField.salesManager
+    techManager : str = contractField.techManager
+    taxMail : Optional[str] = contractField.taxMail
+    paymentStandard : str = contractField.paymentStandard
+    contractDt : datetime = contractField.contractDt
+    contractStartDt : datetime = contractField.contractStartDt
+    contractEndDt : datetime = contractField.contactEndDt
+    createdAt : Optional[datetime] = contractField.createdAt
+    updatedAt : Optional[datetime] = contractField.updatedAt
+    delYn : Optional[str] = contractField.delYn
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
@@ -143,7 +143,7 @@ class UpdateContractModel(BaseModel):
         }
     )
 
-class ContractModel(BaseModel):
+class contractModel(BaseModel):
     companyId : Optional[str] = None
     workType : Optional[str] = None
     tenantId : Optional[str] = None
@@ -194,5 +194,5 @@ class ContractModel(BaseModel):
     )
 
 
-class ContractCollection(BaseModel):
-    contracts: List[ContractModel]
+class contractCollection(BaseModel):
+    contracts: List[contractModel]

@@ -8,7 +8,7 @@ from typing_extensions import Annotated
 from bson import ObjectId
 
 
-class WorkRequestField:
+class workRequestField:
     id = Field(
         description="ObjectID",
         alias="_id",
@@ -76,22 +76,22 @@ class WorkRequestField:
         default="N"
     )
 
-class WorkRequestModel(BaseModel):
-    id: Optional[PyObjectId] = WorkRequestField.id
-    userId: str = WorkRequestField.userId
-    deviceNm: str = WorkRequestField.deviceNm
-    contactNm: str = WorkRequestField.contactNm
-    requestTitle: str = WorkRequestField.requestTitle
-    customerNm: str = WorkRequestField.customerNm
-    requestDt: datetime = WorkRequestField.requestDt
-    workContent: str = WorkRequestField.workContent
-    file: str = WorkRequestField.file
-    status: str = WorkRequestField.status
-    acceptorNm: str = WorkRequestField.acceptorNm
-    regYn: str = WorkRequestField.regYn
-    createdAt: Optional[datetime] = WorkRequestField.createdAt
-    updatedAt: Optional[datetime] = WorkRequestField.updatedAt
-    delYn: Optional[str] = WorkRequestField.delYn
+class workRequestModel(BaseModel):
+    id: Optional[PyObjectId] = workRequestField.id
+    userId: str = workRequestField.userId
+    deviceNm: str = workRequestField.deviceNm
+    contactNm: str = workRequestField.contactNm
+    requestTitle: str = workRequestField.requestTitle
+    customerNm: str = workRequestField.customerNm
+    requestDt: datetime = workRequestField.requestDt
+    workContent: str = workRequestField.workContent
+    file: str = workRequestField.file
+    status: str = workRequestField.status
+    acceptorNm: str = workRequestField.acceptorNm
+    regYn: str = workRequestField.regYn
+    createdAt: Optional[datetime] = workRequestField.createdAt
+    updatedAt: Optional[datetime] = workRequestField.updatedAt
+    delYn: Optional[str] = workRequestField.delYn
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
@@ -113,7 +113,7 @@ class WorkRequestModel(BaseModel):
         }
     )
 
-class  UpdateWorkRequestModel(BaseModel):
+class  updateWorkRequestModel(BaseModel):
     id: Optional[PyObjectId] = None
     userId: Optional[str] = None
     deviceNm: Optional[str] = None
@@ -150,5 +150,5 @@ class  UpdateWorkRequestModel(BaseModel):
         }
     )
 
-class WorkRequestCollection(BaseModel):
-    workRequests: List[WorkRequestModel]
+class workRequestCollection(BaseModel):
+    workRequests: List[workRequestModel]

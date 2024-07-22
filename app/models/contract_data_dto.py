@@ -8,7 +8,7 @@ from typing_extensions import Annotated
 from bson import ObjectId
 
 
-class ContractDataField:
+class contractDataField:
     id = Field(
         description="ObjectID",
         alias="_id",
@@ -50,17 +50,17 @@ class ContractDataField:
         default="N"
     )
 
-class ContractDataModel(BaseModel):
-    id: Optional[PyObjectId] = ContractDataField.id
-    userId: str = ContractDataField.userId
-    title: str = ContractDataField.title
-    content: str = ContractDataField.content
-    file: Optional[str] = ContractDataField.file
-    contractDt: datetime = ContractDataField.contractDt
-    approvalYn: Optional[str] = ContractDataField.approvalYn
-    createdAt: Optional[datetime] = ContractDataField.createdAt
-    updatedAt: datetime = ContractDataField.updatedAt
-    delYn: Optional[str] = ContractDataField.delYn
+class contractDataModel(BaseModel):
+    id: Optional[PyObjectId] = contractDataField.id
+    userId: str = contractDataField.userId
+    title: str = contractDataField.title
+    content: str = contractDataField.content
+    file: Optional[str] = contractDataField.file
+    contractDt: datetime = contractDataField.contractDt
+    approvalYn: Optional[str] = contractDataField.approvalYn
+    createdAt: Optional[datetime] = contractDataField.createdAt
+    updatedAt: datetime = contractDataField.updatedAt
+    delYn: Optional[str] = contractDataField.delYn
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
@@ -78,7 +78,7 @@ class ContractDataModel(BaseModel):
         }
     )
 
-class UpdateContractDataModel(BaseModel):
+class updateContractDataModel(BaseModel):
     userId: Optional[str] = None
     title: Optional[str] = None
     content: Optional[str] = None
@@ -106,5 +106,5 @@ class UpdateContractDataModel(BaseModel):
         }
     )
 
-class ContractDataCollection(BaseModel):
-    contractDatas: List[ContractDataModel]
+class contractDataCollection(BaseModel):
+    contractDatas: List[contractDataModel]

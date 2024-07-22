@@ -8,7 +8,7 @@ from typing_extensions import Annotated
 from bson import ObjectId
 
 
-class CompanyFields:
+class companyFields:
     id = Field(
         description="ObjectID",
         alias="_id",
@@ -19,9 +19,9 @@ class CompanyFields:
         examples="메이븐클라우드서비스"
     )
 
-class CompanyModel(BaseModel):
-    id: Optional[PyObjectId] = CompanyFields.id
-    companyNm: str = CompanyFields.companyNm
+class companyModel(BaseModel):
+    id: Optional[PyObjectId] = companyFields.id
+    companyNm: str = companyFields.companyNm
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
@@ -33,7 +33,7 @@ class CompanyModel(BaseModel):
         }
     )
 
-class UpdateCompanyModel(BaseModel):
+class updateCompanyModel(BaseModel):
     companyNm: Optional[str] = None
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
@@ -46,4 +46,4 @@ class UpdateCompanyModel(BaseModel):
     )
 
 class CompanyCollection(BaseModel):
-    companys: List[CompanyModel]
+    companys: List[companyModel]

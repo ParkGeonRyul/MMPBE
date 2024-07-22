@@ -8,7 +8,7 @@ from typing_extensions import Annotated
 from bson import ObjectId
 
 
-class RequestTaxField:
+class requestTaxField:
     id = Field(
         description="ObjectID",
         alias="_id",
@@ -31,12 +31,12 @@ class RequestTaxField:
         default="대기"
     )
 
-class RequestTaxModel(BaseModel):
-    id: Optional[PyObjectId] = RequestTaxField.id
-    userId: str = RequestTaxField.userId
-    requestDt: datetime = RequestTaxField.requestDt
-    requestContent: str = RequestTaxField.requestContent
-    status: Optional[str] = RequestTaxField.status
+class requestTaxModel(BaseModel):
+    id: Optional[PyObjectId] = requestTaxField.id
+    userId: str = requestTaxField.userId
+    requestDt: datetime = requestTaxField.requestDt
+    requestContent: str = requestTaxField.requestContent
+    status: Optional[str] = requestTaxField.status
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
@@ -51,7 +51,7 @@ class RequestTaxModel(BaseModel):
         }
     )
 
-class UpdateRequestTaxModel(BaseModel):
+class updateRequestTaxModel(BaseModel):
     id: Optional[PyObjectId] = None
     userId: Optional[str] = None
     requestDt: Optional[datetime] = None
@@ -71,5 +71,5 @@ class UpdateRequestTaxModel(BaseModel):
         }
     )
 
-class RequestTaxCollection(BaseModel):
-    requestTaxs: List[RequestTaxModel]
+class requestTaxCollection(BaseModel):
+    requestTaxs: List[requestTaxModel]

@@ -8,7 +8,7 @@ from typing_extensions import Annotated
 from bson import ObjectId
 
 
-class ServiceDeviceField:
+class serviceDeviceField:
     id = Field(
         description="ObjectID",
         alias="_id",
@@ -50,16 +50,16 @@ class ServiceDeviceField:
         default="N"
     )
 
-class ServiceDeviceModel(BaseModel):
-    id: Optional[PyObjectId] = ServiceDeviceField.id
-    companyId: str = ServiceDeviceField.companyId
-    deviceNm: str = ServiceDeviceField.deviceNm
-    deviceType: str = ServiceDeviceField.deviceType
-    publicIP: str = ServiceDeviceField.publicIP
-    privateIP: str = ServiceDeviceField.privateIP
-    createdAt: Optional[datetime] = ServiceDeviceField.createdAt
-    updatedAt: Optional[datetime] = ServiceDeviceField.updatedAt
-    delYn: Optional[str] = ServiceDeviceField.delYn
+class serviceDeviceModel(BaseModel):
+    id: Optional[PyObjectId] = serviceDeviceField.id
+    companyId: str = serviceDeviceField.companyId
+    deviceNm: str = serviceDeviceField.deviceNm
+    deviceType: str = serviceDeviceField.deviceType
+    publicIP: str = serviceDeviceField.publicIP
+    privateIP: str = serviceDeviceField.privateIP
+    createdAt: Optional[datetime] = serviceDeviceField.createdAt
+    updatedAt: Optional[datetime] = serviceDeviceField.updatedAt
+    delYn: Optional[str] = serviceDeviceField.delYn
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
@@ -74,7 +74,7 @@ class ServiceDeviceModel(BaseModel):
         }
     )
 
-class ServiceDeviceModel(BaseModel):
+class serviceDeviceModel(BaseModel):
     id: Optional[PyObjectId] = None
     companyId: Optional[str] = None
     deviceNm: Optional[str] = None
@@ -98,5 +98,5 @@ class ServiceDeviceModel(BaseModel):
         }
     )
 
-class ServiceDeviceCollection(BaseModel):
-    serviceDevices: List[ServiceDeviceModel]
+class serviceDeviceCollection(BaseModel):
+    serviceDevices: List[serviceDeviceModel]

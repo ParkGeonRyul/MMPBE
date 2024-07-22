@@ -8,7 +8,7 @@ from typing_extensions import Annotated
 from bson import ObjectId
 
 
-class MaintenanceField:
+class maintenanceField:
     id = Field(
         description="ObjectID",
         alias="_id",
@@ -56,18 +56,18 @@ class MaintenanceField:
         default="N"
     )
 
-class MaintenanceModel(BaseModel):
-    id: Optional[PyObjectId] = MaintenanceField.id
-    userId: str = MaintenanceField.userId
-    title: str = MaintenanceField.title
-    content: str = MaintenanceField.content
-    file: Optional[str] = MaintenanceField.file
-    contractDt: datetime = MaintenanceField.contractDt
-    approvalYn: Optional[str] = MaintenanceField.approvalYn
-    status: Optional[str] = MaintenanceField.status
-    createdAt: Optional[datetime] = MaintenanceField.createdAt
-    updatedAt: Optional[datetime] = MaintenanceField.updatedAt
-    delYn: Optional[str] = MaintenanceField.delYn
+class maintenanceModel(BaseModel):
+    id: Optional[PyObjectId] = maintenanceField.id
+    userId: str = maintenanceField.userId
+    title: str = maintenanceField.title
+    content: str = maintenanceField.content
+    file: Optional[str] = maintenanceField.file
+    contractDt: datetime = maintenanceField.contractDt
+    approvalYn: Optional[str] = maintenanceField.approvalYn
+    status: Optional[str] = maintenanceField.status
+    createdAt: Optional[datetime] = maintenanceField.createdAt
+    updatedAt: Optional[datetime] = maintenanceField.updatedAt
+    delYn: Optional[str] = maintenanceField.delYn
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
@@ -83,7 +83,7 @@ class MaintenanceModel(BaseModel):
         }
     )
 
-class UpdateMaintenanceModel(BaseModel):
+class updateMaintenanceModel(BaseModel):
     id: Optional[PyObjectId] = None
     userId: Optional[str] = None
     title: Optional[str] = None
@@ -110,5 +110,5 @@ class UpdateMaintenanceModel(BaseModel):
         }
     )
 
-class MaintenanceCollection(BaseModel):
-    maintenances: List[MaintenanceModel]
+class maintenanceCollection(BaseModel):
+    maintenances: List[maintenanceModel]

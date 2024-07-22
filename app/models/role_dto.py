@@ -8,7 +8,7 @@ from typing_extensions import Annotated
 from bson import ObjectId
 
 
-class RoleField:
+class roleField:
     id = Field(
         description="ObjectID",
         alias="_id",
@@ -22,9 +22,9 @@ class RoleField:
     )
 
 class roldModel(BaseModel):
-    id: Optional[PyObjectId] = RoleField.id
-    roldId: int = RoleField.roleId
-    roleNm: str = RoleField.roleNm
+    id: Optional[PyObjectId] = roleField.id
+    roldId: int = roleField.roleId
+    roleNm: str = roleField.roleNm
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
@@ -37,5 +37,5 @@ class roldModel(BaseModel):
         }
     )
 
-class RoleCollection(BaseModel):
+class roleCollection(BaseModel):
     roles: List[roldModel]

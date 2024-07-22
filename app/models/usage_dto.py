@@ -8,7 +8,7 @@ from typing_extensions import Annotated
 from bson import ObjectId
 
 
-class UsageField:
+class usageField:
     id = Field(
         description="ObjectID",
         alias="_id",
@@ -33,12 +33,12 @@ class UsageField:
         default=0
     )
 
-class UsageModel(BaseModel):
-    id: Optional[PyObjectId] = UsageField.id
-    userId: str = UsageField.userId
-    serviceDeviceId: str = UsageField.serviceDeviceId
-    cpu: int = UsageField.cpu
-    disk: int = UsageField.disk
+class usageModel(BaseModel):
+    id: Optional[PyObjectId] = usageField.id
+    userId: str = usageField.userId
+    serviceDeviceId: str = usageField.serviceDeviceId
+    cpu: int = usageField.cpu
+    disk: int = usageField.disk
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
@@ -53,5 +53,5 @@ class UsageModel(BaseModel):
         }
     )
 
-class UsageCollection(BaseModel):
-    usages: List[UsageModel]
+class usageCollection(BaseModel):
+    usages: List[usageModel]

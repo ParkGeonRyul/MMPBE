@@ -8,7 +8,7 @@ from typing_extensions import Annotated
 from bson import ObjectId
 
 
-class TaxField:
+class taxField:
     id = Field(
         description="ObjectID",
         alias="_id",
@@ -27,11 +27,11 @@ class TaxField:
         description="과금 날짜(UTC + 0)"
     )
 
-class TaxModel(BaseModel):
-    id: Optional[PyObjectId] = TaxField.id
-    userId: str = TaxField.userId
-    taxAmt: int = TaxField.taxAmt
-    taxDt: datetime = TaxField.taxDt
+class taxModel(BaseModel):
+    id: Optional[PyObjectId] = taxField.id
+    userId: str = taxField.userId
+    taxAmt: int = taxField.taxAmt
+    taxDt: datetime = taxField.taxDt
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
@@ -45,5 +45,5 @@ class TaxModel(BaseModel):
         }
     )
 
-class TaxCollection(BaseModel):
-    taxs: List[TaxModel]
+class taxCollection(BaseModel):
+    taxs: List[taxModel]
