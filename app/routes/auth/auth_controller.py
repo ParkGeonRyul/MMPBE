@@ -29,9 +29,9 @@ MS_AUTHORITY = "https://login.microsoftonline.com/common"
 
 @router.get("/login")
 async def accessCookie(ads_id: Annotated[str | None, Cookie()] = None):
-    test = await auth_service.accessCookie(ads_id)
+    redirectCallback = await auth_service.accessCookie(ads_id)
 
-    return test
+    return redirectCallback
 
 @router.get("/auth/callback")
 async def auth_callback(request: Request):

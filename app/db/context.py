@@ -25,8 +25,8 @@ authCollection = Database.db["auth"]
 
 # authCollection.drop_index("expireAt_1")
 
-ttl_seconds = 3600
-authCollection.create_index(
-    [("expireAt", ASCENDING)],
-    expireAfterSeconds=ttl_seconds
-)
+# ttl_seconds = 3600
+# authCollection.create_index(
+#     [("expireAt", ASCENDING)],
+#     expireAfterSeconds=ttl_seconds
+# )

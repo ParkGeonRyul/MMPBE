@@ -17,7 +17,7 @@ from bson import ObjectId
 from fastapi.responses import RedirectResponse
 from httpx import AsyncClient
 from dotenv import load_dotenv
-from db.context import authCollection, userCollection, ttl_seconds
+from db.context import authCollection, userCollection
 from typing import Annotated
 from utils import objectCleaner
 from utils.objectId_convert import objectIdConvert
@@ -41,37 +41,41 @@ msal_app = msal.ConfidentialClientApplication(
 )
 
 
-async def getAccessId(accessToken, refreshToken, userId):
-    expiration_time = datetime.utcnow() + timedelta(seconds=ttl_seconds)                          
+async def getAccessId(
+        accessToken: str, 
+        refreshToken: str, 
+        userId: str, 
+        email: str
+        ):                       
     document = {
         "accessToken": accessToken,
         "refreshToken": refreshToken,
         "userId": userId,
-        "expireAt": expiration_time
+        "email": email
         }
     authCollection.insert_one(document)
-    accessId = authCollection.find_one({"accessToken": document["accessToken"]})
-    objectIdConvert(accessId)
-    return accessId
+    accessToken = authCollection.find_one({"accessToken": document["accessToken"]})
+    objectIdConvert(accessToken)
+    return accessToken
 
 async def accessCookie(ads_id):
-    readAccessToken = authCollection.find_one(ObjectId(ads_id))
-    if ads_id == None or readAccessToken == None:
+    if ads_id == None:
         url = msal_app.get_authorization_request_url(
             scopes=["User.Read", "https://accountmgmtservice.dce.mp.microsoft.com/user_impersonation"],
             redirect_uri=MS_REDIRECT_URI
             )        
         return RedirectResponse(url)
     else:
-        objectIdConvert(readAccessToken)
         async with AsyncClient() as client:
             user_response = await client.get(
             MS_USER_INFO_URL,
-            headers={"Authorization": f"Bearer {readAccessToken['accessToken']}"}
+            headers={"Authorization": f"Bearer {ads_id}"}
         )
         if user_response.status_code == 200:
             return {"message": "access token is valid"}
         else:
+            readAccessToken = authCollection.find_one(ObjectId(ads_id))
+            objectIdConvert(readAccessToken)
             updateAccessId = msal_app.acquire_token_by_refresh_token(readAccessToken["refreshToken"], scopes=["User.Read"])
             document = {
                 "accessToken": updateAccessId["access_token"],
@@ -124,15 +128,15 @@ async def auth_callback(code):
                 "email": user_data['mail'],
                 "role": 1
             }
-            test = userCollection.insert_one(document)
-            accessId = await getAccessId(access_token, refresh_token, test.inserted_id)
+            createUser = userCollection.insert_one(document)
+            accessUser = await getAccessId(access_token, refresh_token, createUser.inserted_id)
             
-            return {"accessId": accessId['_id']}
+            return {"accessToken": accessUser['accessToken']}
         else:
             objectIdConvert(findUser)
-            accessId = await getAccessId(access_token, refresh_token, findUser["_id"])
+            accessUser = await getAccessId(access_token, refresh_token, findUser["_id"], findUser["email"])
             
-            return {"accessId": accessId['_id']}
+            return {"accessToken": accessUser['accessToken']}
 
 
 @router.get("/logout", status_code=status.HTTP_204_NO_CONTENT)
