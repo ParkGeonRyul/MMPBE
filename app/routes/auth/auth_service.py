@@ -22,7 +22,6 @@ from typing import Annotated
 from utils import objectCleaner
 from utils.objectId_convert import objectId_convert
 
-
 load_dotenv()
 router = APIRouter()
 
@@ -39,7 +38,6 @@ msal_app = msal.ConfidentialClientApplication(
     authority=MS_AUTHORITY,
     client_credential=MS_CLIENT_SECRET
 )
-
 
 async def get_access_id(
         access_token: str, 
@@ -64,29 +62,33 @@ async def access_cookie(ads_id):
         url = msal_app.get_authorization_request_url(
             scopes=["User.Read", "https://accountmgmtservice.dce.mp.microsoft.com/user_impersonation"],
             redirect_uri=MS_REDIRECT_URI
-            )        
+        )        
         return RedirectResponse(url)
     else:
         async with AsyncClient() as client:
             user_response = await client.get(
-            MS_USER_INFO_URL,
-            headers={"Authorization": f"Bearer {ads_id}"}
-        )
-        if user_response.status_code == 200:
-            return {"message": "access token is valid"}
-        else:
-            readaccess_token = auth_collection.find_one(ObjectId(ads_id))
-            objectId_convert(readaccess_token)
-            update_access_id = msal_app.acquire_token_by_refresh_token(readaccess_token["refreshToken"], scopes=["User.Read"])
-            document = {
-                "accessToken": update_access_id["accessToken"],
-                "refreshToken": update_access_id["refreshToken"]
-            }
+                MS_USER_INFO_URL,
+                headers={"Authorization": f"Bearer {ads_id}"}
+            )
+            if user_response.status_code == 200:
+                response = {"message": "access token is valid"}
+                response.set_cookie(key=COOKIES_KEY_NAME, value=ads_id, httponly=True)
+                return response
+            else:
+                read_access_token = auth_collection.find_one(ObjectId(ads_id))
+                objectId_convert(read_access_token)
+                update_access_id = msal_app.acquire_token_by_refresh_token(read_access_token["refreshToken"], scopes=["User.Read"])
+                document = {
+                    "accessToken": update_access_id["accessToken"],
+                    "refreshToken": update_access_id["refreshToken"]
+                }
 
-            filter = {"_id": ObjectId(ads_id)}
-            auth_collection.update_one(filter, {"$set": document})
+                filter = {"_id": ObjectId(ads_id)}
+                auth_collection.update_one(filter, {"$set": document})
 
-            return {"message": "token has been refresh"}
+                response = {"message": "token has been refreshed"}
+                response.set_cookie(key=COOKIES_KEY_NAME, value=ads_id, httponly=True)
+                return response
 
 async def auth_callback(code):
     if not code:

@@ -7,28 +7,13 @@ from fastapi.requests import Request
 
 from routes.auth import auth_service
 from constants import COOKIES_KEY_NAME
-from constants import SESSION_TIME
 
-import os
-
-from dotenv import load_dotenv
 from typing import Annotated
 
-
-load_dotenv()
 router = APIRouter()
 
-MS_CLIENT_ID = os.getenv("MS_CLIENT_ID")
-MS_CLIENT_SECRET = os.getenv("MS_CLIENT_SECRET")
-MS_REDIRECT_URI = os.getenv("MS_REDIRECT_URI")
-MS_AUTH_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
-MS_TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
-MS_USER_INFO_URL = "https://graph.microsoft.com/v1.0/me"
-MS_AUTHORITY = "https://login.microsoftonline.com/common"
-
-
 @router.get("/login")
-async def accessCookie(ads_id: Annotated[str | None, Cookie()] = None):
+async def login(ads_id: Annotated[str | None, Cookie()] = None):
     redirect_callback = await auth_service.access_cookie(ads_id)
 
     return redirect_callback
