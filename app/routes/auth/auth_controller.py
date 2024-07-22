@@ -50,6 +50,20 @@ msal_app = msal.ConfidentialClientApplication(
     client_credential=MS_CLIENT_SECRET
 )
 
+
+def getAccessId(accessToken, refreshToken, userId):
+    expiration_time = datetime.utcnow() + timedelta(seconds=ttl_seconds)                          
+    document = {
+        "accessToken": accessToken,
+        "refreshToken": refreshToken,
+        "userId": userId,
+        "expireAt": expiration_time
+        }
+    authCollection.insert_one(document)
+    accessId = authCollection.find_one({"accessToken": document["accessToken"]})
+    objectIdConvert(accessId)
+    return accessId
+
 @router.get("/login")
 async def accessCookie(ads_id: Annotated[str | None, Cookie()] = None):
     readAccessToken = authCollection.find_one(ObjectId(ads_id))
@@ -114,25 +128,39 @@ async def auth_callback(request: Request):
         user_data = user_response.json()
 
         findUser = userCollection.find_one({"email": user_data['mail']})
-        objectIdConvert(findUser)
 
-        if findUser != None:  
-            expiration_time = datetime.utcnow() + timedelta(seconds=ttl_seconds)                          
+        if findUser != None:
+            objectIdConvert(findUser)
+            # expiration_time = datetime.utcnow() + timedelta(seconds=ttl_seconds)                          
 
-            document = {
-            "accessToken": access_token,
-            "refreshToken": refresh_token,
-            "userId": findUser['_id'],
-            "expireAt": expiration_time
-            }
+            # document = {
+            # "accessToken": access_token,
+            # "refreshToken": refresh_token,
+            # "userId": findUser['_id'],
+            # "expireAt": expiration_time
+            # }
 
-            authCollection.insert_one(document)
+            # authCollection.insert_one(document)
 
-            accessId = authCollection.find_one({"accessToken": document["accessToken"]})
-            objectIdConvert(accessId)
+            # accessId = authCollection.find_one({"accessToken": document["accessToken"]})
+            # objectIdConvert(accessId)
+            # return {"accessId": accessId['_id']}
+            accessId = getAccessId(access_token, refresh_token, findUser["_id"])
+            
             return {"accessId": accessId['_id']}
         else:
-            return {"message": "Invalid User"}
+            document = {
+                "userNm": user_data['displayName'],
+                "rank": user_data['jobTitle'],
+                "mobileContact": user_data['mobilePhone'],
+                "email": user_data['mail'],
+                "role": 1
+            }
+            test = userCollection.insert_one(document)
+            accessId = getAccessId(access_token, refresh_token, test.inserted_id)
+            
+            return {"accessId": accessId['_id']}
+
 
 @router.get("/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(res: Response) -> JSONResponse:
