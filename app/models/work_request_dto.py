@@ -25,7 +25,7 @@ class workRequestField:
     contactNm = Field(
         description="담당자 이름(Maven)",
         example="Aiden",
-        min_length=1
+        default=None
     )
     requestTitle = Field(
         description="요청 제목",
@@ -47,7 +47,7 @@ class workRequestField:
     file = Field(
         description="첨부 파일",
         example="Zone파일.zip",
-        min_length=1
+        default=None
     )
     status = Field(
         description="승인 여부",
@@ -56,7 +56,8 @@ class workRequestField:
     )
     acceptorNm = Field(
         description="승인자 이름",
-        example="Aiden"
+        example="Aiden",
+        default=None
     )
     regYn = Field(
         description="작업 요청 상태",
@@ -94,16 +95,16 @@ class workRequestModel(BaseModel):
     delYn: Optional[str] = workRequestField.delYn
     model_config = ConfigDict(
         populate_by_name=True,
-        arbitrary_types_allowed=True,
         json_encoders={ObjectId: str},
+        arbitrary_types_allowed = True,
         json_schema_extra={
             "example": {
-                "userId": "6690cf7fa4897bf6b90541c1(ObjectId)",
+                "userId": "6690cf7fa4897bf6b90541c1",
                 "diviceNm": "장비 이름",
                 "contactNm": "담당자 이름(Maven)",
                 "requestTitle": "요청 제목",
                 "customerNm": "고객 이름",
-                "requestDt": "요청 일자 (UTC + 0)",
+                "requestDt": "2024-07-19 08:06:05.064246",
                 "workContent": "작업 내용",
                 "file": "파일 명",
                 "status": "승인 여부",
@@ -150,5 +151,5 @@ class  updateWorkRequestModel(BaseModel):
         }
     )
 
-class workRequestCollection(BaseModel):
-    workRequests: List[workRequestModel]
+class WorkRequestCollection(BaseModel):
+    workRequests: List[WorkRequestModel]

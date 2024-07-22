@@ -15,7 +15,8 @@ class usersFields:
         default_factory=PyObjectId
     )
     companyId = Field(
-        description="회사 ID(ObjectID)"
+        description="회사 ID(ObjectID)",
+        default=None
     )
     userNm = Field(
         description="사용자 이름",
@@ -28,7 +29,8 @@ class usersFields:
     )
     companyContact=Field(
         description="고객사 연락처",
-        examples="02)000-0000"
+        examples="02)000-0000",
+        default=None
     )
     mobileContact = Field(
         description="고객사 mobile",
@@ -41,7 +43,8 @@ class usersFields:
     )
     responsibleParty = Field(
         description="분류",
-        examples="엔지니어"
+        examples="엔지니어",
+        default=None
     )
     role = Field(
         description = "역할 ID(INDEX)",
