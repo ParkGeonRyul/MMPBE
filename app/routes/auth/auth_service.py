@@ -1,4 +1,5 @@
 
+from datetime import datetime
 from fastapi import APIRouter, HTTPException, status, Response
 from fastapi.responses import JSONResponse
 
@@ -50,7 +51,8 @@ async def access_token_manager(isUser:bool, access_token: str, refresh_token: st
             "access_token": access_token,
             "refresh_token": refresh_token,
             "user_id": user_id,
-            "email": email
+            "email": email,
+            "created_at": datetime.now()
         }
         auth_collection.insert_one(document)
         user_token = auth_collection.find_one({"access_token": document["access_token"]})
@@ -106,18 +108,19 @@ async def auth_callback(code):
                 "rank": user_data['jobTitle'],
                 "mobile_contact": user_data['mobilePhone'],
                 "email": user_data['mail'],
-                "role": 1
+                "role": 1,
+                "created_at": datetime.now()
             }
             create_user = user_collection.insert_one(document)
             user_token = await access_token_manager(isUser, access_token, refresh_token, create_user.inserted_id, user_data['mail'])
             response = JSONResponse(content=user_token['access_token'])
-            response.set_cookie(key=COOKIES_KEY_NAME, value=user_token, httponly=True)
+            response.set_cookie(key=COOKIES_KEY_NAME, value=user_token['access_token'], httponly=True)
 
             return RedirectResponse(url="http://localhost:8083/dashboard")
         else:
             user_token = await access_token_manager(isUser, access_token, refresh_token, find_user["_id"], find_user["email"])
             response = JSONResponse(content=user_token['access_token'])
-            response.set_cookie(key=COOKIES_KEY_NAME, value=user_token, httponly=True)
+            response.set_cookie(key=COOKIES_KEY_NAME, value=user_token['access_token'], httponly=True)
 
             return RedirectResponse(url="http://localhost:8083/dashboard")
         
