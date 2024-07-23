@@ -1,26 +1,18 @@
-from datetime import datetime, timezone, timedelta
 
-from fastapi import APIRouter, HTTPException, status, Response, Cookie
+from fastapi import APIRouter, HTTPException, status, Response
 from fastapi.responses import JSONResponse
-from fastapi.requests import Request
 
-from utils import formating, dependencies
-from routes.user import user_service
-from constants import COOKIES_KEY_NAME, SESSION_TIME
+from constants import COOKIES_KEY_NAME
 
-import json
-import pymongo
 import os
 import msal
 
-from bson import ObjectId
 from fastapi.responses import RedirectResponse
 from httpx import AsyncClient
 from dotenv import load_dotenv
 from db.context import auth_collection, user_collection
-from typing import Annotated
-from utils import objectCleaner
 from utils.objectId_convert import objectId_convert
+from fastapi import Request, HTTPException, status
 
 load_dotenv()
 router = APIRouter()
@@ -32,6 +24,7 @@ MS_AUTH_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
 MS_TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 MS_USER_INFO_URL = "https://graph.microsoft.com/v1.0/me"
 MS_AUTHORITY = "https://login.microsoftonline.com/common"
+REDIRECT_URL_HOME = os.getenv("REDIRECT_URL_HOME")
 
 msal_app = msal.ConfidentialClientApplication(
     MS_CLIENT_ID,
@@ -39,61 +32,37 @@ msal_app = msal.ConfidentialClientApplication(
     client_credential=MS_CLIENT_SECRET
 )
 
-async def get_access_id(
-        access_token: str, 
-        refresh_token: str, 
-        user_id: str, 
-        email: str
-        ):                       
-    document = {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "user_id": user_id,
-        "email": email
-    }
-    auth_collection.insert_one(document)
-    access_token = auth_collection.find_one({"access_token": document["access_token"]})
-    objectId_convert(access_token)
-    
-    return access_token
+async def access_token_manager(isUser:bool, access_token: str, refresh_token: str, user_id: str, email: str):                       
+    if isUser:
+        document = {
+            "access_token": access_token,
+            "refresh_token": refresh_token
+        }
+        user = user_collection.find_one({"_id": user_id})
+        filter = {"_id": user_id}
+        auth_collection.update_one(filter,{"$set":document})
 
-async def access_cookie(ads_id):
-    if ads_id == None:
-        url = msal_app.get_authorization_request_url(
-            scopes=["User.Read", "https://accountmgmtservice.dce.mp.microsoft.com/user_impersonation"],
-            redirect_uri=MS_REDIRECT_URI
-        )        
-
-        return RedirectResponse(url)
+        return access_token
     else:
-        async with AsyncClient() as client:
-            user_response = await client.get(
-                MS_USER_INFO_URL,
-                headers={"Authorization": f"Bearer {ads_id}"}
-            )
-            if user_response.status_code == 200:
-                res_content = {"message": "access token is valid"}
-                response = JSONResponse(content=res_content)
-                response.set_cookie(key=COOKIES_KEY_NAME, value=ads_id, httponly=True)
+        document = {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "user_id": user_id,
+            "email": email
+        }
+        auth_collection.insert_one(document)
+        access_token = auth_collection.find_one({"access_token": document["access_token"]})
+        objectId_convert(access_token)
 
-                return response
-            else:
-                read_access_token = auth_collection.find_one({"access_token": ads_id})
-                objectId_convert(read_access_token)
-                update_access_id = msal_app.acquire_token_by_refresh_token(read_access_token["refresh_token"], scopes=["User.Read"])
-                document = {
-                    "access_token": update_access_id["access_token"],
-                    "refresh_token": update_access_id["refresh_token"]
-                }
+        return access_token
 
-                filter = {"access_token": ads_id}
-                auth_collection.update_one(filter, {"$set": document})
+async def login():
+    url = msal_app.get_authorization_request_url(
+        scopes=["User.Read", "https://accountmgmtservice.dce.mp.microsoft.com/user_impersonation"],
+        redirect_uri=MS_REDIRECT_URI
+    )        
 
-                res_content = {"message": "access token is valid"}
-                response = JSONResponse(content=res_content)
-                response.set_cookie(key=COOKIES_KEY_NAME, value=document['access_token'], httponly=True)
-
-                return response
+    return RedirectResponse(url)
 
 async def auth_callback(code):
     if not code:
@@ -118,6 +87,7 @@ async def auth_callback(code):
         token_data = token_response.json()
         access_token = token_data.get("access_token")
         refresh_token = token_data.get("refresh_token")
+        
         user_response = await client.get(
             MS_USER_INFO_URL,
             headers={"Authorization": f"Bearer {access_token}"}
@@ -126,8 +96,8 @@ async def auth_callback(code):
             raise HTTPException(status_code=user_response.status_code, detail=user_response.text)
 
         user_data = user_response.json()
-
         find_user = user_collection.find_one({"email": user_data['mail']})
+        isUser = True if find_user else False
 
         if find_user == None:
             document = {
@@ -137,23 +107,49 @@ async def auth_callback(code):
                 "email": user_data['mail'],
                 "role": 1
             }
-
             create_user = user_collection.insert_one(document)
-            access_user = await get_access_id(access_token, refresh_token, create_user.inserted_id, user_data['mail'])
-            
-            res_content = {"message": "access token created"}
-            response = JSONResponse(content=res_content)
-            response.set_cookie(key=COOKIES_KEY_NAME, value=access_user['access_token'], httponly=True)
-            return response
+            user_token = await access_token_manager(isUser, access_token, refresh_token, create_user.inserted_id, user_data['mail'])
+            response = JSONResponse(content=user_token)
+            response.set_cookie(key=COOKIES_KEY_NAME, value=user_token, httponly=True)
+
+            return RedirectResponse(url="http://localhost:8083/dashboard")
         else:
             objectId_convert(find_user)
-            access_user = await get_access_id(access_token, refresh_token, find_user["_id"], find_user["email"])
-            
-            res_content = {"message": "access token created"}
-            response = JSONResponse(content=res_content)
-            response.set_cookie(key=COOKIES_KEY_NAME, value=access_user['access_token'], httponly=True)
-            return response
+            user_token = await access_token_manager(isUser, access_token, refresh_token, find_user["_id"], find_user["email"])
+            response = JSONResponse(content=user_token)
+            response.set_cookie(key=COOKIES_KEY_NAME, value=user_token, httponly=True)
 
-@router.get("/logout", status_code=status.HTTP_204_NO_CONTENT)
-async def logout(res: Response) -> JSONResponse:
-    res.delete_cookie(COOKIES_KEY_NAME)
+            return RedirectResponse(url="http://localhost:8083/dashboard")
+        
+# @router.get("/logout", status_code=status.HTTP_204_NO_CONTENT)
+# async def logout(res: Response) -> JSONResponse:
+#     res.delete_cookie(COOKIES_KEY_NAME) 
+
+from fastapi import Request
+
+async def validate(request: Response):
+    access_token = request.cookies.get(COOKIES_KEY_NAME)
+    if access_token:
+        async with AsyncClient() as client:
+            user_response = await client.get(
+                MS_USER_INFO_URL,
+                headers={"Authorization": f"Bearer {access_token}"}
+            )
+            if user_response.status_code == 200:
+                user_data = user_response.json()
+                res_content = {
+                    "message": "access token is valid",
+                    "user": {
+                        "name": user_data.get("displayName"),
+                        "email": user_data.get("mail"),
+                        "jobTitle": user_data.get("jobTitle"),
+                        "mobilePhone": user_data.get("mobilePhone")
+                    }
+                }
+                return JSONResponse(content=res_content)
+            else:
+                res_content = {"message": "access token is invalid"}
+                return JSONResponse(content=res_content, status_code=status.HTTP_401_UNAUTHORIZED)
+    else:
+        res_content = {"message": "access token not found"}
+        return JSONResponse(content=res_content, status_code=status.HTTP_401_UNAUTHORIZED)

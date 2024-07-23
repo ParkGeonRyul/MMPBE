@@ -10,11 +10,42 @@ from constants import COOKIES_KEY_NAME
 
 from typing import Annotated
 
+# ----------------------------------------------------------------
+
+from fastapi import APIRouter, HTTPException, status, Response
+from fastapi.responses import JSONResponse
+
+from constants import COOKIES_KEY_NAME
+
+import os
+import msal
+
+from fastapi.responses import RedirectResponse
+from httpx import AsyncClient
+from dotenv import load_dotenv
+from db.context import auth_collection, user_collection
+from utils.objectId_convert import objectId_convert
+from fastapi import Request, HTTPException, status
+
+load_dotenv()
+router = APIRouter()
+
+MS_CLIENT_ID = os.getenv("MS_CLIENT_ID")
+MS_CLIENT_SECRET = os.getenv("MS_CLIENT_SECRET")
+MS_REDIRECT_URI = os.getenv("MS_REDIRECT_URI")
+MS_AUTH_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
+MS_TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+MS_USER_INFO_URL = "https://graph.microsoft.com/v1.0/me"
+MS_AUTHORITY = "https://login.microsoftonline.com/common"
+REDIRECT_URL_HOME = os.getenv("REDIRECT_URL_HOME")
+# ----------------------------------------------------------------
+
+
 router = APIRouter()
 
 @router.get("/login")
-async def login(ads_id: Annotated[str | None, Cookie()] = None):
-    redirect_callback = await auth_service.access_cookie(ads_id)
+async def login():
+    redirect_callback = await auth_service.login()
 
     return redirect_callback
 
@@ -28,3 +59,32 @@ async def auth_callback(request: Request):
 @router.get("/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(res: Response) -> JSONResponse:
     res.delete_cookie(COOKIES_KEY_NAME)
+
+@router.get("/validate")
+async def validate(request: Request) -> JSONResponse:
+    access_token = request.cookies.get(COOKIES_KEY_NAME)
+    if access_token:
+        async with AsyncClient() as client:
+            user_response = await client.get(
+                MS_USER_INFO_URL,
+                headers={"Authorization": f"Bearer {access_token}"}
+            )
+            print(user_response.json())
+            if user_response.status_code == 200:
+                user_data = user_response.json()
+                res_content = {
+                    "message": "access token is valid",
+                    "user": {
+                        "name": user_data.get("displayName"),
+                        "email": user_data.get("mail"),
+                        "jobTitle": user_data.get("jobTitle"),
+                        "mobilePhone": user_data.get("mobilePhone")
+                    }
+                }
+                return JSONResponse(content=res_content)
+            else:
+                res_content = {"message": "access token is invalid"}
+                return JSONResponse(content=res_content, status_code=status.HTTP_401_UNAUTHORIZED)
+    else:
+        res_content = {"message": "access token not found"}
+        return JSONResponse(content=res_content, status_code=status.HTTP_401_UNAUTHORIZED)
