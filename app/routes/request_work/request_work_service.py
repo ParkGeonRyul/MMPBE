@@ -3,6 +3,7 @@ from db.context import workRequestCollection
 import pymongo
 from db.context import Database
 from datetime import datetime
+from bson import ObjectId
 
 from utils import objectCleaner
 
@@ -23,7 +24,8 @@ async def post_request_work(
         "customer_nm": customer_nm,
         "request_date": request_date,
         "work_content": work_content,
-        "file":file
+        "file": file,
+        "del_yn": "N"
     }
     workRequestCollection.insert_one(document)
 
@@ -57,14 +59,23 @@ async def update_recovery_request_work(
     filter = {"_id": id}
     workRequestCollection.update_one(filter, {"$set":{"delYn": "Y"}})
 
-async def get_request_work_list(page: int, token: str):
+async def get_request_work_list(page: int, user_id: str):
     size = 5
-
-    projection = {"_id": 1, "user_id": 1, "request_itle": 1, "customer_nm": 1, "request_date":1}
-    work_item = workRequestCollection.find({"userId": user_id}, projection).skip(page).limit(size)
+    skip = (page - 1) * size
+    print(user_id)
+    print(page)
+    projection = {"_id": 1, "user_id": 1, "request_title": 1, "customer_nm": 1, "request_date":1}
+    work_item = workRequestCollection.find({"user_id": user_id}, projection).skip(skip).limit(size)
+    # if work_item:
+    #     work_item["_id"] = str(work_list["_id"])
     work_list = list(work_item)
-    return work_list
+    numbered_items = [{"number": skip + i + 1, **item, "_id": str(item["_id"])} for i, item in enumerate(work_list)]
+    print(numbered_items)
+    return numbered_items
 
-async def get_request_work_dtl(request_id: str, token: str):
-    work_item = workRequestCollection.find_one({"request_id":request_id})
+async def get_request_work_dtl(request_id: str):
+    print(request_id)
+    work_item = workRequestCollection.find_one(ObjectId(request_id))
+    if work_item:
+        work_item["_id"] = str(work_item["_id"])
     return work_item

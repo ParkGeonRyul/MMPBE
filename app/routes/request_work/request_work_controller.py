@@ -32,17 +32,18 @@ class Router:
         response_model_by_alias=False
         )       
 async def post_work_request(item: WorkRequestModel):
-    await request_work_service.post_request_work(
-        user_id=item.userId,
-        device_nm=item.deviceNm,
-        request_title=item.requestTitle,
-        customer_nm=item.customerNm,
-        request_date=item.requestDt,
-        work_content=item.workContent,
-        file=item.file
-        )
+    # await request_work_service.post_request_work(
+    #     user_id=item.userId,
+    #     device_nm=item.deviceNm,
+    #     request_title=item.requestTitle,
+    #     customer_nm=item.customerNm,
+    #     request_date=item.requestDt,
+    #     work_content=item.workContent,
+    #     file=item.file
+    #     )
 
-    return {"message": "Request Created"}
+    # return {"message": "Request Created"}
+    return item
 
 @router.put(
     "/updateRequest/modify",
@@ -79,8 +80,8 @@ async def update_delete_work_request(item: UpdateWorkRequestModel):
         status_code=status.HTTP_200_OK,
         response_model_by_alias=False
 )
-async def get_request_list(page: int, token: Optional[str] = Cookie(None)):
-    request_list = request_work_service.get_request_work_list(page=page, token=token)
+async def get_request_list(page: int, userId: str):#, token: Optional[str] = Cookie(None):
+    request_list = await request_work_service.get_request_work_list(page=page, user_id=userId)
     return request_list
 
 @router.get(
@@ -88,6 +89,6 @@ async def get_request_list(page: int, token: Optional[str] = Cookie(None)):
     status_code=status.HTTP_200_OK,
     response_model_by_alias=False
 )
-async def test(requestId: str, token: Optional[str] = Cookie(None)):
-    request_dtl = request_work_service.get_request_work_dtl(request_id=requestId, token=token)
+async def get_request_dtl(requestId: str):#,token: Optional[str] = Cookie(None)):
+    request_dtl = await request_work_service.get_request_work_dtl(request_id=requestId)
     return {"requestDtl": request_dtl}
