@@ -38,11 +38,11 @@ async def access_token_manager(isUser:bool, access_token: str, refresh_token: st
             "access_token": access_token,
             "refresh_token": refresh_token
         }
-        user = user_collection.find_one({"_id": user_id})
-        filter = {"_id": user_id}
+        filter = {"user_id": user_id}
         auth_collection.update_one(filter,{"$set":document})
+        user_token = auth_collection.find_one({"user_id": user_id})
 
-        return access_token
+        return user_token
     else:
         document = {
             "access_token": access_token,
@@ -51,10 +51,9 @@ async def access_token_manager(isUser:bool, access_token: str, refresh_token: st
             "email": email
         }
         auth_collection.insert_one(document)
-        access_token = auth_collection.find_one({"access_token": document["access_token"]})
-        objectId_convert(access_token)
+        user_token = auth_collection.find_one({"access_token": document["access_token"]})
 
-        return access_token
+        return user_token
 
 async def login():
     url = msal_app.get_authorization_request_url(
@@ -109,14 +108,14 @@ async def auth_callback(code):
             }
             create_user = user_collection.insert_one(document)
             user_token = await access_token_manager(isUser, access_token, refresh_token, create_user.inserted_id, user_data['mail'])
-            response = JSONResponse(content=user_token)
+            response = JSONResponse(content=user_token['access_token'])
             response.set_cookie(key=COOKIES_KEY_NAME, value=user_token, httponly=True)
 
             return RedirectResponse(url="http://localhost:8083/dashboard")
         else:
             objectId_convert(find_user)
             user_token = await access_token_manager(isUser, access_token, refresh_token, find_user["_id"], find_user["email"])
-            response = JSONResponse(content=user_token)
+            response = JSONResponse(content=user_token['access_token'])
             response.set_cookie(key=COOKIES_KEY_NAME, value=user_token, httponly=True)
 
             return RedirectResponse(url="http://localhost:8083/dashboard")
@@ -125,9 +124,9 @@ async def auth_callback(code):
 # async def logout(res: Response) -> JSONResponse:
 #     res.delete_cookie(COOKIES_KEY_NAME) 
 
-from fastapi import Request
 
-async def validate(request: Response):
+@router.get("/validate")
+async def validate(request: Request) -> JSONResponse:
     access_token = request.cookies.get(COOKIES_KEY_NAME)
     if access_token:
         async with AsyncClient() as client:

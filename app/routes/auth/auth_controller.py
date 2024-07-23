@@ -62,29 +62,4 @@ async def logout(res: Response) -> JSONResponse:
 
 @router.get("/validate")
 async def validate(request: Request) -> JSONResponse:
-    access_token = request.cookies.get(COOKIES_KEY_NAME)
-    if access_token:
-        async with AsyncClient() as client:
-            user_response = await client.get(
-                MS_USER_INFO_URL,
-                headers={"Authorization": f"Bearer {access_token}"}
-            )
-            print(user_response.json())
-            if user_response.status_code == 200:
-                user_data = user_response.json()
-                res_content = {
-                    "message": "access token is valid",
-                    "user": {
-                        "name": user_data.get("displayName"),
-                        "email": user_data.get("mail"),
-                        "jobTitle": user_data.get("jobTitle"),
-                        "mobilePhone": user_data.get("mobilePhone")
-                    }
-                }
-                return JSONResponse(content=res_content)
-            else:
-                res_content = {"message": "access token is invalid"}
-                return JSONResponse(content=res_content, status_code=status.HTTP_401_UNAUTHORIZED)
-    else:
-        res_content = {"message": "access token not found"}
-        return JSONResponse(content=res_content, status_code=status.HTTP_401_UNAUTHORIZED)
+    return await auth_service.validate(request)
