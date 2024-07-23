@@ -13,6 +13,8 @@ from dotenv import load_dotenv
 from db.context import auth_collection, user_collection
 from utils.objectId_convert import objectId_convert
 from fastapi import Request, HTTPException, status
+import bson
+from bson import ObjectId
 
 load_dotenv()
 router = APIRouter()
@@ -32,7 +34,7 @@ msal_app = msal.ConfidentialClientApplication(
     client_credential=MS_CLIENT_SECRET
 )
 
-async def access_token_manager(isUser:bool, access_token: str, refresh_token: str, user_id: str, email: str):                       
+async def access_token_manager(isUser:bool, access_token: str, refresh_token: str, user_id: ObjectId, email: str):                       
     if isUser:
         document = {
             "access_token": access_token,
@@ -41,7 +43,7 @@ async def access_token_manager(isUser:bool, access_token: str, refresh_token: st
         filter = {"user_id": user_id}
         auth_collection.update_one(filter,{"$set":document})
         user_token = auth_collection.find_one({"user_id": user_id})
-
+ 
         return user_token
     else:
         document = {
@@ -113,7 +115,6 @@ async def auth_callback(code):
 
             return RedirectResponse(url="http://localhost:8083/dashboard")
         else:
-            objectId_convert(find_user)
             user_token = await access_token_manager(isUser, access_token, refresh_token, find_user["_id"], find_user["email"])
             response = JSONResponse(content=user_token['access_token'])
             response.set_cookie(key=COOKIES_KEY_NAME, value=user_token, httponly=True)
