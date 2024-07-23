@@ -30,19 +30,6 @@ from fastapi import Request, HTTPException, status
 load_dotenv()
 router = APIRouter()
 
-MS_CLIENT_ID = os.getenv("MS_CLIENT_ID")
-MS_CLIENT_SECRET = os.getenv("MS_CLIENT_SECRET")
-MS_REDIRECT_URI = os.getenv("MS_REDIRECT_URI")
-MS_AUTH_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
-MS_TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
-MS_USER_INFO_URL = "https://graph.microsoft.com/v1.0/me"
-MS_AUTHORITY = "https://login.microsoftonline.com/common"
-REDIRECT_URL_HOME = os.getenv("REDIRECT_URL_HOME")
-# ----------------------------------------------------------------
-
-
-router = APIRouter()
-
 @router.get("/login")
 async def login():
     redirect_callback = await auth_service.login()
