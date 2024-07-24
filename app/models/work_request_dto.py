@@ -61,7 +61,7 @@ class WorkRequestField:
     )
     reg_yn = Field(
         description="작업 요청 상태",
-        examples="Y(요청), N(회수)",
+        example="Y, N",
         default="Y"
     )
     created_at = Field(
