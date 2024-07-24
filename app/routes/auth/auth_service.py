@@ -114,26 +114,16 @@ async def auth_callback(code):
             }
             create_user = user_collection.insert_one(document)
             user_token = await access_token_manager(isUser, access_token, refresh_token, create_user.inserted_id, user_data['mail'])
-            response = JSONResponse(content=user_token['access_token'])
+            response = RedirectResponse(url=REDIRECT_URL_HOME)
             response.set_cookie(key=COOKIES_KEY_NAME, value=user_token['access_token'], httponly=True)
 
-            return RedirectResponse(url="http://localhost:8083/dashboard")
+            return response
         else:
-            # user_token = await access_token_manager(isUser, access_token, refresh_token, find_user["_id"], find_user["email"])
-            # response = JSONResponse(content=user_token['access_token'])
-            # response.set_cookie(key=COOKIES_KEY_NAME, value=user_token['access_token'], httponly=True, domain="localhost")
-
-            # return RedirectResponse(url="http://localhost:8083/dashboard")
             user_token = await access_token_manager(isUser, access_token, refresh_token, find_user["_id"], find_user["email"])
-            response = RedirectResponse(url="http://localhost:8083/dashboard")
-            response.set_cookie(key=COOKIES_KEY_NAME, value=user_token['access_token'], httponly=True, domain="localhost")
+            response = RedirectResponse(url=REDIRECT_URL_HOME)
+            response.set_cookie(key=COOKIES_KEY_NAME, value=user_token['access_token'], httponly=True)
 
             return response
-        
-# @router.get("/logout", status_code=status.HTTP_204_NO_CONTENT)
-# async def logout(res: Response) -> JSONResponse:
-#     res.delete_cookie(COOKIES_KEY_NAME) 
-
 
 async def validate(request: Request) -> JSONResponse:
     access_token = request.cookies.get(COOKIES_KEY_NAME)
@@ -154,10 +144,22 @@ async def validate(request: Request) -> JSONResponse:
                         "mobilePhone": user_data.get("mobilePhone")
                     }
                 }
+                
+                res_content = {"message": "access token is valid"}
                 return JSONResponse(content=res_content)
             else:
-                res_content = {"message": "access token is invalid"}
-                return JSONResponse(content=res_content, status_code=status.HTTP_401_UNAUTHORIZED)
+                get_refresh_token = auth_collection.find_one({"access_token": access_token})
+                update_access_token = msal_app.acquire_token_by_refresh_token(get_refresh_token["refresh_token"], scopes=["User.Read"])
+                document = {
+                    "access_token": update_access_token["access_token"],
+                    "refresh_token": update_access_token["refresh_token"]
+                }
+
+                filter = {"access_token": access_token}
+                auth_collection.update_one(filter, {"$set": document})
+
+                res_content = {"message": "access token has been refresh"}
+                return JSONResponse(content=res_content)
     else:
         res_content = {"message": "access token not found"}
         return JSONResponse(content=res_content, status_code=status.HTTP_401_UNAUTHORIZED)
