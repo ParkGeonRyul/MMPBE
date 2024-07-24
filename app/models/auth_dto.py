@@ -8,34 +8,34 @@ from typing_extensions import Annotated
 from bson import ObjectId
 
 
-class RoleField:
+class authFields:
     id = Field(
         description="ObjectID",
         alias="_id",
         default_factory=PyObjectId
     )
-    role_id = Field(
-        description="역할 ID(Integer Index)"
-    ) 
-    role_nm = Field(
-        description="역할 이름"
+    access_token = Field(
+        description="회사 이름",
+        examples="메이븐클라우드서비스"
+    )
+    refresh_token = Field(
+        description="회사 이름",
+        examples="메이븐클라우드서비스"
     )
 
-class roldModel(BaseModel):
-    id: Optional[PyObjectId] = RoleField.id
-    roldId: int = RoleField.role_id
-    role_nm: str = RoleField.role_nm
+
+class CompanyModel(BaseModel):
+    id: Optional[PyObjectId] = authFields.id
+    access_token: str = authFields.access_token
+    refresh_token: str = authFields.refresh_token
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str},
         json_schema_extra={
             "example": {
-                "role_id": "역할 ID(Integer)",
-                "role_nm": "역할 이름"
+                "access_token": "sEcRet",
+                "refresh_token": "SeCrEt"
             }
         }
     )
-
-class RoleCollection(BaseModel):
-    roles: List[roldModel]

@@ -8,6 +8,7 @@ from utils import lifespan
 from routes.auth import auth_controller
 from routes.page import page_controller
 from routes.user import user_controller
+from routes.request_work import request_work_controller
 
 from middlewares import cors_middleware
 # from middlewares import static_middleware
@@ -20,3 +21,8 @@ cors_middleware.add(app)
 app.include_router(auth_controller.router)
 app.include_router(page_controller.router)
 app.include_router(user_controller.router)
+app.include_router(request_work_controller.router)
+
+@app.get("/ping")
+def ping():
+    return "pong"

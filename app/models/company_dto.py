@@ -14,33 +14,33 @@ class CompanyFields:
         alias="_id",
         default_factory=PyObjectId
     )
-    companyNm = Field(
+    company_nm = Field(
         description="회사 이름",
         examples="메이븐클라우드서비스"
     )
 
 class CompanyModel(BaseModel):
     id: Optional[PyObjectId] = CompanyFields.id
-    companyNm: str = CompanyFields.companyNm
+    company_nm: str = CompanyFields.company_nm
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str},
         json_schema_extra={
             "example": {
-                "companyNm": "메이븐클라우드서비스"
+                "company_nm": "메이븐클라우드서비스"
             }
         }
     )
 
 class UpdateCompanyModel(BaseModel):
-    companyNm: Optional[str] = None
+    company_nm: Optional[str] = None
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str},
         json_schema_extra={
             "example": {
-                "companyNm": "메이븐클라우드서비스"
+                "company_nm": "메이븐클라우드서비스"
             }
         }
     )

@@ -14,10 +14,10 @@ class UsageField:
         alias="_id",
         default_factory=PyObjectId
     )
-    userId = Field(
+    user_id = Field(
         description="고객 ID"
     )
-    serviceDeviceId = Field(
+    service_device_id = Field(
         description="서비스 장비 ID(ObjectID)"
     )
     cpu = Field(
@@ -35,8 +35,8 @@ class UsageField:
 
 class UsageModel(BaseModel):
     id: Optional[PyObjectId] = UsageField.id
-    userId: str = UsageField.userId
-    serviceDeviceId: str = UsageField.serviceDeviceId
+    user_id: str = UsageField.user_id
+    service_device_id: str = UsageField.service_device_id
     cpu: int = UsageField.cpu
     disk: int = UsageField.disk
     model_config = ConfigDict(
@@ -45,8 +45,8 @@ class UsageModel(BaseModel):
         json_encoders={ObjectId: str},
         json_schema_extra={
             "example": {
-                "userId": "6690cf7fa4897bf6b90541c1(ObjectId)",
-                "serviceDeviceId": "6690cf7fa4897bf6b90541c1(ObjectId)",
+                "user_id": "6690cf7fa4897bf6b90541c1(ObjectId)",
+                "service_device_id": "6690cf7fa4897bf6b90541c1(ObjectId)",
                 "cpu": "CPU 사용량",
                 "disk": "disk 사용량"
             }
