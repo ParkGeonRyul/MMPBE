@@ -7,10 +7,11 @@
             "request": "launch",
             "module": "uvicorn",
             "args": [
-                "app.main:app", // Update the module path to app.main:app
+                "app.main:app",
                 "--reload"
             ],
-            "jinja": true
+            "jinja": true,
+            "envFile": "${workspaceFolder}/dev.env"
         }
     ]
 }
