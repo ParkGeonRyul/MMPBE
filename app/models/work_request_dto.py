@@ -97,6 +97,7 @@ class WorkRequestModel(BaseModel):
         populate_by_name=True,
         json_encoders={ObjectId: str},
         arbitrary_types_allowed = True,
+        arbitrary_types_allowed = True,
         json_schema_extra={
             "example": {
                 "user_id": "6690cf7fa4897bf6b90541c1",
