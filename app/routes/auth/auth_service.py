@@ -119,11 +119,16 @@ async def auth_callback(code):
 
             return RedirectResponse(url="http://localhost:8083/dashboard")
         else:
-            user_token = await access_token_manager(isUser, access_token, refresh_token, find_user["_id"], find_user["email"])
-            response = JSONResponse(content=user_token['access_token'])
-            response.set_cookie(key=COOKIES_KEY_NAME, value=user_token['access_token'], httponly=True)
+            # user_token = await access_token_manager(isUser, access_token, refresh_token, find_user["_id"], find_user["email"])
+            # response = JSONResponse(content=user_token['access_token'])
+            # response.set_cookie(key=COOKIES_KEY_NAME, value=user_token['access_token'], httponly=True, domain="localhost")
 
-            return RedirectResponse(url="http://localhost:8083/dashboard")
+            # return RedirectResponse(url="http://localhost:8083/dashboard")
+            user_token = await access_token_manager(isUser, access_token, refresh_token, find_user["_id"], find_user["email"])
+            response = RedirectResponse(url="http://localhost:8083/dashboard")
+            response.set_cookie(key=COOKIES_KEY_NAME, value=user_token['access_token'], httponly=True, domain="localhost")
+
+            return response
         
 # @router.get("/logout", status_code=status.HTTP_204_NO_CONTENT)
 # async def logout(res: Response) -> JSONResponse:
