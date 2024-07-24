@@ -3,31 +3,18 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException, status, Response
 from fastapi.responses import JSONResponse
 
+from app.routes._path.ms_paths import MS_AUTHORITY, MS_CLIENT_ID, MS_CLIENT_SECRET, MS_REDIRECT_URI, MS_TOKEN_URL, MS_USER_INFO_URL, REDIRECT_URL_HOME
 from constants import COOKIES_KEY_NAME
 
-import os
 import msal
 
 from fastapi.responses import RedirectResponse
 from httpx import AsyncClient
-from dotenv import load_dotenv
 from db.context import auth_collection, user_collection
-from utils.objectId_convert import objectId_convert
 from fastapi import Request, HTTPException, status
-import bson
 from bson import ObjectId
 
-load_dotenv()
 router = APIRouter()
-
-MS_CLIENT_ID = os.getenv("MS_CLIENT_ID")
-MS_CLIENT_SECRET = os.getenv("MS_CLIENT_SECRET")
-MS_REDIRECT_URI = os.getenv("MS_REDIRECT_URI")
-MS_AUTH_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
-MS_TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
-MS_USER_INFO_URL = "https://graph.microsoft.com/v1.0/me"
-MS_AUTHORITY = "https://login.microsoftonline.com/common"
-REDIRECT_URL_HOME = os.getenv("REDIRECT_URL_HOME")
 
 msal_app = msal.ConfidentialClientApplication(
     MS_CLIENT_ID,
