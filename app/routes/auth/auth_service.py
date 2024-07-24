@@ -1,4 +1,5 @@
 
+from datetime import datetime
 from fastapi import APIRouter, HTTPException, status, Response
 from fastapi.responses import JSONResponse
 
@@ -38,7 +39,8 @@ async def access_token_manager(isUser:bool, access_token: str, refresh_token: st
     if isUser:
         document = {
             "access_token": access_token,
-            "refresh_token": refresh_token
+            "refresh_token": refresh_token,
+            "updated_at": datetime.now()
         }
         filter = {"user_id": user_id}
         auth_collection.update_one(filter,{"$set":document})
@@ -50,7 +52,8 @@ async def access_token_manager(isUser:bool, access_token: str, refresh_token: st
             "access_token": access_token,
             "refresh_token": refresh_token,
             "user_id": user_id,
-            "email": email
+            "email": email,
+            "updated_at": datetime.now()
         }
         auth_collection.insert_one(document)
         user_token = auth_collection.find_one({"user_id": user_id})
@@ -106,7 +109,8 @@ async def auth_callback(code):
                 "rank": user_data['jobTitle'],
                 "mobile_contact": user_data['mobilePhone'],
                 "email": user_data['mail'],
-                "role": 1
+                "role": 1,
+                "created_at": datetime.now()
             }
             create_user = user_collection.insert_one(document)
             user_token = await access_token_manager(isUser, access_token, refresh_token, create_user.inserted_id, user_data['mail'])
