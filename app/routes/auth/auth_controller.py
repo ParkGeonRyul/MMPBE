@@ -37,7 +37,7 @@ async def login():
     return redirect_callback
 
 @router.get("/auth/callback")
-async def auth_callback(request: Request):
+async def auth_callback(request: Request) -> RedirectResponse:
     code = request.query_params.get("code")
     example = await auth_service.auth_callback(code)
 

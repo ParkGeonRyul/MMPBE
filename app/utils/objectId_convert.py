@@ -1,2 +1,2 @@
-def objectId_convert(item):
-    item['_id'] = str(item['_id'])
+def objectId_convert(item, id):
+    item[id] = str(item[id])

@@ -53,7 +53,7 @@ async def access_token_manager(isUser:bool, access_token: str, refresh_token: st
             "email": email
         }
         auth_collection.insert_one(document)
-        user_token = auth_collection.find_one({"access_token": document["access_token"]})
+        user_token = auth_collection.find_one({"user_id": user_id})
 
         return user_token
 
@@ -110,14 +110,18 @@ async def auth_callback(code):
             }
             create_user = user_collection.insert_one(document)
             user_token = await access_token_manager(isUser, access_token, refresh_token, create_user.inserted_id, user_data['mail'])
-            response = JSONResponse(content=user_token['access_token'])
-            response.set_cookie(key=COOKIES_KEY_NAME, value=user_token, httponly=True)
+            objectId_convert(user_token, "user_id")
+            response = JSONResponse(content=user_token)
+            response.set_cookie(key=COOKIES_KEY_NAME, value=user_token['access_token'], httponly=True)
 
             return RedirectResponse(url="http://localhost:8083/dashboard")
         else:
             user_token = await access_token_manager(isUser, access_token, refresh_token, find_user["_id"], find_user["email"])
-            response = JSONResponse(content=user_token['access_token'])
-            response.set_cookie(key=COOKIES_KEY_NAME, value=user_token, httponly=True)
+            objectId_convert(user_token, "_id")
+            objectId_convert(user_token, "user_id")
+            print(user_token)
+            response = JSONResponse(content=user_token)
+            response.set_cookie(key=COOKIES_KEY_NAME, value=user_token['access_token'], httponly=True)
 
             return RedirectResponse(url="http://localhost:8083/dashboard")
         
