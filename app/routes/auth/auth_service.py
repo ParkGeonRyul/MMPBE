@@ -48,7 +48,7 @@ async def insert_token(access_token: str, refresh_token: str, user_id: ObjectId,
 
     return user_token
 
-async def access_token_manager(is_user:bool, is_token:bool, access_token: str, refresh_token: str, user_id: ObjectId, email: str):                       
+async def access_token_manager(is_user:bool, check_token_existence:bool, access_token: str, refresh_token: str, user_id: ObjectId, email: str):                       
     if is_user:
         document = {
             "access_token": access_token,
@@ -56,7 +56,7 @@ async def access_token_manager(is_user:bool, is_token:bool, access_token: str, r
             "updated_at": datetime.now()
         }
         filter = {"user_id": user_id}
-        if is_token:
+        if check_token_existence:
             auth_collection.update_one(filter,{"$set":document})
             user_token = auth_collection.find_one({"user_id": user_id})
  
@@ -111,9 +111,15 @@ async def auth_callback(code):
         find_user = user_collection.find_one({"email": user_data['mail']})
         find_token = auth_collection.find_one({"email": user_data['mail']})
         is_user = True if find_user else False
-        is_token = True if find_token else False
+        check_token_existence = True if find_token else False
 
-        if find_user == None:
+        if is_user:
+            user_token = await access_token_manager(is_user, check_token_existence, access_token, refresh_token, find_user["_id"], find_user["email"])
+            response = RedirectResponse(url=REDIRECT_URL_HOME)
+            response.set_cookie(key=COOKIES_KEY_NAME, value=user_token['access_token'], httponly=True)
+
+            return response
+        else:
             document = {
                 "user_nm": user_data['displayName'],
                 "rank": user_data['jobTitle'],
@@ -124,12 +130,6 @@ async def auth_callback(code):
             }
             create_user = user_collection.insert_one(document)
             user_token = await access_token_manager(is_user, access_token, refresh_token, create_user.inserted_id, user_data['mail'])
-            response = RedirectResponse(url=REDIRECT_URL_HOME)
-            response.set_cookie(key=COOKIES_KEY_NAME, value=user_token['access_token'], httponly=True)
-
-            return response
-        else:
-            user_token = await access_token_manager(is_user, is_token, access_token, refresh_token, find_user["_id"], find_user["email"])
             response = RedirectResponse(url=REDIRECT_URL_HOME)
             response.set_cookie(key=COOKIES_KEY_NAME, value=user_token['access_token'], httponly=True)
 
