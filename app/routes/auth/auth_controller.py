@@ -39,9 +39,9 @@ async def login():
 @router.get("/auth/callback")
 async def auth_callback(request: Request) -> RedirectResponse:
     code = request.query_params.get("code")
-    example = await auth_service.auth_callback(code)
+    redirect = await auth_service.auth_callback(code)
 
-    return example
+    return redirect
 
 @router.get("/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(res: Response) -> JSONResponse:

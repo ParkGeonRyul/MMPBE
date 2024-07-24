@@ -130,7 +130,6 @@ async def auth_callback(code):
 #     res.delete_cookie(COOKIES_KEY_NAME) 
 
 
-@router.get("/validate")
 async def validate(request: Request) -> JSONResponse:
     access_token = request.cookies.get(COOKIES_KEY_NAME)
     if access_token:
