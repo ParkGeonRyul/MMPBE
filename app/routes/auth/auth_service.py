@@ -59,6 +59,12 @@ async def access_token_manager(isUser:bool, access_token: str, refresh_token: st
         user_token = auth_collection.find_one({"user_id": user_id})
 
         return user_token
+    
+async def redirect_url(access_token: str):
+    response = RedirectResponse(url=REDIRECT_URL_HOME)
+    response.set_cookie(key=COOKIES_KEY_NAME, value=access_token, httponly=True)
+
+    return response
 
 async def login():
     url = msal_app.get_authorization_request_url(
@@ -114,16 +120,12 @@ async def auth_callback(code):
             }
             create_user = user_collection.insert_one(document)
             user_token = await access_token_manager(isUser, access_token, refresh_token, create_user.inserted_id, user_data['mail'])
-            response = RedirectResponse(url=REDIRECT_URL_HOME)
-            response.set_cookie(key=COOKIES_KEY_NAME, value=user_token['access_token'], httponly=True)
 
-            return response
+            return await redirect_url(user_token['access_token'])
         else:
             user_token = await access_token_manager(isUser, access_token, refresh_token, find_user["_id"], find_user["email"])
-            response = RedirectResponse(url=REDIRECT_URL_HOME)
-            response.set_cookie(key=COOKIES_KEY_NAME, value=user_token['access_token'], httponly=True)
-
-            return response
+            
+            return await redirect_url(user_token['access_token'])
 
 async def validate(request: Request) -> JSONResponse:
     access_token = request.cookies.get(COOKIES_KEY_NAME)
@@ -148,18 +150,21 @@ async def validate(request: Request) -> JSONResponse:
                 res_content = {"message": "access token is valid"}
                 return JSONResponse(content=res_content)
             else:
-                get_refresh_token = auth_collection.find_one({"access_token": access_token})
-                update_access_token = msal_app.acquire_token_by_refresh_token(get_refresh_token["refresh_token"], scopes=["User.Read"])
-                document = {
-                    "access_token": update_access_token["access_token"],
-                    "refresh_token": update_access_token["refresh_token"]
-                }
-
-                filter = {"access_token": access_token}
-                auth_collection.update_one(filter, {"$set": document})
-
+                user_data = user_response.json()
+                get_token = auth_collection.find_one({"access_token": access_token})
+                reissue_token = msal_app.acquire_token_by_refresh_token(get_token["refresh_token"], scopes=["User.Read"])
+                update_token = await access_token_manager(
+                    True,
+                    reissue_token['access_token'],
+                    reissue_token['refresh_token'],
+                    get_token['user_id'],
+                    get_token['email']
+                    )
                 res_content = {"message": "access token has been refresh"}
-                return JSONResponse(content=res_content)
+                response = JSONResponse(content=res_content)
+                response.set_cookie(key=COOKIES_KEY_NAME, value=update_token['access_token'], httponly=True)
+
+                return response
     else:
         res_content = {"message": "access token not found"}
         return JSONResponse(content=res_content, status_code=status.HTTP_401_UNAUTHORIZED)
