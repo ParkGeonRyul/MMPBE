@@ -29,25 +29,25 @@ from fastapi import Request, HTTPException, status
 
 load_dotenv()
 router = APIRouter()
-from app.routes._path.api_paths import ApiPaths
+from app.routes._path.api_paths import AUTH_CALLBACK, CHECK_SESSION, LOGIN_WITH_MS, LOGOUT
 
-@router.get(ApiPaths.LOGIN_WITH_MS)
+@router.get(LOGIN_WITH_MS)
 async def login():
     redirect_callback = await auth_service.login()
 
     return redirect_callback
 
-@router.get(ApiPaths.AUTH_CALLBACK)
+@router.get(AUTH_CALLBACK)
 async def auth_callback(request: Request) -> RedirectResponse:
     auth_code = request.query_params.get("code")
     redirect = await auth_service.auth_callback(auth_code)
 
     return redirect
 
-@router.get(ApiPaths.LOGOUT, status_code=status.HTTP_204_NO_CONTENT)
+@router.get(LOGOUT, status_code=status.HTTP_204_NO_CONTENT)
 async def logout(res: Response) -> JSONResponse:
     res.delete_cookie(COOKIES_KEY_NAME)
 
-@router.get(ApiPaths.CHECK_SESSION)
+@router.get(CHECK_SESSION)
 async def validate(request: Request) -> JSONResponse:
     return await auth_service.validate(request)
