@@ -36,7 +36,7 @@ class ApiPaths(object):
     #로그인
     @constant
     def AUTH_CALLBACK(cls):
-        return cls.AUTH + "auth" + cls.ROOT + "callback"
+        return cls.AUTH + "auth" + cls.SEPARATE + "callback"
     
     #로그아웃
     @constant
