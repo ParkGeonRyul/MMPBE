@@ -10,6 +10,7 @@ LOGIN_WITH_MS = AUTH + SEPARATE + "login"
 AUTH_CALLBACK = AUTH + SEPARATE + "oauth" + SEPARATE + "callback"
 LOGOUT = AUTH + SEPARATE + "logout"
 CHECK_SESSION = AUTH + SEPARATE + "validate"
+USER_INFO = AUTH + SEPARATE + "userinfo"
 # USER_PROFILE =
 
 # User paths
