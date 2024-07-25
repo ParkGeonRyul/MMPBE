@@ -3,8 +3,8 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException, status, Response
 from fastapi.responses import JSONResponse
 
-from app.routes._path.ms_paths import MS_AUTHORITY, MS_CLIENT_ID, MS_CLIENT_SECRET, MS_REDIRECT_URI, MS_TOKEN_URL, MS_USER_INFO_URL, REDIRECT_URL_HOME
-from constants import COOKIES_KEY_NAME
+from app.routes._path.ms_paths import MS_AUTHORITY, MS_CLIENT_ID, MS_CLIENT_SECRET, MS_PROFILE_PHOTO, MS_REDIRECT_URI, MS_TOKEN_URL, MS_USER_INFO_URL, REDIRECT_URL_HOME
+from constants import ACCESS_TOKEN_NOT_VALID, ACCESS_TOKEN_VAILD, COOKIES_KEY_NAME
 
 import msal
 
@@ -131,7 +131,7 @@ async def validate_token(access_token: str):
         if user_response.status_code == 200:
             user_data = user_response.json()
             res_content = {
-                "message": "access token is valid",
+                "message": ACCESS_TOKEN_VAILD,
                 "user": {
                     "name": user_data.get("displayName"),
                     "email": user_data.get("mail"),
@@ -139,8 +139,10 @@ async def validate_token(access_token: str):
                     "mobilePhone": user_data.get("mobilePhone")
                 }
             }            
-            res_json = {"message": "access token is valid"}
-
+            res_json = {
+                "message": ACCESS_TOKEN_VAILD,
+    }
+            
             return JSONResponse(content=res_json)
         else:
             user_data = user_response.json()
@@ -157,3 +159,23 @@ async def validate(request: Request) -> JSONResponse:
     access_token = request.cookies.get(COOKIES_KEY_NAME)
 
     return await validate_token(access_token)
+
+async def get_user_profile_image(request: Request) -> JSONResponse:
+    access_token = request.cookies.get(COOKIES_KEY_NAME)
+
+    async with AsyncClient() as client:
+        user_response = await client.get(
+            MS_PROFILE_PHOTO,
+            headers={"Authorization": f"Bearer {access_token}"}
+        )
+        if user_response.status_code == 200:
+            user_data = user_response.content.decode("utf-8", errors="ignore")
+            res_content = {
+                "message": ACCESS_TOKEN_VAILD,
+                "profile_image": user_data
+            }
+
+            return JSONResponse(content=res_content)
+
+        else:
+            return JSONResponse(content={"message": ACCESS_TOKEN_NOT_VALID}, status_code=status.HTTP_401_UNAUTHORIZED)

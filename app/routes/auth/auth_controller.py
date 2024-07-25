@@ -29,7 +29,7 @@ from fastapi import Request, HTTPException, status
 
 load_dotenv()
 router = APIRouter()
-from app.routes._path.api_paths import AUTH_CALLBACK, CHECK_SESSION, LOGIN_WITH_MS, LOGOUT
+from app.routes._path.api_paths import AUTH_CALLBACK, CHECK_SESSION, LOGIN_WITH_MS, LOGOUT, USER, USER_INFO
 
 @router.get(LOGIN_WITH_MS)
 async def login():
@@ -51,3 +51,7 @@ async def logout(res: Response) -> JSONResponse:
 @router.get(CHECK_SESSION)
 async def validate(request: Request) -> JSONResponse:
     return await auth_service.validate(request)
+
+@router.get(USER_INFO)
+async def get_user_profile_image(request: Request) -> JSONResponse:
+    return await auth_service.get_user_profile_image(request)

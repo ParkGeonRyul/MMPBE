@@ -7,9 +7,10 @@ V1 = ROOT + "v1"
 # Auth paths
 AUTH = V1 + SEPARATE + "auth"
 LOGIN_WITH_MS = AUTH + SEPARATE + "login"
-AUTH_CALLBACK = AUTH + SEPARATE + "auth" + SEPARATE + "callback"
+AUTH_CALLBACK = AUTH + SEPARATE + "oauth" + SEPARATE + "callback"
 LOGOUT = AUTH + SEPARATE + "logout"
 CHECK_SESSION = AUTH + SEPARATE + "validate"
+# USER_PROFILE =
 
 # User paths
 USER = V1 + SEPARATE + "user"
