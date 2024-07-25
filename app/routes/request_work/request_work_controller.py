@@ -24,26 +24,49 @@ router = APIRouter()
 class Router:
     def __init__(self):
         pass
+
+@router.get("/readRequest", status_code=status.HTTP_200_OK, response_model_by_alias=False)
+async def get_request_list(request: Request):
+    request_list = await request_work_service.get_request_list(request, False)
+
+    return request_list
+
+@router.get("/readRequestTemprary", status_code=status.HTTP_200_OK, response_model_by_alias=False)
+async def get_request_list(request: Request):
+    temprary_list = await request_work_service.get_request_list(request, True)
+
+    return temprary_list
+
+@router.get("/readDetailRequest", status_code=status.HTTP_200_OK, response_model_by_alias=False)
+async def get_request_dtl(requestId: str):
+    request_dtl = await request_work_service.get_request_dtl(requestId)
+    
+    return request_dtl
+
+@router.post("/createTemprary", status_code=status.HTTP_201_CREATED, response_model_by_alias=False)       
+async def post_temprary(request: Request, item: WorkRequestModel):
+    try:
         
+        return await request_work_service.post_temprary(request, item)
+    except Exception as e:
+        
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.post("/updateTemprary", status_code=status.HTTP_200_OK, response_model_by_alias=False)       
+async def post_work_request(request: Request):
+    try:
+        await request_work_service.post_temprary(request, request.items)
 
-@router.post(
-        "/createRequest",
-        status_code=status.HTTP_201_CREATED,
-        response_model_by_alias=False
-        )       
-async def post_work_request(item: WorkRequestModel):
-    # await request_work_service.post_request_work(
-    #     user_id=item.userId,
-    #     device_nm=item.deviceNm,
-    #     request_title=item.requestTitle,
-    #     customer_nm=item.customerNm,
-    #     request_date=item.requestDt,
-    #     work_content=item.workContent,
-    #     file=item.file
-    #     )
+        return {"message": "Temprary Request Created"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-    # return {"message": "Request Created"}
-    return item
+@router.put(
+        "/createRequest", status_code=status.HTTP_200_OK, response_model_by_alias=False)       
+async def post_work_request(item: UpdateWorkRequestModel):
+    await request_work_service.post_request(item)
+
+    return {"message": "Request Created"}
 
 @router.put(
     "/updateRequest/modify",
@@ -80,6 +103,7 @@ async def updateModifyWorkRequest(item: UpdateWorkRequestModel):
         workContent=item.workContent,
         file=item.file
     )
+
     return {"message": "Request Updated"}
 
 @router.put(
@@ -91,22 +115,17 @@ async def update_delete_work_request(item: UpdateWorkRequestModel):
     await request_work_service.update_recovery_request_work(
         id=item.id
     )
+
     return {"message": "Request Changed"}
 
-@router.get(
-        "/readRequest",
-        status_code=status.HTTP_200_OK,
-        response_model_by_alias=False
-)
-async def get_request_list(page: int, userId: str):#, token: Optional[str] = Cookie(None):
-    request_list = await request_work_service.get_request_work_list(page=page, user_id=userId)
-    return request_list
 
-@router.get(
-    "/readDetailRequest",
-    status_code=status.HTTP_200_OK,
-    response_model_by_alias=False
-)
-async def get_request_dtl(requestId: str):#,token: Optional[str] = Cookie(None)):
-    request_dtl = await request_work_service.get_request_work_dtl(request_id=requestId)
-    return {"requestDtl": request_dtl}
+
+# @router.get(
+#     "/readDetailTemprary",
+#     status_code=status.HTTP_200_OK,
+#     response_model_by_alias=False
+# )
+# async def get_request_dtl(requestId: str):
+#     temprary_dtl = await request_work_service.get_request_dtl(requestId, True)
+    
+    # return temprary_dtl

@@ -1,21 +1,20 @@
 
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, status, Response
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
+from dotenv import load_dotenv
+from fastapi import Request, HTTPException, status
+from bson import ObjectId
+from httpx import AsyncClient
 
-from constants import COOKIES_KEY_NAME
-
+import bson
 import os
 import msal
 
-from fastapi.responses import RedirectResponse
-from httpx import AsyncClient
-from dotenv import load_dotenv
+from constants import COOKIES_KEY_NAME
 from db.context import auth_collection, user_collection
 from utils.objectId_convert import objectId_convert
-from fastapi import Request, HTTPException, status
-import bson
-from bson import ObjectId
+
 
 load_dotenv()
 router = APIRouter()
@@ -136,37 +135,60 @@ async def auth_callback(code):
             return response
 
 async def validate_token(access_token: str):
+    user_token = auth_collection.find_one({"access_token": access_token})
     async with AsyncClient() as client:
         user_response = await client.get(
             MS_USER_INFO_URL,
             headers={"Authorization": f"Bearer {access_token}"}
         )
+        if user_token == None:
+
+            raise HTTPException(status_code=user_response.status_code, detail=user_response.text)
         if user_response.status_code == 200:
+            user_token = auth_collection.find_one({"access_token": access_token})
             user_data = user_response.json()
-            res_content = {
-                "message": "access token is valid",
-                "user": {
+            document = {
+                "status": "valid",
+                "userId": user_token['user_id'],
+                "userData": {
                     "name": user_data.get("displayName"),
                     "email": user_data.get("mail"),
                     "jobTitle": user_data.get("jobTitle"),
                     "mobilePhone": user_data.get("mobilePhone")
                 }
-            }            
-            res_json = {"message": "access token is valid"}
+            }
 
-            return JSONResponse(content=res_json)
+            return document
         else:
-            user_data = user_response.json()
-            user_token = auth_collection.find_one({"access_token": access_token})
-            reissue_token = msal_app.acquire_token_by_refresh_token(user_token["refresh_token"], scopes=["User.Read"])
-            update_token = await access_token_manager(True, True, reissue_token['access_token'], reissue_token['refresh_token'], user_token['user_id'], user_token['email'])
-            res_content = {"message": "access token has been refresh"}
-            response = JSONResponse(content=res_content)
-            response.set_cookie(key=COOKIES_KEY_NAME, value=update_token['access_token'], httponly=True)
+            find_user = user_collection.find_one({"_id": user_token['user_id']})
+            if find_user:
+                reissue_token = msal_app.acquire_token_by_refresh_token(user_token["refresh_token"], scopes=["User.Read"])
+                await access_token_manager(True, True, reissue_token['access_token'], reissue_token['refresh_token'], user_token['user_id'], user_token['email'])
+                document = {
+                    "status": "refresh",
+                    "userId": user_token['user_id'],
+                    "user": {
+                        "name": find_user['user_nm'],
+                        "email": find_user['email'],
+                        "jobTitle": find_user['rank'],
+                        "mobilePhone": find_user['mobile_contact']
+                    }                
+                }
 
-            return response
+                return document
+            else:
+                RedirectResponse(url=REDIRECT_URL_HOME)
 
 async def validate(request: Request) -> JSONResponse:
     access_token = request.cookies.get(COOKIES_KEY_NAME)
+    valid_token = await validate_token(access_token)
+    if valid_token['status'] == "valid":
+        objectId_convert(valid_token, "userId")
 
-    return await validate_token(access_token)
+        return JSONResponse(content=valid_token)
+    else:
+        access_token = auth_collection.find_one({"user_id": valid_token['userId']})
+        response = JSONResponse(content=valid_token)
+        response.set_cookie(key=COOKIES_KEY_NAME, value=valid_token['access_token'], httponly=True)
+
+        return response
