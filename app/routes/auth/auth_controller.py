@@ -29,7 +29,7 @@ from fastapi import Request, HTTPException, status
 
 load_dotenv()
 router = APIRouter()
-from app.routes._path.api_paths import AUTH_CALLBACK, CHECK_SESSION, LOGIN_WITH_MS, LOGOUT, USER, USER_INFO
+from routes._path.api_paths import AUTH_CALLBACK, CHECK_SESSION, LOGIN_WITH_MS, LOGOUT, USER, USER_INFO
 
 @router.get(LOGIN_WITH_MS)
 async def login():
