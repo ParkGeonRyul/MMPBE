@@ -1,52 +1,100 @@
 import json
-from db.context import work_request_collection
 import pymongo
+import os
+
+from db.context import work_request_collection, auth_collection, user_collection
+from fastapi import Request, Response, UploadFile
+from fastapi.responses import JSONResponse
 from db.context import Database
+from routes.auth import auth_service
 from datetime import datetime
 
 from utils import objectCleaner
+from models.work_request_dto import *
+from constants import COOKIES_KEY_NAME
+from utils.objectId_convert import objectId_convert
+from routes._modules import list_module, response_cookie_module
+from routes._modules.list_module import is_temprary
+from uuid import uuid4
+from typing import List
 
 
-async def postRequestWork(
-        userId: str,
-        deviceNm: str,
-        requestTitle: str,
-        customerNm: str,
-        requestDt: str,
-        workContent: str,
-        file: str
-        ):
-    document = {
-        "userId": userId,
-        "deviceNm": deviceNm,
-        "requestTitle": requestTitle,
-        "customerNm": customerNm,
-        "requestDt": requestDt,
-        "workContent": workContent,
-        "file":file
-    }
-    work_request_collection.insert_one(document)
+async def get_request_list(request: Request, value: bool) -> JSONResponse:
+    access_token_cookie = request.cookies.get(COOKIES_KEY_NAME)
+    token_data = await auth_service.validate_token(access_token_cookie)
+    projection = {"_id": 1, "user_id": 1, "request_title": 1, "customer_nm": 1, "request_date": 1, 'created_at': 1, 'updated_at': 1, "del_yn": 1}     
+    content = await list_module.get_collection_list(
+    str(token_data['userId']), work_request_collection, await is_temprary(value),int(request.query_params.get("page")), projection)
+    response_content=json.loads(json.dumps(content, indent=1, default=str))
+    
+    return await response_cookie_module.set_response_cookie(token_data, response_content)
 
-async def update_modify_request_work(
-        id: str,
-        user_id: str,
-        device_nm: str,
-        request_title: str,
-        customer_nm: str,
-        request_date: str,
-        work_content: str,
-        file: str,
-        del_yn: str
-        ):
-    filter = {"_id": id}
-    req_data = objectCleaner.cleanObject({
-        "user_id": user_id,
-        "device_nm": device_nm,
-        "request_title": request_title,
-        "customer_nm": customer_nm,
-        "request_date": request_date,
-        "work_content": work_content,
-        "del_yn": del_yn
-        })
-    workRequestCollection.update_one(filter, {"$set": reqData})
-    workRequestCollection.update_one(filter,{"$set":{"file":file}})
+async def get_request_dtl(request: Request) -> JSONResponse:
+    access_token_cookie = request.cookies.get(COOKIES_KEY_NAME)
+    token_data = await auth_service.validate_token(access_token_cookie)
+    request_id = request.query_params.get("requestId")
+    work_item = work_request_collection.find_one(ObjectId(request_id))
+    response_content=json.loads(json.dumps(work_item, indent=1, default=str))
+    
+    return await response_cookie_module.set_response_cookie(token_data, response_content)
+
+async def post_temprary(request: Request, item: WorkRequestModel) -> JSONResponse:
+    access_token = request.cookies.get(COOKIES_KEY_NAME)
+    token_data = await auth_service.validate_token(access_token)
+    work_request_collection.insert_one(item.model_dump())
+    response_content = {"message": "Temprary Request Created"}
+    
+    return await response_cookie_module.set_response_cookie(token_data, response_content)
+
+async def update_temprary(request: Request, item: UpdateWorkRequestModel) -> JSONResponse:
+    access_token = request.cookies.get(COOKIES_KEY_NAME)
+    request_id = request.query_params.get("requestId")
+    token_data = await auth_service.validate_token(access_token)
+    work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set": item.model_dump()})
+    response_content = {"message": "Temprary Request Updated"}
+
+    return await response_cookie_module.set_response_cookie(token_data, response_content)
+
+async def update_request(request: Request, item: UpdateWorkRequestModel) -> JSONResponse:
+    access_token = request.cookies.get(COOKIES_KEY_NAME)
+    request_id = request.query_params.get("requestId")
+    token_data = await auth_service.validate_token(access_token)
+    item['created_at'] = datetime.now()
+    work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set": item.model_dump()})
+    response_content = {"message": "Request Created"}
+
+    return await response_cookie_module.set_response_cookie(token_data, response_content)
+
+async def delete_temprary(request: Request, item: DeleteRequestTempraryModel):
+    access_token = request.cookies.get(COOKIES_KEY_NAME)
+    token_data = await auth_service.validate_token(access_token)
+    object_ids = [ObjectId(id) for id in item]
+    work_request_collection.delete_many({"_id": {"$in": object_ids}})
+    response_content = {"message": "Temprary Deleted"}
+
+    return await response_cookie_module.set_response_cookie(token_data, response_content)
+
+async def del_yn_request(request: Request):
+    access_token = request.cookies.get(COOKIES_KEY_NAME)
+    token_data = await auth_service.validate_token(access_token)
+    request_id = request.query_params.get("requestId")
+    test = work_request_collection.find_one({"_id": ObjectId(request_id)})
+    if test['del_yn'] == "N":
+        await work_request_collection.update_one(ObjectId(request_id), {"$set":{"del_yn": "Y"}})
+    else:
+        await work_request_collection.update_one(ObjectId(request_id), {"$set":{"del_yn": "N"}})
+
+    response_content = {"message": "Request delete processing completed"}
+
+    return await response_cookie_module.set_response_cookie(token_data, response_content)
+
+# async def update_modify_request_work(item: UpdateWorkRequestModel):
+#     filter = {"_id": id}
+#     work_request_collection.update_one(filter, {"$set": req_data})
+#     work_request_collection.update_one(filter, {"$set":{"file": file}})
+
+# async def update_recovery_request_work(
+#         id: str
+#         ):
+#     filter = {"_id": id}
+#     work_request_collection.update_one(filter, {"$set":{"delYn": "Y"}})

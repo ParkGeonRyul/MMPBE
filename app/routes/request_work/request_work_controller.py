@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Response, Cookie
+from fastapi import APIRouter, HTTPException, status, Response, Cookie, UploadFile
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.requests import Request
 
@@ -9,87 +9,71 @@ from utils import formating
 from routes.request_work import request_work_service
 from utils import dependencies
 from constants import COOKIES_KEY_NAME, SESSION_TIME
-from models.work_request_dto import WorkRequestModel, UpdateWorkRequestModel
+from models.work_request_dto import *
 from httpx import AsyncClient
 from typing import List, Optional
-
 from dotenv import load_dotenv
-
-from modules.custom_error import testId
 
 
 load_dotenv()
 router = APIRouter()
 
+
 class Router:
     def __init__(self):
         pass
-        
 
-@router.post(
-        "/createRequest",
-        status_code=status.HTTP_201_CREATED,
-        response_model_by_alias=False
-        )       
-async def postWorkRequest(item: WorkRequestModel):
-    await request_work_service.requestWork(
-        userId=item.userId,
-        deviceNm=item.deviceNm,
-        requestTitle=item.requestTitle,
-        customerNm=item.customerNm,
-        requestDt=item.requestDt,
-        workContent=item.workContent,
-        file=item.file,
-        delYn=item.delYn
-        )
+@router.get("/readRequest", status_code=status.HTTP_200_OK, response_model_by_alias=False)
+async def get_request_list(request: Request):
+   
+   return await request_work_service.get_request_list(request, False)
 
-    # return {"message": "Request Created"}
-    return item
+@router.get("/readRequestTemprary", status_code=status.HTTP_200_OK, response_model_by_alias=False)
+async def get_request_list(request: Request):
 
-@router.put(
-    "/updateRequest/modify",
-    status_code=status.HTTP_200_OK,
-    response_model_by_alias=False
-)
-async def update_modify_work_request(item: UpdateWorkRequestModel):
-    await request_work_service.update_modify_request_work(
-        id=item.id,
-        user_id=item.userId,
-        device_nm=item.deviceNm,
-        request_title=item.requestTitle,
-        customer_nm=item.customerNm,
-        request_date=item.requestDt,
-        work_content=item.workContent,
-        file=item.file,
-        del_yn=item.delYn
-    )
-    return {"message": "Request Updated"}
+    return await request_work_service.get_request_list(request, True)
 
-@router.put(
-    "/updateRequest/delete",
-    status_code=status.HTTP_200_OK,
-    response_model_by_alias=False
-)
-async def update_delete_work_request(item: UpdateWorkRequestModel):
-    await request_work_service.update_recovery_request_work(
-        id=item.id
-    )
-    return {"message": "Request Changed"}
+@router.get("/readDetailRequest", status_code=status.HTTP_200_OK, response_model_by_alias=False)
+async def get_request_dtl(request: Request):
+    
+    return await request_work_service.get_request_dtl(request)
 
-@router.get(
-        "/readRequest",
-        status_code=status.HTTP_200_OK,
-        response_model_by_alias=False
-)
-async def get_request_list(page: int, userId: str):#, token: Optional[str] = Cookie(None):
-    request_list = await request_work_service.get_request_work_list(page=page, user_id=userId)
-    return request_list
+@router.post("/createTemprary", status_code=status.HTTP_201_CREATED, response_model_by_alias=False)       
+async def post_temprary(request: Request, item: WorkRequestModel):
+    try:
+        return await request_work_service.post_temprary(request, item)
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.put("/updateTemprary", status_code=status.HTTP_200_OK, response_model_by_alias=False)       
+async def update_temprary(request: Request, item: UpdateWorkRequestModel):
+    try:
+        await request_work_service.update_temprary(request, item)
 
-@router.get(
-    "/readDetailRequest",
-    status_code=status.HTTP_200_OK,
-    response_model_by_alias=False
-)
-async def get_request_dtl(requestId: str):#,token: Optional[str] = Cookie(None)):
-    request_dtl = await request_work_service.get_request_work_dtl(request_id=requestId)
-    return {"requestDtl": request_dtl}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/updateRequest", status_code=status.HTTP_200_OK, response_model_by_alias=False)       
+async def update_work_request(request: Request, item: UpdateWorkRequestModel):
+    
+    return await request_work_service.update_request(request, item)
+
+@router.delete("/deleteTemprary", status_code=status.HTTP_200_OK)
+async def delete_temprary(request: Request, item: DeleteRequestTempraryModel):
+    
+    return await request_work_service.delete_temprary(request, item)
+
+@router.put("/deleteRequest", status_code=status.HTTP_200_OK)
+async def delete_request(request: Request):
+    
+    return await request_work_service.del_yn_request(request)
+# @router.get(
+#     "/readDetailTemprary",
+#     status_code=status.HTTP_200_OK,
+#     response_model_by_alias=False
+# )
+# async def get_request_dtl(requestId: str):
+#     temprary_dtl = await request_work_service.get_request_dtl(requestId, True)
+    
+    # return temprary_dtl

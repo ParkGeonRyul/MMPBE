@@ -9,11 +9,11 @@ from bson import ObjectId
 
 
 class WorkRequestField:
-    id = Field(
-        description="ObjectID",
-        alias="_id",
-        default_factory=PyObjectId
-    )
+    # id = Field(
+    #     description="ObjectID",
+    #     alias="_id",
+    #     default_factory=PyObjectId
+    # )
     user_id = Field(
         description="고객 ID(ObjectID)"
     )
@@ -78,7 +78,6 @@ class WorkRequestField:
     )
 
 class WorkRequestModel(BaseModel):
-    id: Optional[PyObjectId] = WorkRequestField.id
     user_id: str = WorkRequestField.user_id
     device_nm: str = WorkRequestField.device_nm
     contact_nm: Optional[str] = WorkRequestField.contact_nm
@@ -151,5 +150,18 @@ class  UpdateWorkRequestModel(BaseModel):
         }
     )
 
+class DeleteRequestTempraryModel(BaseModel):
+    ids: List[str]
+
 class UpdateDelYnWorkRequestModel(BaseModel):
-    id: str
+    request_id: str = Field(description="작업 요청 ID", alias="requestId")
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+        json_schema_extra={
+            "example": {
+                "request_id": "6690cf7fa4897bf6b90541c1(ObjectId)",
+            }
+        }
+    )
