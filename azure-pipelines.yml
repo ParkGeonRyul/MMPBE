@@ -1,6 +1,5 @@
 trigger:
   - develop
-  - feature/request-work
 
 resources:
   - repo: self
