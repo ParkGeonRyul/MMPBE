@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.db.context import Database
-from app.db.context import workRequestCollection
+from app.db.context import work_request_collection
 
 import pymongo
 import pytest
@@ -27,7 +27,7 @@ async def testCode_postWork():
     
     if response.status_code == 201:
         filter_query = {"userId": document.get('userId')}
-        workRequestCollection.delete_one(filter_query)
+        work_request_collection.delete_one(filter_query)
         return True
     else:
         return False
