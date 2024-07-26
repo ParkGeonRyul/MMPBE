@@ -3,31 +3,18 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException, status, Response
 from fastapi.responses import JSONResponse
 
-from constants import COOKIES_KEY_NAME
+from routes._path.ms_paths import MS_AUTHORITY, MS_CLIENT_ID, MS_CLIENT_SECRET, MS_PROFILE_PHOTO, MS_REDIRECT_URI, MS_TOKEN_URL, MS_USER_INFO_URL, REDIRECT_URL_HOME
+from constants import ACCESS_TOKEN_NOT_VALID, ACCESS_TOKEN_VAILD, COOKIES_KEY_NAME
 
-import os
 import msal
 
 from fastapi.responses import RedirectResponse
 from httpx import AsyncClient
-from dotenv import load_dotenv
 from db.context import auth_collection, user_collection
-from utils.objectId_convert import objectId_convert
 from fastapi import Request, HTTPException, status
-import bson
 from bson import ObjectId
 
-load_dotenv()
 router = APIRouter()
-
-MS_CLIENT_ID = os.getenv("MS_CLIENT_ID")
-MS_CLIENT_SECRET = os.getenv("MS_CLIENT_SECRET")
-MS_REDIRECT_URI = os.getenv("MS_REDIRECT_URI")
-MS_AUTH_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
-MS_TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
-MS_USER_INFO_URL = "https://graph.microsoft.com/v1.0/me"
-MS_AUTHORITY = "https://login.microsoftonline.com/common"
-REDIRECT_URL_HOME = os.getenv("REDIRECT_URL_HOME")
 
 msal_app = msal.ConfidentialClientApplication(
     MS_CLIENT_ID,
@@ -144,7 +131,7 @@ async def validate_token(access_token: str):
         if user_response.status_code == 200:
             user_data = user_response.json()
             res_content = {
-                "message": "access token is valid",
+                "message": ACCESS_TOKEN_VAILD,
                 "user": {
                     "name": user_data.get("displayName"),
                     "email": user_data.get("mail"),
@@ -152,8 +139,10 @@ async def validate_token(access_token: str):
                     "mobilePhone": user_data.get("mobilePhone")
                 }
             }            
-            res_json = {"message": "access token is valid"}
-
+            res_json = {
+                "message": ACCESS_TOKEN_VAILD,
+    }
+            
             return JSONResponse(content=res_json)
         else:
             user_data = user_response.json()
@@ -170,3 +159,18 @@ async def validate(request: Request) -> JSONResponse:
     access_token = request.cookies.get(COOKIES_KEY_NAME)
 
     return await validate_token(access_token)
+async def get_user_profile_image(request: Request) -> Response:
+    access_token = request.cookies.get(COOKIES_KEY_NAME)
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    async with AsyncClient() as client:
+        user_response = await client.get(
+            MS_PROFILE_PHOTO,
+            headers={"Authorization": f"Bearer {access_token}"}
+        )
+
+    if user_response.status_code != 200:
+        raise HTTPException(status_code=user_response.status_code, detail="Failed to fetch user profile image")
+
+    return Response(content=user_response.content, media_type="image/png")
