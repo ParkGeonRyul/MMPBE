@@ -38,20 +38,20 @@ async def get_request_dtl(request: Request) -> JSONResponse:
     
     return await response_cookie_module.set_response_cookie(token_data, response_content)
 
-async def post_temprary(request: Request, item: WorkRequestModel) -> JSONResponse:
+async def create_temporary(request: Request, item: WorkRequestModel) -> JSONResponse:
     access_token = request.cookies.get(COOKIES_KEY_NAME)
     token_data = await auth_service.validate_token(access_token)
     work_request_collection.insert_one(item.model_dump())
-    response_content = {"message": "Temprary Request Created"}
+    response_content = {"message": "Temporary Request Created"}
     
     return await response_cookie_module.set_response_cookie(token_data, response_content)
 
-async def update_temprary(request: Request, item: UpdateWorkRequestModel) -> JSONResponse:
+async def update_temporary(request: Request, item: UpdateWorkRequestModel) -> JSONResponse:
     access_token = request.cookies.get(COOKIES_KEY_NAME)
     request_id = request.query_params.get("requestId")
     token_data = await auth_service.validate_token(access_token)
     work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set": item.model_dump()})
-    response_content = {"message": "Temprary Request Updated"}
+    response_content = {"message": "Temporary Request Updated"}
 
     return await response_cookie_module.set_response_cookie(token_data, response_content)
 
@@ -65,12 +65,12 @@ async def update_request(request: Request, item: UpdateWorkRequestModel) -> JSON
 
     return await response_cookie_module.set_response_cookie(token_data, response_content)
 
-async def delete_temprary(request: Request, item: DeleteRequestTempraryModel):
+async def delete_temporary(request: Request, item: DeleteRequestTempraryModel):
     access_token = request.cookies.get(COOKIES_KEY_NAME)
     token_data = await auth_service.validate_token(access_token)
     object_ids = [ObjectId(id) for id in item]
     work_request_collection.delete_many({"_id": {"$in": object_ids}})
-    response_content = {"message": "Temprary Deleted"}
+    response_content = {"message": "Temporary Deleted"}
 
     return await response_cookie_module.set_response_cookie(token_data, response_content)
 

@@ -23,9 +23,14 @@ DELETE_USER = USER + SEPARATE + "deleteuser"
 # Request paths
 REQUEST = V1 + SEPARATE + "request"
 READ_REQUEST = REQUEST + SEPARATE + "readrequest"
+READ_REQUEST_TEMPORARY = REQUEST + SEPARATE + "temprary"
+READ_REQUEST_DETAIL = REQUEST + SEPARATE + "readrequest" + SEPARATE + "detail"
 CREATE_REQUEST = REQUEST + SEPARATE + "createrequest"
+CREATE_REQUEST_TEMPORARY = REQUEST + SEPARATE + "createrequest" + SEPARATE + "temporary"
 UPDATE_REQUEST = REQUEST + SEPARATE + "updaterequest"
+UPDATE_REQUEST_TEMPORARY = REQUEST + SEPARATE + "updaterequest" + SEPARATE + "temporary"
 DELETE_REQUEST = REQUEST + SEPARATE + "deleterequest"
+DELETE_REQUEST_TEMPORARY = REQUEST + SEPARATE + "deleterequest" + SEPARATE + "temporary"
 
 # Contract paths
 CONTRACT = V1 + SEPARATE + "contract"
