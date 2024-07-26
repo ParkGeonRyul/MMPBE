@@ -52,6 +52,11 @@ async def logout(res: Response) -> JSONResponse:
 async def validate(request: Request) -> JSONResponse:
     return await auth_service.validate(request)
 
-@router.get(USER_INFO)
+@router.get(USER_INFO,
+    responses = {
+        200: {
+            "content": {"image/png": {}}
+        }
+    },response_class=Response)
 async def get_user_profile_image(request: Request) -> JSONResponse:
     return await auth_service.get_user_profile_image(request)

@@ -159,23 +159,18 @@ async def validate(request: Request) -> JSONResponse:
     access_token = request.cookies.get(COOKIES_KEY_NAME)
 
     return await validate_token(access_token)
-
-async def get_user_profile_image(request: Request) -> JSONResponse:
+async def get_user_profile_image(request: Request) -> Response:
     access_token = request.cookies.get(COOKIES_KEY_NAME)
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
 
     async with AsyncClient() as client:
         user_response = await client.get(
             MS_PROFILE_PHOTO,
             headers={"Authorization": f"Bearer {access_token}"}
         )
-        if user_response.status_code == 200:
-            user_data = user_response.content.decode("utf-8", errors="ignore")
-            res_content = {
-                "message": ACCESS_TOKEN_VAILD,
-                "profile_image": user_data
-            }
 
-            return JSONResponse(content=res_content)
+    if user_response.status_code != 200:
+        raise HTTPException(status_code=user_response.status_code, detail="Failed to fetch user profile image")
 
-        else:
-            return JSONResponse(content={"message": ACCESS_TOKEN_NOT_VALID}, status_code=status.HTTP_401_UNAUTHORIZED)
+    return Response(content=user_response.content, media_type="image/png")
