@@ -80,21 +80,10 @@ async def del_yn_request(request: Request):
     request_id = request.query_params.get("requestId")
     test = work_request_collection.find_one({"_id": ObjectId(request_id)})
     if test['del_yn'] == "N":
-        await work_request_collection.update_one(ObjectId(request_id), {"$set":{"del_yn": "Y"}})
+        work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set":{"del_yn": "Y"}})
     else:
-        await work_request_collection.update_one(ObjectId(request_id), {"$set":{"del_yn": "N"}})
+        work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set":{"del_yn": "N"}})
 
     response_content = {"message": "Request delete processing completed"}
 
     return await response_cookie_module.set_response_cookie(token_data, response_content)
-
-# async def update_modify_request_work(item: UpdateWorkRequestModel):
-#     filter = {"_id": id}
-#     work_request_collection.update_one(filter, {"$set": req_data})
-#     work_request_collection.update_one(filter, {"$set":{"file": file}})
-
-# async def update_recovery_request_work(
-#         id: str
-#         ):
-#     filter = {"_id": id}
-#     work_request_collection.update_one(filter, {"$set":{"delYn": "Y"}})

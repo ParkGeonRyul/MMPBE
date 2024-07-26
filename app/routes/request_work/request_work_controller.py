@@ -68,12 +68,3 @@ async def delete_temprary(request: Request, item: DeleteRequestTempraryModel):
 async def delete_request(request: Request):
     
     return await request_work_service.del_yn_request(request)
-# @router.get(
-#     "/readDetailTemprary",
-#     status_code=status.HTTP_200_OK,
-#     response_model_by_alias=False
-# )
-# async def get_request_dtl(requestId: str):
-#     temprary_dtl = await request_work_service.get_request_dtl(requestId, True)
-    
-    # return temprary_dtl
