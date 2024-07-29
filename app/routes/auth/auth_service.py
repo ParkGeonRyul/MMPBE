@@ -63,7 +63,7 @@ async def login():
     )
     print(url)
 
-    return RedirectResponse(url=url, status_code=307)
+    return RedirectResponse(url)
 
 async def auth_callback(code):
     if not code:

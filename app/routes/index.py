@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Response, Cookie, UploadFile
 from fastapi.requests import Request
+from fastapi.responses import RedirectResponse
 from routes._path.api_paths import REQUEST, READ_REQUEST, READ_REQUEST_TEMPORARY, READ_REQUEST_DETAIL, CREATE_REQUEST, CREATE_REQUEST_TEMPORARY, UPDATE_REQUEST, UPDATE_REQUEST_TEMPORARY, DELETE_REQUEST, DELETE_REQUEST_TEMPORARY
 
 import json
@@ -33,12 +34,14 @@ async def proxy(request: Request, path: str):
         req_body = await request.body()
         
         access_token_cookie = request.cookies.get(COOKIES_KEY_NAME)
+        
+        if not access_token_cookie:
+            response = await client.request(method, backend_url)
+            
+            location = response.headers.get("Location")
+            return RedirectResponse(url=location, status_code=response.status_code)
+        
         get_user_id = auth_collection.find_one({"access_token": access_token_cookie})
-        
-        if not get_user_id:
-            response = await client.request(method, backend_url, headers=headers, content=req_body, cookies=request.cookies)
-            return Response(content=response.content, status_code=response.status_code, headers=headers)
-        
         get_user_role = user_collection.find_one({"_id": ObjectId(get_user_id['user_id'])})
         
         if req_body:
