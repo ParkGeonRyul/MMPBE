@@ -39,7 +39,11 @@ async def proxy(request: Request, path: str):
             response = await client.request(method, backend_url)
             
             location = response.headers.get("Location")
-            return RedirectResponse(url=location, status_code=response.status_code)
+            redirect_data = RedirectResponse(url=location, status_code=response.status_code)
+            for key, value in response.cookies.items():
+                redirect_data.set_cookie(key=key, value=value)
+            
+            return redirect_data
         
         get_user_id = auth_collection.find_one({"access_token": access_token_cookie})
         get_user_role = user_collection.find_one({"_id": ObjectId(get_user_id['user_id'])})

@@ -132,8 +132,7 @@ async def validate_token(access_token: str):
             headers={"Authorization": f"Bearer {access_token}"}
         )
         if user_token == None:
-
-            raise HTTPException(status_code=user_response.status_code, detail=user_response.text)
+            raise HTTPException(status_code=404, detail="There is no token")
         if user_response.status_code == 200:
             user_token = auth_collection.find_one({"access_token": access_token})
             user_data = user_response.json()
