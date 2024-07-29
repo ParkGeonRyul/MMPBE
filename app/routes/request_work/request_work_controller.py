@@ -26,11 +26,11 @@ class Router:
 
 @router.get(READ_REQUEST, status_code=status.HTTP_200_OK, response_model_by_alias=False)
 async def get_request_list(request: Request):
-    try:
+    # try:
        return await request_work_service.get_request_list(request, False)
     
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    # except Exception as e:
+    #     raise HTTPException(status_code=500, detail=str(e))
 
 @router.get(READ_REQUEST_TEMPORARY, status_code=status.HTTP_200_OK, response_model_by_alias=False)
 async def get_temporary_list(request: Request):

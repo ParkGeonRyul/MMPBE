@@ -60,9 +60,10 @@ async def login():
     url = msal_app.get_authorization_request_url(
         scopes=["User.Read", "https://accountmgmtservice.dce.mp.microsoft.com/user_impersonation"],
         redirect_uri=MS_REDIRECT_URI
-    )        
+    )
+    print(url)
 
-    return RedirectResponse(url)
+    return RedirectResponse(url=url, status_code=307)
 
 async def auth_callback(code):
     if not code:

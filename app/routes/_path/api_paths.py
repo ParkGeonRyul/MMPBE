@@ -1,8 +1,8 @@
 # api_paths.py
 
-ROOT = "/"
+ROOT = "/api/"
 SEPARATE = "/"
-V1 = ROOT + "v1"
+V1 = ROOT + "v1" 
 
 # Auth paths
 AUTH = V1 + SEPARATE + "auth"

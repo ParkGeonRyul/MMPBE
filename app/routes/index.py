@@ -9,6 +9,7 @@ from db.context import auth_collection, user_collection
 from models.work_request_dto import *
 from httpx import AsyncClient
 from dotenv import load_dotenv
+from urllib.parse import urlparse, urlunparse
 
 
 load_dotenv()
@@ -22,16 +23,23 @@ class Router:
 
 @router.api_route("/v1/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", 'HEAD', 'PATCH'])
 async def proxy(request: Request, path: str):
-    backend_url = f"http://localhost:3000/v1/{path}"
-    access_token_cookie = request.cookies.get(COOKIES_KEY_NAME)
-    
-    get_user_id = auth_collection.find_one({"access_token": access_token_cookie})
-    get_user_role = user_collection.find_one({"_id": ObjectId(get_user_id['user_id'])})
+    backend_url = f"http://localhost:3000/api/v1/{path}"
+    if request.query_params:
+        backend_url += f"?{request.url.query}"
 
     async with AsyncClient() as client:
         method = request.method
         headers = request.headers
         req_body = await request.body()
+        
+        access_token_cookie = request.cookies.get(COOKIES_KEY_NAME)
+        get_user_id = auth_collection.find_one({"access_token": access_token_cookie})
+        
+        if not get_user_id:
+            response = await client.request(method, backend_url, headers=headers, content=req_body, cookies=request.cookies)
+            return Response(content=response.content, status_code=response.status_code, headers=headers)
+        
+        get_user_role = user_collection.find_one({"_id": ObjectId(get_user_id['user_id'])})
         
         if req_body:
             body_data = json.loads(req_body.decode())
@@ -40,9 +48,7 @@ async def proxy(request: Request, path: str):
         else:
             body_data = {'role': get_user_role['role']}
 
-        print(body_data)  
-
         modified_body = json.dumps(body_data).encode('utf-8')
         response = await client.request(method, backend_url, headers=headers, content=modified_body, cookies=request.cookies)
         
-        return Response(content=response.content, status_code=response.status_code, headers=dict(response.headers))
+        return Response(content=response.content, status_code=response.status_code, headers=headers)
