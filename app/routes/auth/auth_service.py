@@ -13,6 +13,7 @@ from httpx import AsyncClient
 from db.context import auth_collection, user_collection
 from fastapi import Request, HTTPException, status
 from bson import ObjectId
+from utils.objectId_convert import objectId_convert
 
 router = APIRouter()
 
@@ -116,7 +117,7 @@ async def auth_callback(code):
                 "created_at": datetime.now()
             }
             create_user = user_collection.insert_one(document)
-            user_token = await access_token_manager(is_user, access_token, refresh_token, create_user.inserted_id, user_data['mail'])
+            user_token = await access_token_manager(is_user, check_token_existence, access_token, refresh_token, create_user.inserted_id, user_data['mail'])
             response = RedirectResponse(url=REDIRECT_URL_HOME)
             response.set_cookie(key=COOKIES_KEY_NAME, value=user_token['access_token'], httponly=True)
 
@@ -171,7 +172,7 @@ async def validate(request: Request) -> JSONResponse:
     access_token = request.cookies.get(COOKIES_KEY_NAME)
     valid_token = await validate_token(access_token)
     if valid_token['status'] == "valid":
-        # objectId_convert(valid_token, "userId")
+        objectId_convert(valid_token, "userId")
 
         return JSONResponse(content=valid_token)
     else:
