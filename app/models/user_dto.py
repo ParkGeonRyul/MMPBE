@@ -43,7 +43,7 @@ class UsersFields:
     email = Field(
         description="사용자 이메일",
         examples="maven.kim@mavencloudservice.com",
-        pattern=r"^\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,3}$"
+        pattern=r"^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$"
     )
     responsible_party = Field(
         description="분류",
