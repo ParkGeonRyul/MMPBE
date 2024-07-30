@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException, status, Response
 from fastapi.responses import JSONResponse
 
 from routes._path.ms_paths import MS_AUTHORITY, MS_CLIENT_ID, MS_CLIENT_SECRET, MS_PROFILE_PHOTO, MS_REDIRECT_URI, MS_TOKEN_URL, MS_USER_INFO_URL, REDIRECT_URL_HOME
+from routes._path.api_paths import CREATE_USER
 from constants import ACCESS_TOKEN_NOT_VALID, ACCESS_TOKEN_VAILD, COOKIES_KEY_NAME
 
 import msal
@@ -113,12 +114,16 @@ async def auth_callback(code):
                 "user_nm": user_data['displayName'],
                 "rank": user_data['jobTitle'],
                 "mobile_contact": user_data['mobilePhone'],
-                "email": user_data['mail'],
-                "role": 1,
-                "created_at": datetime.now()
+                "email": user_data['mail']
             }
-            create_user = user_collection.insert_one(document)
-            user_token = await access_token_manager(is_user, check_token_existence, access_token, refresh_token, create_user.inserted_id, user_data['mail'])
+
+            async with AsyncClient() as client:
+                insert_user_by_document = await client.post(
+                    f"http://localhost:3000{CREATE_USER}",
+                    json=document
+                )
+                user_id = insert_user_by_document.json()
+            user_token = await access_token_manager(is_user, check_token_existence, access_token, refresh_token, ObjectId(user_id), user_data['mail'])
             response = RedirectResponse(url=REDIRECT_URL_HOME)
             response.set_cookie(key=COOKIES_KEY_NAME, value=user_token['access_token'], httponly=True)
 
@@ -131,7 +136,7 @@ async def validate_token(access_token: str):
             MS_USER_INFO_URL,
             headers={"Authorization": f"Bearer {access_token}"}
         )
-        if user_token == None:
+        if not user_token:
             raise HTTPException(status_code=404, detail="There is no token")
         if user_response.status_code == 200:
             user_token = auth_collection.find_one({"access_token": access_token})
