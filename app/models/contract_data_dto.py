@@ -63,7 +63,7 @@ class ContractDataModel(BaseModel):
     title: str = ContractDataField.title
     content: str = ContractDataField.content
     file: Optional[str] = ContractDataField.file
-    contract_date: datetime = ContractDataField.contract_date
+    contract_date: Optional[datetime] = ContractDataField.contract_date
     approval_yn: Optional[str] = ContractDataField.approval_yn
     created_at: Optional[datetime] = ContractDataField.created_at
     updated_at: datetime = ContractDataField.updated_at

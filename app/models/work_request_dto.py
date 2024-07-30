@@ -43,7 +43,7 @@ class WorkRequestField:
         alias="customerNm"
     )
     request_date = Field(
-        description="요청 일자(UTC + 0)",
+        description="요청 일자(UTC + 0), 임시저장 일때는 NULL",
         default=None,
         alias="requestDate"
     )

@@ -32,8 +32,9 @@ class MaintenanceField:
         min_length=1
     )
     contract_date = Field(
-        description="계약 날짜(UTC + 0)",
-        alias="contractDate"
+        description="계약 날짜(UTC + 0), 임시 저장상태일 때는 NULL",
+        alias="contractDate",
+        default=None
     )
     approval_yn = Field(
         description="승인 여부",
@@ -47,7 +48,7 @@ class MaintenanceField:
         default=None
     )
     created_at = Field(
-        description="생성 날짜(UTC + 0), 임시저장 상태일 때는 NULL",
+        description="생성 날짜(UTC + 0)",
         default=None
     )
     updated_at = Field(
@@ -64,7 +65,7 @@ class CreateMaintenanceModel(BaseModel):
     title: str = MaintenanceField.title
     content: str = MaintenanceField.content
     file: Optional[str] = MaintenanceField.file
-    contract_date: datetime = MaintenanceField.contract_date
+    contract_date: Optional[datetime] = MaintenanceField.contract_date
     approval_yn: Optional[str] = MaintenanceField.approval_yn
     status: Optional[str] = MaintenanceField.status
     created_at: Optional[datetime] = MaintenanceField.created_at
