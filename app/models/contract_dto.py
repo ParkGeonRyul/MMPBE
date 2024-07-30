@@ -15,69 +15,83 @@ class ContractField:
         default_factory=PyObjectId
     )
     company_id = Field(
-        description="회사 ID(ObjectID)"
+        description="회사 ID(ObjectID)",
+        alias="companyId"
     )
     work_type = Field(
         description="계약 타입",
-        examples="라이선스, 프로젝트"
+        examples="라이선스, 프로젝트",
+        alias="workType"
     )
     tenant_id = Field(
-        description="테넌트 ID값"
+        description="테넌트 ID값",
+        alias="tenantId"
     )
     inflow_path = Field(
         description="유입 경로",
-        examples="MS(세미나), 인바운드"
+        examples="MS(세미나), 인바운드",
+        alias="inflowPath"
     )
     customer_level = Field(
         description="고객 단계",
-        examples="EPG, SMC"
+        examples="EPG, SMC",
+        alias="customerLevel"
     )
     product_family = Field(
         description="제품 집단",
-        examples="Azure, PowerBI"
+        examples="Azure, PowerBI",
+        alias="productFamily"
     )
     contract_amt = Field(
         description="계약 가격",
         examples="15000",
         ge=0,
-        default=0
+        default=0,
+        alias="contractAmt"
     )
     join_service = Field(
         description="서비스 단계",
-        examples="Basic, Pro"
+        examples="Basic, Pro",
+        alias="joinService"
     )
     m_d = Field(
-        description="하루 별 총 작업량"
+        description="하루 별 총 작업량",
+        alias="mD"
     )
     m_m = Field(
-        description="한 달 별 총 작업량"
+        description="한 달 별 총 작업량",
+        alias="mM"
     )
     m_h = Field(
-        description="1시간 별 총 작업량"
+        description="1시간 별 총 작업량",
+        alias="mH"
     )
     sales_manager = Field(
         description="판매 담당자",
-        examples="Livy Han, Cho"
+        examples="Livy Han, Cho",
+        alias="salesManager"
     )
     tech_manager = Field(
         description="기술 담당자",
-        examples="Aiden, Sun"
+        examples="Aiden, Sun",
+        alias="techManager"
     )
-    tax_mail = Field(
+    tax_date = Field(
         description="세금 요청 날짜 (UTC +0)",
-        default=None
-    )
-    payment_standard = Field(
-        description="???(확인필요)"
+        default=None,
+        alias="taxDate"
     )
     contract_date = Field(
-        description="계약 날짜(UTC + 0)"
+        description="계약 날짜(UTC + 0)",
+        alias="contractDate"
     )
     contract_start_date = Field(
-        description="작업 시작 날짜(UTC + 0)"
+        description="작업 시작 날짜(UTC + 0)",
+        alias="contractStartDate"
     )
     contact_end_date = Field(
-        description="작업 종료 날짜(UTC + 0)"
+        description="작업 종료 날짜(UTC + 0)",
+        alias="contractEndDate"
     )
     created_at = Field(
         description="생성 날짜(UTC + 0)",
@@ -92,8 +106,7 @@ class ContractField:
         default="N"
     )
 
-class UpdateContractModel(BaseModel):
-    id: Optional[PyObjectId] = ContractField.id
+class CreateContractModel(BaseModel):
     company_id : str = ContractField.company_id
     work_type : str = ContractField.work_type
     tenant_id : str = ContractField.tenant_id
@@ -121,29 +134,28 @@ class UpdateContractModel(BaseModel):
         json_encoders={ObjectId: str},
         json_schema_extra={
             "example": {
-                "company_id": "6690cf7fa4897bf6b90541c1(ObjectId)",
-                "work_type": "계약 타입",
-                "tenant_id": "테넌트 ID",
-                "inflow_path": "유입 경로",
-                "customer_level": "고객 단계",
-                "product_family": "제품 집단",
-                "contract_amt": "계약 단가",
-                "join_service": "서비스 단계",
-                "m_d": "하루 별 총 작업량",
-                "m_m": "한 달 별 총 작업량",
-                "m_h": "1시간 별 총 작업량",
-                "sales_manager": "판매 담당자",
-                "tech_manager": "기술 담당자",
-                "tax_mail": "세금 요청 날짜",
-                "payment_standard": "미확인",
-                "contract_date": "계약 날짜",
-                "contract_start_date": "작업 시작 날짜",
-                "contract_end_date": "작업 종료 날짜"
+                "companyId": "고객사 ID(ObjectId)",
+                "workType": "계약 타입",
+                "tenantId": "테넌트 ID",
+                "inflowPath": "유입 경로",
+                "customerLevel": "고객 단계",
+                "productFamily": "제품 집단",
+                "contractAmt": "계약 단가",
+                "joinService": "서비스 단계",
+                "mD": "하루 별 총 작업량",
+                "mM": "한 달 별 총 작업량",
+                "mH": "1시간 별 총 작업량",
+                "salesManager": "판매 담당자",
+                "techManager": "기술 담당자",
+                "taxDate": "세금 요청 날짜",
+                "contractDate": "계약 날짜",
+                "contractStartDate": "작업 시작 날짜",
+                "contractEndDate": "작업 종료 날짜"
             }
         }
     )
 
-class ContractModel(BaseModel):
+class UpdateContractModel(BaseModel):
     company_id : Optional[str] = None
     work_type : Optional[str] = None
     tenant_id : Optional[str] = None
@@ -195,4 +207,4 @@ class ContractModel(BaseModel):
 
 
 class ContractCollection(BaseModel):
-    contracts: List[ContractModel]
+    contracts: List[CreateContractModel]
