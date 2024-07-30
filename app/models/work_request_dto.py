@@ -17,10 +17,10 @@ class WorkRequestField:
     user_id = Field(
         description="고객 ID(ObjectID)"
     )
-    device_nm = Field(
-        description="장비 이름",
-        example="Server-1",
-        min_length=1
+    request_plan_id = Field(
+        description="작업계획서(ObjectID)",
+        min_length=1,
+        default=None
     )
     contact_nm = Field(
         description="담당자 이름(Maven)",
@@ -37,10 +37,11 @@ class WorkRequestField:
         example="고영희",
         min_length=1
     )
-    request_dt = Field(
-        description="요청 일자(UTC + 0)"
+    request_date = Field(
+        description="요청 일자(UTC + 0)",
+        default=None
     )
-    work_content = Field(
+    content = Field(
         description="작업 내용",
         min_length=1
     )
@@ -77,22 +78,18 @@ class WorkRequestField:
         default="N"
     )
 
-class WorkRequestModel(BaseModel):
-    id: Optional[str] = WorkRequestField.id
-    user_id: str = WorkRequestField.user_id
-    device_nm: str = WorkRequestField.device_nm
-    contact_nm: Optional[str] = WorkRequestField.contact_nm
-    request_title: str = WorkRequestField.request_title
-    customer_nm: str = WorkRequestField.customer_nm
-    request_dt: datetime = WorkRequestField.request_dt
-    work_content: str = WorkRequestField.work_content
+class WorkRequestModel(BaseModel): # fe -> be
+    user_id: str = WorkRequestField.user_id # id 
+    request_plan_id: str = WorkRequestField.request_plan_id # 작업계획서가 생성 될 때 update
+    contact_nm: str = WorkRequestField.contact_nm # 담당자 이름 (필수) 추후 ID로
+    request_title: str = WorkRequestField.request_title # 필수
+    request_date: Optional[datetime] = WorkRequestField.request_date # None == 임시저장, 사용자가 요청 이후에 수정이 안 됨.
+    content: str = WorkRequestField.content
     file: Optional[str] = WorkRequestField.file
-    status: Optional[str] = WorkRequestField.status
-    acceptor_nm: Optional[str] = WorkRequestField.acceptor_nm
-    reg_yn: Optional[str] = WorkRequestField.reg_yn
-    created_at: Optional[datetime] = WorkRequestField.created_at
-    updated_at: Optional[datetime] = WorkRequestField.updated_at
-    del_yn: Optional[str] = WorkRequestField.del_yn
+    status: Optional[str] = WorkRequestField.status # 승인, 반려, 요청, 회수(시스템 관리자만 볼 수 있음)
+    created_at: Optional[datetime] = WorkRequestField.created_at # 최초 이후 수정이 안 됨
+    updated_at: Optional[datetime] = WorkRequestField.updated_at 
+    del_yn: Optional[str] = WorkRequestField.del_yn # 시스템 관리자를 위한
     model_config = ConfigDict(
         populate_by_name=True,
         json_encoders={ObjectId: str},
@@ -100,12 +97,12 @@ class WorkRequestModel(BaseModel):
         json_schema_extra={
             "example": {
                 "user_id": "6690cf7fa4897bf6b90541c1",
-                "diviceNm": "장비 이름",
+                "request_plan_id": "작업계획서(ObjectID)",
                 "contact_nm": "담당자 이름(Maven)",
                 "request_title": "요청 제목",
                 "customer_nm": "고객 이름",
                 "request_dt": "2024-07-19 08:06:05.064246",
-                "work_content": "작업 내용",
+                "content": "작업 내용",
                 "file": "파일 명",
                 "status": "승인 여부",
                 "acceptor_nm": "승인자 이름",
