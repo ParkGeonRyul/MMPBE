@@ -10,6 +10,7 @@ from routes.page import page_controller
 from routes.user import user_controller
 from routes.request_work import request_work_controller
 from routes import index
+from routes.category import category_controller
 
 from middlewares import cors_middleware
 # from middlewares import static_middleware
@@ -25,6 +26,7 @@ app.include_router(auth_controller.router)
 app.include_router(page_controller.router)
 app.include_router(user_controller.router)
 app.include_router(request_work_controller.router)
+app.include_router(category_controller.router)
 
 @app.get("/ping")
 def ping():

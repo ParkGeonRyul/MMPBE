@@ -13,6 +13,12 @@ CHECK_SESSION = AUTH + SEPARATE + "validate"
 USER_INFO = AUTH + SEPARATE + "userinfo"
 # USER_PROFILE =
 
+# Category paths
+CATEGORY = V1 + SEPARATE + "category"
+GET_INFO_BY_USER = CATEGORY + SEPARATE + "getinfobyUser"
+GET_INFO_BY_COMPANY = CATEGORY + SEPARATE + "getinfobycompany"
+
+
 # User paths
 USER = V1 + SEPARATE + "user"
 READ_USER = USER + SEPARATE + "readuser"
