@@ -45,7 +45,7 @@ stages:
                 sshpass -p '$(sshPassword)' ssh -o StrictHostKeyChecking=no $(sshUsername)@$(sshHost) -p $(sshPort) << EOF
                   az acr login --name $(dockerLogin)
                   /usr/bin/docker stop $(dockerbackname)
-                  /usr/bin/docker rm $(dockerbackname)
+                  yes | /usr/bin/docker system prune -a
                   /usr/bin/docker pull $(containerRegistry)/$(imageRepository):$(tag)
                   /usr/bin/docker run -d \
                                       --name $(dockerbackname) \
