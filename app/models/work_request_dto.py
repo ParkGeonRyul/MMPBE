@@ -69,11 +69,11 @@ class WorkRequestField:
     )
     created_at = Field(
         description="생성 날짜(UTC + 0)",
-        default=None
+        default=datetime.now()
     )
     updated_at = Field(
         description="유저 정보 업데이트 된 마지막 날짜(UTC + 0)",
-        default=datetime.now()
+        default=None
     )
     del_yn = Field(
         description="삭제된 여부",
