@@ -15,31 +15,37 @@ class WorkRequestField:
         default_factory=PyObjectId
     )
     user_id = Field(
-        description="고객 ID(ObjectID)"
+        description="고객 ID(ObjectID)",
+        alias="userId"
     )
     request_plan_id = Field(
         description="작업계획서(ObjectID)",
         min_length=1,
-        default=None
+        default=None,
+        alias="requestPlanId"
     )
     contact_nm = Field(
         description="담당자 이름(Maven)",
         example="Aiden",
-        default=None
+        default=None,
+        alias="contactNm"
     )
     request_title = Field(
         description="요청 제목",
         example="Web DNS 설정",
-        min_length=1
+        min_length=1,
+        alias="requestTitle"
     )
     customer_nm = Field(
         description="고객명",
         example="고영희",
-        min_length=1
+        min_length=1,
+        alias="customerNm"
     )
     request_date = Field(
-        description="요청 일자(UTC + 0)",
-        default=None
+        description="요청 일자(UTC + 0), 임시저장 일때는 NULL",
+        default=None,
+        alias="requestDate"
     )
     content = Field(
         description="작업 내용",
@@ -58,27 +64,23 @@ class WorkRequestField:
     acceptor_nm = Field(
         description="승인자 이름",
         example="Aiden",
-        default=None
-    )
-    reg_yn = Field(
-        description="작업 요청 상태",
-        example="Y, N",
-        default="Y"
+        default=None,
+        alias="acceptorNm"
     )
     created_at = Field(
         description="생성 날짜(UTC + 0)",
-        default=None
+        default=datetime.now()
     )
     updated_at = Field(
         description="유저 정보 업데이트 된 마지막 날짜(UTC + 0)",
-        default=datetime.now()
+        default=None
     )
     del_yn = Field(
         description="삭제된 여부",
         default="N"
     )
 
-class WorkRequestModel(BaseModel): # fe -> be
+class CreateWorkRequestModel(BaseModel): # fe -> be
     user_id: str = WorkRequestField.user_id # id 
     request_plan_id: str = WorkRequestField.request_plan_id # 작업계획서가 생성 될 때 update
     contact_nm: str = WorkRequestField.contact_nm # 담당자 이름 (필수) 추후 ID로
@@ -91,22 +93,23 @@ class WorkRequestModel(BaseModel): # fe -> be
     updated_at: Optional[datetime] = WorkRequestField.updated_at 
     del_yn: Optional[str] = WorkRequestField.del_yn # 시스템 관리자를 위한
     model_config = ConfigDict(
+        from_attributes=True,
+        extra='allow',
         populate_by_name=True,
         json_encoders={ObjectId: str},
         arbitrary_types_allowed = True,
         json_schema_extra={
             "example": {
-                "user_id": "6690cf7fa4897bf6b90541c1",
-                "request_plan_id": "작업계획서(ObjectID)",
-                "contact_nm": "담당자 이름(Maven)",
-                "request_title": "요청 제목",
-                "customer_nm": "고객 이름",
-                "request_dt": "2024-07-19 08:06:05.064246",
+                "userId": "6690cf7fa4897bf6b90541c1",
+                "requestPlanId": "작업계획서(ObjectID)",
+                "contactNm": "담당자 이름(Maven)",
+                "requestTitle": "요청 제목",
+                "customerNm": "고객 이름",
+                "requestDate": "임시저장 == NULL",
                 "content": "작업 내용",
                 "file": "파일 명",
-                "status": "승인 여부",
-                "acceptor_nm": "승인자 이름",
-                "reg_yn": "작업 요청"
+                "status": "승인, 반려, 요청, 회수",
+                "delYn": "삭제 여부"
             }
         }
     )
@@ -133,17 +136,16 @@ class  UpdateWorkRequestModel(BaseModel):
         json_encoders={ObjectId: str},
         json_schema_extra={
             "example": {
-                "user_id": "6690cf7fa4897bf6b90541c1(ObjectId)",
-                "device_nm": "장비 이름",
-                "contact_nm": "담당자 이름(Maven)",
-                "request_title": "요청 제목",
-                "customer_nm": "고객 이름",
-                "request_dt": "요청 일자 (UTC + 0)",
-                "work_content": "작업 내용",
+                "userId": "6690cf7fa4897bf6b90541c1",
+                "requestPlanId": "작업계획서(ObjectID)",
+                "contactNm": "담당자 이름(Maven)",
+                "requestTitle": "요청 제목",
+                "customerNm": "고객 이름",
+                "requestDate": "임시저장 == NULL",
+                "content": "작업 내용",
                 "file": "파일 명",
-                "status": "승인 여부",
-                "acceptor_nm": "승인자 이름",
-                "reg_yn": "작업 요청"
+                "status": "승인, 반려, 요청, 회수",
+                "delYn": "삭제 여부"
             }
         }
     )

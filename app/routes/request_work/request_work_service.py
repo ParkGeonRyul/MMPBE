@@ -38,7 +38,7 @@ async def get_request_dtl(request: Request) -> JSONResponse:
     
     return await response_cookie_module.set_response_cookie(token_data, response_content)
 
-async def create_temporary(request: Request, item: WorkRequestModel) -> JSONResponse:
+async def create_temporary(request: Request, item: CreateWorkRequestModel) -> JSONResponse:
     access_token = request.cookies.get(COOKIES_KEY_NAME)
     token_data = await auth_service.validate_token(access_token)
     work_request_collection.insert_one(item.model_dump())

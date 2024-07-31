@@ -15,7 +15,8 @@ class MaintenanceField:
         default_factory=PyObjectId
     )
     user_id = Field(
-        description="고객 ID(ObjectID)"
+        description="고객 ID(ObjectID)",
+        alias="userId"
     )
     title = Field(
         description="계약 자료 제목",
@@ -31,12 +32,15 @@ class MaintenanceField:
         min_length=1
     )
     contract_date = Field(
-        description="계약 날짜(UTC + 0)"
+        description="계약 날짜(UTC + 0), 임시 저장상태일 때는 NULL",
+        alias="contractDate",
+        default=None
     )
     approval_yn = Field(
         description="승인 여부",
         example="Y, N",
-        default=None
+        default=None,
+        alias="approvalYn"
     )
     status = Field(
         description="작업 상태 확인",
@@ -44,7 +48,7 @@ class MaintenanceField:
         default=None
     )
     created_at = Field(
-        description="생성 날짜(UTC + 0), 임시저장 상태일 때는 NULL",
+        description="생성 날짜(UTC + 0)",
         default=None
     )
     updated_at = Field(
@@ -56,25 +60,26 @@ class MaintenanceField:
         default="N"
     )
 
-class MaintenanceModel(BaseModel):
-    id: Optional[PyObjectId] = MaintenanceField.id
+class CreateMaintenanceModel(BaseModel):
     user_id: str = MaintenanceField.user_id
     title: str = MaintenanceField.title
     content: str = MaintenanceField.content
     file: Optional[str] = MaintenanceField.file
-    contract_date: datetime = MaintenanceField.contract_date
+    contract_date: Optional[datetime] = MaintenanceField.contract_date
     approval_yn: Optional[str] = MaintenanceField.approval_yn
     status: Optional[str] = MaintenanceField.status
     created_at: Optional[datetime] = MaintenanceField.created_at
     updated_at: Optional[datetime] = MaintenanceField.updated_at
     del_yn: Optional[str] = MaintenanceField.del_yn
     model_config = ConfigDict(
+        from_attributes=True,
+        extra='allow',
         populate_by_name=True,
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str},
         json_schema_extra={
             "example": {
-                "user_id": "6690cf7fa4897bf6b90541c1(ObjectId)",
+                "user_id": "고객사ID(ObjectId)",
                 "title": "제목",
                 "content": "내용",
                 "file": "파일 경로",
@@ -111,4 +116,4 @@ class UpdateMaintenanceModel(BaseModel):
     )
 
 class MaintenanceCollection(BaseModel):
-    maintenances: List[MaintenanceModel]
+    maintenances: List[CreateMaintenanceModel]

@@ -16,19 +16,21 @@ class CompanyFields:
     )
     company_nm = Field(
         description="회사 이름",
-        examples="메이븐클라우드서비스"
+        examples="메이븐클라우드서비스",
+        alias="companyNm"
     )
 
 class CompanyModel(BaseModel):
-    id: Optional[PyObjectId] = CompanyFields.id
     company_nm: str = CompanyFields.company_nm
     model_config = ConfigDict(
+        extra='allow',
+        from_attributes=True,
         populate_by_name=True,
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str},
         json_schema_extra={
             "example": {
-                "company_nm": "메이븐클라우드서비스"
+                "companyNm": "메이븐클라우드서비스"
             }
         }
     )
@@ -36,11 +38,12 @@ class CompanyModel(BaseModel):
 class UpdateCompanyModel(BaseModel):
     company_nm: Optional[str] = None
     model_config = ConfigDict(
+        extra=True,
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str},
         json_schema_extra={
             "example": {
-                "company_nm": "메이븐클라우드서비스"
+                "companyNm": "메이븐클라우드서비스"
             }
         }
     )

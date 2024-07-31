@@ -49,7 +49,7 @@ async def get_request_dtl(request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post(CREATE_REQUEST_TEMPORARY, status_code=status.HTTP_201_CREATED, response_model_by_alias=False)       
-async def create_temporary(request: Request, item: WorkRequestModel):
+async def create_temporary(request: Request, item: CreateWorkRequestModel):
     try:
         return await request_work_service.create_temporary(request, item)
     

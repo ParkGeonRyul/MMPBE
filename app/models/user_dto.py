@@ -16,12 +16,14 @@ class UsersFields:
     )
     company_id = Field(
         description="회사 ID(ObjectID)",
-        default=None
+        default=None,
+        alias="companyId"
     )
     user_nm = Field(
         description="사용자 이름",
         min_length=2,
-        max_length=20
+        max_length=20,
+        alias="userNm"
     )
     rank = Field(
         description="직급",
@@ -30,27 +32,28 @@ class UsersFields:
     company_contact=Field(
         description="고객사 연락처",
         examples="02)000-0000",
-        default=None
+        default=None,
+        alias="companyContact"
     )
     mobile_contact = Field(
         description="고객사 mobile",
-        examples="010-0000-0000"
+        examples="010-0000-0000",
+        alias="mobileContact"
     )
     email = Field(
         description="사용자 이메일",
         examples="maven.kim@mavencloudservice.com",
-        pattern=r"^\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,3}$"
+        pattern=r"^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$"
     )
     responsible_party = Field(
         description="분류",
         examples="엔지니어",
-        default=None
+        default=None,
+        alias="responsibleParty"
     )
     role = Field(
         description = "역할 ID(INDEX)",
-        examples="0 = client, 1 = admin, 2 = Super admin",
-        ge=0,
-        le=2
+        examples="client, admin, Super admin"
     )
     created_at = Field(
         description="오늘 날짜(UTC + 0)",
@@ -62,11 +65,11 @@ class UsersFields:
     )
     del_yn = Field(
         description="삭제된 여부",
-        default="N"
+        default="N",
+        alias="delYn"
     )
 
 class UserModel(BaseModel):
-    id: Optional[PyObjectId] = UsersFields.id
     company_id: Optional[str] = UsersFields.company_id
     user_nm : str = UsersFields.user_nm
     rank: str = UsersFields.rank
@@ -79,19 +82,21 @@ class UserModel(BaseModel):
     updated_at: Optional[datetime] = UsersFields.updated_at
     del_yn: Optional[str] = UsersFields.del_yn
     model_config = ConfigDict(
+        from_attributes=True,
+        extra='allow',
         populate_by_name=True,
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str},
         json_schema_extra={
             "example": {
-                "company_id": "6690cf7fa4897bf6b90541c1(ObjectId)",
-                "user_nm": "고객 이름",
+                "companyId": "회사ID(ObjectId)",
+                "userNm": "고객 이름",
                 "rank": "직급",
-                "company_contact": "고객사 연락처",
-                "mobile_contact": "고객사 mobile",
+                "companyContact": "고객사 연락처",
+                "mobileContact": "고객사 mobile",
                 "email": "고객사 Email",
-                "responsible_party": "고객 분류",
-                "role": "역할(Integer)"
+                "responsibleParty": "고객 분류",
+                "role": "역할(User, Admin, SystemAdmin)"
             }
         }
     )

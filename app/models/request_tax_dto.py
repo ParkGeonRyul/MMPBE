@@ -15,12 +15,14 @@ class RequestTaxField:
         default_factory=PyObjectId
     )
     user_id = Field(
-        description="고객 ID(ObjectID)"
+        description="고객 ID(ObjectID)",
+        alias="userId"
     )
     request_date = Field(
-        description="요청 날짜(UTC + 0)"
+        description="요청 날짜(UTC + 0)",
+        alias="requestDate"
     )
-    request_content = Field(
+    content = Field(
         description="요청 내용",
         examples="202301 ~ 202302",
         min_length=1
@@ -31,21 +33,23 @@ class RequestTaxField:
         default="대기"
     )
 
-class RequestTaxModel(BaseModel):
+class CreateRequestTaxModel(BaseModel):
     id: Optional[PyObjectId] = RequestTaxField.id
     user_id: str = RequestTaxField.user_id
     request_date: datetime = RequestTaxField.request_date
-    request_content: str = RequestTaxField.request_content
+    content: str = RequestTaxField.content
     status: Optional[str] = RequestTaxField.status
     model_config = ConfigDict(
+        from_attributes=True,
+        extra='allow',
         populate_by_name=True,
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str},
         json_schema_extra={
             "example": {
-                "user_id": "6690cf7fa4897bf6b90541c1(ObjectId)",
-                "request_date": "요청 날짜",
-                "request_content": "요청 내용",
+                "userId": "고객ID(ObjectId)",
+                "requestDate": "요청 날짜",
+                "requestContent": "요청 내용",
                 "status": "요청 진행 상황",
             }
         }
@@ -72,4 +76,4 @@ class UpdateRequestTaxModel(BaseModel):
     )
 
 class RequestTaxCollection(BaseModel):
-    request_taxs: List[RequestTaxModel]
+    request_taxs: List[CreateRequestTaxModel]

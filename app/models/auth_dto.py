@@ -29,6 +29,8 @@ class CompanyModel(BaseModel):
     access_token: str = authFields.access_token
     refresh_token: str = authFields.refresh_token
     model_config = ConfigDict(
+        extra='allow',
+        from_attributes=True,
         populate_by_name=True,
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str},
