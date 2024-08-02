@@ -1,6 +1,6 @@
 # api_paths.py
 
-ROOT = "/api/"
+ROOT = "/proxy/"
 SEPARATE = "/"
 V1 = ROOT + "v1" 
 

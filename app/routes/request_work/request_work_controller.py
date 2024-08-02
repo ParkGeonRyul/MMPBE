@@ -26,72 +26,45 @@ class Router:
 
 @router.get(READ_REQUEST, status_code=status.HTTP_200_OK, response_model_by_alias=False)
 async def get_request_list(request: Request):
-    # try:
-       return await request_work_service.get_request_list(request, False)
-    
-    # except Exception as e:
-    #     raise HTTPException(status_code=500, detail=str(e))
+       
+    return await request_work_service.get_request_list(request, False)
 
 @router.get(READ_REQUEST_TEMPORARY, status_code=status.HTTP_200_OK, response_model_by_alias=False)
 async def get_temporary_list(request: Request):
-    try:
-        return await request_work_service.get_request_list(request, True)
         
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return await request_work_service.get_request_list(request, True)
 
 @router.get(READ_REQUEST_DETAIL, status_code=status.HTTP_200_OK, response_model_by_alias=False)
 async def get_request_dtl(request: Request):
-    try:
-        return await request_work_service.get_request_dtl(request)
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+
+    return await request_work_service.get_request_dtl(request)
 
 @router.post(CREATE_REQUEST_TEMPORARY, status_code=status.HTTP_201_CREATED, response_model_by_alias=False)       
 async def create_temporary(request: Request, item: CreateWorkRequestModel):
-    try:
-        return await request_work_service.create_temporary(request, item)
-    
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+
+    return await request_work_service.create_temporary(request, item)
     
 @router.put(CREATE_REQUEST, status_code=status.HTTP_200_OK, response_model_by_alias=False)       
 async def update_temporary(request: Request, item: UpdateWorkRequestModel):
-    try:
-        await request_work_service.update_temporary(request, item)
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        
+    return await request_work_service.update_temporary(request, item)
 
 @router.put(UPDATE_REQUEST, status_code=status.HTTP_200_OK, response_model_by_alias=False)       
 async def update_work_request(request: Request, item: UpdateWorkRequestModel):
-    try:
-        return await request_work_service.update_request(request, item)
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+
+    return await request_work_service.update_request(request, item)
 
 @router.put(UPDATE_REQUEST_TEMPORARY, status_code=status.HTTP_200_OK, response_model_by_alias=False)       
 async def update_temporary(request: Request, item: UpdateWorkRequestModel):
-    try:
-        return await request_work_service.update_temporary(request, item)
         
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return await request_work_service.update_temporary(request, item)
 
 @router.delete(DELETE_REQUEST_TEMPORARY, status_code=status.HTTP_200_OK)
 async def delete_temporary(request: Request, item: DeleteRequestTempraryModel):
-    try:    
-        return await request_work_service.delete_temporary(request, item)
         
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return await request_work_service.delete_temporary(request, item)
 
 @router.put(DELETE_REQUEST, status_code=status.HTTP_200_OK)
 async def delete_request(request: Request):
-    try:
-        return await request_work_service.del_yn_request(request)
         
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return await request_work_service.del_yn_request(request)

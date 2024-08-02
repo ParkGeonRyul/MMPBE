@@ -8,6 +8,7 @@ from routes._path.api_paths import CREATE_USER
 from constants import ACCESS_TOKEN_NOT_VALID, ACCESS_TOKEN_VAILD, COOKIES_KEY_NAME
 
 import msal
+import logging
 
 from fastapi.responses import RedirectResponse
 from httpx import AsyncClient
@@ -62,9 +63,8 @@ async def login():
         scopes=["User.Read", "https://accountmgmtservice.dce.mp.microsoft.com/user_impersonation"],
         redirect_uri=MS_REDIRECT_URI
     )
-    print(url)
 
-    return RedirectResponse(url=url, status_code=307)
+    return RedirectResponse(url)
 
 async def auth_callback(code):
     if not code:
@@ -109,6 +109,7 @@ async def auth_callback(code):
             response.set_cookie(key=COOKIES_KEY_NAME, value=user_token['access_token'], httponly=True)
 
             return response
+        
         else:
             document = {
                 "user_nm": user_data['displayName'],
@@ -119,7 +120,7 @@ async def auth_callback(code):
 
             async with AsyncClient() as client:
                 insert_user_by_document = await client.post(
-                    f"http://localhost:3000{CREATE_USER}",
+                    f"http://localhost:8000{CREATE_USER}",
                     json=document
                 )
                 user_id = insert_user_by_document.json()
@@ -138,6 +139,7 @@ async def validate_token(access_token: str):
         )
         if not user_token:
             raise HTTPException(status_code=404, detail="There is no token")
+        
         if user_response.status_code == 200:
             user_token = auth_collection.find_one({"access_token": access_token})
             user_data = user_response.json()
@@ -153,6 +155,7 @@ async def validate_token(access_token: str):
             }
 
             return document
+        
         else:
             find_user = user_collection.find_one({"_id": user_token['user_id']})
             if find_user:
@@ -170,6 +173,7 @@ async def validate_token(access_token: str):
                 }
 
                 return document
+            
             else:
                 RedirectResponse(url=REDIRECT_URL_HOME)
 
@@ -180,6 +184,7 @@ async def validate(request: Request) -> JSONResponse:
         objectId_convert(valid_token, "userId")
 
         return JSONResponse(content=valid_token)
+    
     else:
         access_token = auth_collection.find_one({"user_id": valid_token['userId']})
         response = JSONResponse(content=valid_token)
