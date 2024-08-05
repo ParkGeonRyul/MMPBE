@@ -8,9 +8,9 @@ from utils import lifespan
 from routes.auth import auth_controller
 from routes.page import page_controller
 from routes.user import user_controller
+from routes.category import category_controller
 from routes.request_work import request_work_controller
 from routes import index
-from routes.category import category_controller
 
 from middlewares import cors_middleware
 # from middlewares import static_middleware
