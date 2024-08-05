@@ -3,10 +3,8 @@
 ROOT = "/proxy/"
 SEPARATE = "/"
 V1 = ROOT + "v1"
-PROXY = SEPARATE + "v1"
 
 # Auth paths
-PROXY_AUTH = SEPARATE + "v1" + SEPARATE + "auth" + SEPARATE + "login"
 AUTH = V1 + SEPARATE + "auth"
 LOGIN_WITH_MS = AUTH + SEPARATE + "login"
 AUTH_CALLBACK = AUTH + SEPARATE + "oauth" + SEPARATE + "callback"

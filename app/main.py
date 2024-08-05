@@ -10,10 +10,8 @@ from routes.page import page_controller
 from routes.user import user_controller
 from routes.request_work import request_work_controller
 from routes import index
-from routes import index
 
 from middlewares import cors_middleware
-from routes import index
 # from middlewares import static_middleware
 
 app = FastAPI(lifespan=lifespan.lifespan)

@@ -1,21 +1,19 @@
 
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, status, Response
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, HTTPException, Response, Request
+from fastapi.responses import JSONResponse, RedirectResponse
+from httpx import AsyncClient
+from bson import ObjectId
+
+import msal
 
 from routes._path.ms_paths import MS_AUTHORITY, MS_CLIENT_ID, MS_CLIENT_SECRET, MS_PROFILE_PHOTO, MS_REDIRECT_URI, MS_TOKEN_URL, MS_USER_INFO_URL, REDIRECT_URL_HOME
 from routes._path.api_paths import CREATE_USER
-from constants import ACCESS_TOKEN_NOT_VALID, ACCESS_TOKEN_VAILD, COOKIES_KEY_NAME
-
-import msal
-import logging
-
-from fastapi.responses import RedirectResponse
-from httpx import AsyncClient
+from routes._path.main_path import MAIN_URL
+from constants import COOKIES_KEY_NAME
 from db.context import auth_collection, user_collection
-from fastapi import Request, HTTPException, status
-from bson import ObjectId
 from utils.objectId_convert import objectId_convert
+
 
 router = APIRouter()
 
@@ -120,7 +118,7 @@ async def auth_callback(code):
 
             async with AsyncClient() as client:
                 insert_user_by_document = await client.post(
-                    f"http://localhost:8000{CREATE_USER}",
+                    f"{MAIN_URL}{CREATE_USER}",
                     json=document
                 )
                 user_id = insert_user_by_document.json()

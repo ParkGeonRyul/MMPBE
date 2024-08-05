@@ -1,32 +1,24 @@
-from fastapi import APIRouter, HTTPException, status, Response, Cookie, UploadFile
+from fastapi import APIRouter, Response
 from fastapi.requests import Request
 from fastapi.responses import RedirectResponse
-from routes._path.api_paths import *
-from routes._path.ms_paths import *
+from httpx import AsyncClient
 
 import json
 import msal
-import logging
 
-from fastapi.responses import JSONResponse
-from constants import COOKIES_KEY_NAME, SESSION_TIME
+from constants import COOKIES_KEY_NAME
+from routes._path.main_path import MAIN_URL, API_URL
 from db.context import auth_collection, user_collection, role_collection
+from routes._path.api_paths import *
+from routes._path.ms_paths import *
 from models.work_request_dto import *
-from httpx import AsyncClient
-from dotenv import load_dotenv
-from urllib.parse import urlparse, urlunparse
 
-load_dotenv()
 router = APIRouter()
 
 
 class Router:
     def __init__(self):
         pass
-
-MAIN_URL = os.getenv("MAIN_URL")
-REDIRECT_URL_HOME = os.getenv("REDIRECT_URL_HOME")
-API_URL = os.getenv("API_URL")
 
 msal_app = msal.ConfidentialClientApplication(
     MS_CLIENT_ID,
