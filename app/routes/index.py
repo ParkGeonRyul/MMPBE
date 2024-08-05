@@ -16,7 +16,6 @@ from httpx import AsyncClient
 from dotenv import load_dotenv
 from urllib.parse import urlparse, urlunparse
 
-
 load_dotenv()
 router = APIRouter()
 
@@ -25,12 +24,9 @@ class Router:
     def __init__(self):
         pass
 
-
 MAIN_URL = os.getenv("MAIN_URL")
 REDIRECT_URL_HOME = os.getenv("REDIRECT_URL_HOME")
 API_URL = os.getenv("API_URL")
-
-
 
 msal_app = msal.ConfidentialClientApplication(
     MS_CLIENT_ID,
@@ -71,7 +67,6 @@ async def access_token_manager(is_user:bool, check_token_existence:bool, access_
     else:
         
         return await insert_token(access_token, refresh_token, user_id, email)
-
 
 @router.api_route("/v1/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", 'HEAD', 'PATCH'])
 async def proxy(request: Request, path: str):
@@ -157,4 +152,3 @@ async def proxy(request: Request, path: str):
             response = await client.request(method, backend_url, headers=headers, content=modified_body, cookies=request.cookies)
             
             return Response(content=response.content, status_code=response.status_code, headers=dict(response.headers))
-                
