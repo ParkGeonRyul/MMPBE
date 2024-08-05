@@ -15,7 +15,6 @@ from httpx import AsyncClient
 from typing import List, Optional
 from dotenv import load_dotenv
 
-
 load_dotenv()
 router = APIRouter()
 
