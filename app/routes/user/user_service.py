@@ -3,8 +3,15 @@ from random import randint
 from db import user_db
 
 from utils import formating
+from models.user_dto import UserModel
+from db.context import user_collection
 
 
+
+async def create_user(item: UserModel):
+    insert_user_by_item = user_collection.insert_one(item.model_dump())
+
+    return str(insert_user_by_item.inserted_id)
 # def get(limit: int, offset: int) -> list[db.User]:
 #     return user_db.get(limit=limit, offset=offset)
             

@@ -1,35 +1,18 @@
-from fastapi import APIRouter
-from fastapi import status
-from fastapi import Response
-from fastapi import Cookie
-from fastapi.responses import JSONResponse
-from fastapi.requests import Request
-
-from routes.auth import auth_service
-from constants import COOKIES_KEY_NAME
-
-from typing import Annotated
-
-# ----------------------------------------------------------------
-
-from fastapi import APIRouter, HTTPException, status, Response
+from fastapi import APIRouter, HTTPException, status, Response, Request
 from fastapi.responses import JSONResponse
 
 from constants import COOKIES_KEY_NAME
-
-import os
-import msal
 
 from fastapi.responses import RedirectResponse
-from httpx import AsyncClient
+from routes.auth import auth_service
+from constants import COOKIES_KEY_NAME
 from dotenv import load_dotenv
 from db.context import auth_collection, user_collection
-from utils.objectId_convert import objectId_convert
-from fastapi import Request, HTTPException, status
+from routes._path.api_paths import AUTH_CALLBACK, CHECK_SESSION, LOGIN_WITH_MS, LOGOUT, USER_INFO
 
 load_dotenv()
 router = APIRouter()
-from routes._path.api_paths import AUTH_CALLBACK, CHECK_SESSION, LOGIN_WITH_MS, LOGOUT, USER, USER_INFO
+
 
 @router.get(LOGIN_WITH_MS)
 async def login():

@@ -5,16 +5,33 @@ from fastapi import HTTPException
 
 from routes.user import user_service
 from utils import dependencies
+from models.user_dto import UserModel
+from routes.user import user_service
+from routes._path.api_paths import CREATE_USER
+# -------------------------------------------------
+
+from fastapi import APIRouter, HTTPException, status, Response
+from fastapi.responses import JSONResponse
+
+from constants import COOKIES_KEY_NAME
+
+import os
+import msal
+
+from fastapi.responses import RedirectResponse
+from httpx import AsyncClient
+from dotenv import load_dotenv
+from db.context import auth_collection, user_collection
+from utils.objectId_convert import objectId_convert
+from fastapi import Request, HTTPException, status
+
+load_dotenv()
+router = APIRouter()
 
 
-router = APIRouter(
-    prefix="/user",
-    tags=["Users"]
-)
-
-# @router.get("/me", response_model=dto.GetUser)
-# def get_me(user: dependencies.user_dependency) -> db.User:
-#     return user
+@router.post(CREATE_USER)
+async def create_user(item: UserModel):
+    return await user_service.create_user(item)
 
 # @router.get("/all", response_model=list[dto.GetUser])
 # def get_all(limit: int = Query(1000, gt=0), offset: int = Query(0, ge=0)) -> list[db.User]:
