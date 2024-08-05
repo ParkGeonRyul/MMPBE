@@ -32,6 +32,18 @@ UPDATE_REQUEST_TEMPORARY = REQUEST + SEPARATE + "updaterequest" + SEPARATE + "te
 DELETE_REQUEST = REQUEST + SEPARATE + "deleterequest"
 DELETE_REQUEST_TEMPORARY = REQUEST + SEPARATE + "deleterequest" + SEPARATE + "temporary"
 
+# Plan paths
+PLAN = V1 + SEPARATE + "plan"
+SELECT_PLAN = PLAN + SEPARATE + "readPlan"
+SELECT_PLAN_TEMPORARY = PLAN + SEPARATE + "temprary"
+SELECT_PLAN_DETAIL = PLAN + SEPARATE + "selectPlan" + SEPARATE + "detail"
+CREATE_PLAN = PLAN + SEPARATE + "createPlan"
+CREATE_PLAN_TEMPORARY = PLAN + SEPARATE + "createPlan" + SEPARATE + "temporary"
+UPDATE_PLAN = PLAN + SEPARATE + "updatePlan"
+UPDATE_PLAN_TEMPORARY = PLAN + SEPARATE + "updatePlan" + SEPARATE + "temporary"
+DELETE_PLAN = PLAN + SEPARATE + "deletePlan"
+DELETE_PLAN_TEMPORARY = PLAN + SEPARATE + "deletePlan" + SEPARATE + "temporary"
+
 # Contract paths
 CONTRACT = V1 + SEPARATE + "contract"
 READ_CONTRACT = CONTRACT + SEPARATE + "readcontract"

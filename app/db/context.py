@@ -21,6 +21,7 @@ tax_collection = Database.db["tax"]
 usage_collection = Database.db["usage"]
 user_collection = Database.db["users"]
 work_request_collection = Database.db["workRequest"]
+work_plan_collection = Database.db["workPlan"]
 auth_collection = Database.db["auth"]
 
 # authCollection.drop_index("expireAt_1")
@@ -29,4 +30,4 @@ auth_collection = Database.db["auth"]
 # authCollection.create_index(
 #     [("expireAt", ASCENDING)],
 #     expireAfterSeconds=ttl_seconds
-# )
+# )ss
