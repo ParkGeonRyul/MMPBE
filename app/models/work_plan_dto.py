@@ -15,18 +15,18 @@ class WorkPlanField:
         default_factory=PyObjectId
     )
     user_id = Field(
-        description="고객 ID(ObjectID)",
-        alias="userId"
+        description="작업계획서 수신자 id(ObjectID)",
+        alias="requester_id"
     )
-    plan_id = Field(
-        description="작업계획서(ObjectID)",
+    acceptor_id = Field(
+        description="작업계획서 발신자 id(ObjectID)",
         min_length=1,
         default=None,
         alias="planId"
     )
-    contact_nm = Field(
-        description="담당자 이름(Maven)",
-        example="Aiden",
+    work_request_id = Field(
+        description="작업 요청서 id(ObjectID)",
+        min_length=1,
         default=None,
         alias="contactNm"
     )
@@ -40,12 +40,6 @@ class WorkPlanField:
         description="계획서 내용",
         min_length=1,
         alias= "planContent"
-    )
-    customer_nm = Field(
-        description="고객명",
-        example="고영희",
-        min_length=1,
-        alias="customerNm"
     )
     plan_date = Field(
         description="요청 일자(UTC + 0), 임시저장 일때는 NULL",
@@ -70,12 +64,6 @@ class WorkPlanField:
         default=None,
         alias="statusContent"
     )
-    acceptor_nm = Field(
-        description="승인자 이름",
-        example="Aiden",
-        default=None,
-        alias="acceptorNm"
-    )
     created_at = Field(
         description="생성 날짜(UTC + 0)",
         default=datetime.now(),
@@ -93,20 +81,19 @@ class WorkPlanField:
     )
 
 class CreateWorkPlanModel(BaseModel): # fe -> be
-    user_id: str = WorkPlanField.user_id # id 
-    plan_id: str = WorkPlanField.plan_id # 작업계획서가 생성 될 때 update
-    contact_nm: str = WorkPlanField.contact_nm # 담당자 이름 (필수) 추후 ID로
+    user_id: str = WorkPlanField.user_id #등록자 id (작업계획서 수신자 id)
+    acceptor_id: str = WorkPlanField.acceptor_id # 발신자 id (작업요청자 수신자 id)
+    work_request_id: str = WorkPlanField.work_request_id # 작업 요청서 id
     plan_title: str = WorkPlanField.plan_title # 필수
-    plan_date: Optional[datetime] = WorkPlanField.plan_date # None == 임시저장, 사용자가 요청 이후에 수정이 안 됨.
     plan_content: str = WorkPlanField.plan_content
-    customer_nm: str = WorkPlanField.customer_nm
-    file: Optional[str] = WorkPlanField.file
+    plan_date: Optional[datetime] = WorkPlanField.plan_date # None == 임시저장, 사용자가 요청 이후에 수정이 안 됨.
+    file: Optional[str] = WorkPlanField.file #파일경로
     status: Optional[str] = WorkPlanField.status # 승인, 반려, 요청, 회수(시스템 관리자만 볼 수 있음)
-    acceptor_nm: Optional[str] = WorkPlanField.acceptor_nm
     status_content : Optional[str] = WorkPlanField.status_content # 승인내용, 반려사유 (계획서 수신자가 작성)
     created_at: Optional[datetime] = WorkPlanField.created_at # 최초 이후 수정이 안 됨
     updated_at: Optional[datetime] = WorkPlanField.updated_at 
     del_yn: Optional[str] = WorkPlanField.del_yn # 시스템 관리자를 위한
+    
     model_config = ConfigDict(
         from_attributes=True,
         extra='allow',
@@ -116,11 +103,10 @@ class CreateWorkPlanModel(BaseModel): # fe -> be
         json_schema_extra={
             "example": {
                 "userId": "6690cf7fa4897bf6b90541c1",
-                "planId": "작업계획서(ObjectID)",
-                "contactNm": "메브닝",
+                "acceptorId": "작업요청자 수신자 id(ObjectID)",
+                "workRequestId": "작업계획서(ObjectID)",
                 "planTitle": "계획서 제목",
                 "planContent": "계획서 내용",
-                "customerNm": "홍길동",
                 "planDate": "2024-08-05 00:00:00",
                 "file": "파일 명",
                 "status": "요청",

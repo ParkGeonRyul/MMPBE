@@ -34,7 +34,7 @@ DELETE_REQUEST_TEMPORARY = REQUEST + SEPARATE + "deleterequest" + SEPARATE + "te
 
 # Plan paths
 PLAN = V1 + SEPARATE + "plan"
-SELECT_PLAN = PLAN + SEPARATE + "readPlan"
+SELECT_PLAN = PLAN + SEPARATE + "selectListPlan"
 SELECT_PLAN_TEMPORARY = PLAN + SEPARATE + "temprary"
 SELECT_PLAN_DETAIL = PLAN + SEPARATE + "selectPlan" + SEPARATE + "detail"
 CREATE_PLAN = PLAN + SEPARATE + "createPlan"

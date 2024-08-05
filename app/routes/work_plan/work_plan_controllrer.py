@@ -15,9 +15,9 @@ from httpx import AsyncClient
 from typing import List, Optional
 from dotenv import load_dotenv
 
-
 load_dotenv()
 router = APIRouter()
+
 
 
 class Router:
@@ -26,11 +26,9 @@ class Router:
 
 @router.get(SELECT_PLAN, status_code=status.HTTP_200_OK, response_model_by_alias=False)
 async def get_plan_list(request: Request):
-    try:
-       return await work_plan_service.get_plan_list(request, False)
     
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    
+    return await work_plan_service.get_plan_list(request, False)
 
 @router.get(SELECT_PLAN_TEMPORARY, status_code=status.HTTP_200_OK, response_model_by_alias=False)
 async def get_temporary_list(request: Request):
@@ -58,8 +56,7 @@ async def create_temporary(request: Request, item: CreateWorkPlanModel):
     
 @router.post(CREATE_PLAN, status_code=status.HTTP_200_OK, response_model_by_alias=False)       
 async def create_plan(request: Request, item: CreateWorkPlanModel):
-        print(" ::::::::::::: controller 확인" )
-        return await work_plan_service.create_plan(request, item)
+    return await work_plan_service.create_plan(request, item)
 
 
 

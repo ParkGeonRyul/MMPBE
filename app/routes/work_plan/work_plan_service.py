@@ -17,12 +17,11 @@ from routes._modules import list_module, response_cookie_module
 from routes._modules.list_module import is_temprary
 from uuid import uuid4
 from typing import List
-
-
+    
 async def get_plan_list(request: Request, value: bool) -> JSONResponse:
     access_token_cookie = request.cookies.get(COOKIES_KEY_NAME)
     token_data = await auth_service.validate_token(access_token_cookie)
-    projection = {"_id": 1, "user_id": 1, "request_title": 1, "customer_nm": 1, "request_date": 1, 'created_at': 1, 'updated_at': 1, "del_yn": 1}     
+    projection = {"_id": 1, "user_id": 1, "plan_title": 1, "acceptor_Id": 1, "acceptor_nm": 1, "plan_date": 1, "status": 1}     
     content = await list_module.get_collection_list(
     str(token_data['userId']), work_plan_collection, await is_temprary(value),int(request.query_params.get("page")), projection)
     response_content=json.loads(json.dumps(content, indent=1, default=str))
@@ -38,22 +37,19 @@ async def get_plan_dtl(request: Request) -> JSONResponse:
     
     return await response_cookie_module.set_response_cookie(token_data, response_content)
 
+async def create_plan(request: Request, item: CreateWorkPlanModel) -> JSONResponse:
+    access_token = request.cookies.get(COOKIES_KEY_NAME)
+    token_data = await auth_service.validate_token(access_token)
+    work_plan_collection.insert_one(item.model_dump())
+    response_content = {"message": "Request Plan Created"}
+    
+    return await response_cookie_module.set_response_cookie(token_data, response_content)
+
 async def create_temporary(request: Request, item: CreateWorkPlanModel) -> JSONResponse:
     access_token = request.cookies.get(COOKIES_KEY_NAME)
     token_data = await auth_service.validate_token(access_token)
     work_plan_collection.insert_one(item.model_dump())
     response_content = {"message": "Temporary Request Created"}
-    
-    return await response_cookie_module.set_response_cookie(token_data, response_content)
-
-async def create_plan(request: Request, item: CreateWorkPlanModel) -> JSONResponse:
-    print(item)
-    access_token = request.cookies.get(COOKIES_KEY_NAME)
-    token_data = await auth_service.validate_token(access_token)
-    print(access_token)
-    work_plan_collection.insert_one(item.model_dump())
-    response_content = {"message": "Request Plan Created"}
-    print(work_plan_collection.count_documents + " ::::::::::::: service 확인" )
     
     return await response_cookie_module.set_response_cookie(token_data, response_content)
 
