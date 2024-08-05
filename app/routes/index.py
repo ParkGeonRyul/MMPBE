@@ -64,6 +64,8 @@ async def access_token_manager(is_user:bool, check_token_existence:bool, access_
 async def proxy(request: Request, path: str):
     backend_url = f"{API_URL}{path}"
     access_token_cookie = request.cookies.get(COOKIES_KEY_NAME)
+   
+
     if request.query_params:
         backend_url += f"?{request.url.query}"
 
@@ -72,13 +74,12 @@ async def proxy(request: Request, path: str):
         headers = request.headers
         req_body = await request.body()
 
-        if not access_token_cookie:
+        if not access_token_cookie: # 토큰 없는 경우
 
             RedirectResponse(url=f"{MAIN_URL}{LOGIN_WITH_MS}")
-
         user_token = auth_collection.find_one({"access_token": access_token_cookie})
-        
-        if not user_token:
+        if not user_token: # DB에 토큰이 없는 경우
+            
             if path == "auth/login" or path == "auth/oauth/callback":
                 
                 return RedirectResponse(url=backend_url)
@@ -87,8 +88,8 @@ async def proxy(request: Request, path: str):
             response.delete_cookie(COOKIES_KEY_NAME)
 
             return response
-                
 
+        # 토큰 있고 브라우저도 토큰이 있다.
         # validate
         user_response = await client.get(
             MS_USER_INFO_URL,
@@ -107,8 +108,7 @@ async def proxy(request: Request, path: str):
                     "mobilePhone": user_data.get("mobilePhone")
                 }
             }
-            
-        else:            
+        else:  # 401
             find_user = user_collection.find_one({"_id": user_token['user_id']})
             if find_user:
                 reissue_token = msal_app.acquire_token_by_refresh_token(user_token["refresh_token"], scopes=["User.Read"])
