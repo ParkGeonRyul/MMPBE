@@ -25,6 +25,13 @@ class Router:
     def __init__(self):
         pass
 
+
+MAIN_URL = os.getenv("MAIN_URL")
+REDIRECT_URL_HOME = os.getenv("REDIRECT_URL_HOME")
+API_URL = os.getenv("API_URL")
+
+
+
 msal_app = msal.ConfidentialClientApplication(
     MS_CLIENT_ID,
     authority=MS_AUTHORITY,
@@ -68,7 +75,7 @@ async def access_token_manager(is_user:bool, check_token_existence:bool, access_
 
 @router.api_route("/v1/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", 'HEAD', 'PATCH'])
 async def proxy(request: Request, path: str):
-    backend_url = f"http://localhost:8000/proxy/v1/{path}"
+    backend_url = f"{API_URL}{path}"
     access_token_cookie = request.cookies.get(COOKIES_KEY_NAME)
     if request.query_params:
         backend_url += f"?{request.url.query}"
@@ -77,12 +84,23 @@ async def proxy(request: Request, path: str):
         method = request.method
         headers = request.headers
         req_body = await request.body()
+
         if not access_token_cookie:
-            return RedirectResponse(url=backend_url)
+
+            RedirectResponse(url=f"{MAIN_URL}{LOGIN_WITH_MS}")
 
         user_token = auth_collection.find_one({"access_token": access_token_cookie})
+        
         if not user_token:
-            return RedirectResponse(url=f"http://localhost:8000{LOGIN_WITH_MS}")
+            if path == "auth/login" or path == "auth/oauth/callback":
+                
+                return RedirectResponse(url=backend_url)
+            
+            response = RedirectResponse(url=f"{MAIN_URL}{LOGIN_WITH_MS}")
+            response.delete_cookie(COOKIES_KEY_NAME)
+
+            return response
+                
 
         # validate
         user_response = await client.get(
@@ -102,23 +120,6 @@ async def proxy(request: Request, path: str):
                     "mobilePhone": user_data.get("mobilePhone")
                 }
             }
-
-            get_user_info = user_collection.find_one({"_id": ObjectId(document['userId'])})
-            get_role = role_collection.find_one({"_id": ObjectId(get_user_info['role'])})
-            
-            if req_body:
-                response = await client.request(method, backend_url, headers=headers, content=req_body, cookies=request.cookies)
-                
-                return Response(content=response.content, status_code=response.status_code, headers=dict(response.headers))
-
-            else:
-                body_data = {'role': get_role['role_nm']}
-                body_data['tokenData'] = document
-
-            modified_body = json.dumps(body_data).encode('utf-8')
-            response = await client.request(method, backend_url, headers=headers, content=modified_body, cookies=request.cookies)
-            
-            return Response(content=response.content, status_code=response.status_code, headers=dict(response.headers))
             
         else:            
             find_user = user_collection.find_one({"_id": user_token['user_id']})
@@ -135,23 +136,25 @@ async def proxy(request: Request, path: str):
                         "mobilePhone": find_user['mobile_contact']
                     }                
                 }
-
-                get_user_info = user_collection.find_one({"_id": ObjectId(document['userId'])})
-                get_role = role_collection.find_one({"_id": ObjectId(get_user_info['role'])})
-                
-                if req_body:
-                    body_data = json.loads(req_body.decode())
-                    body_data['role'] = get_role['role']
-                    body_data['tokenData'] = document
-
-                else:
-                    body_data = {'role': get_role['role']}
-                    body_data['tokenData'] = document
-
-                modified_body = json.dumps(body_data).encode('utf-8')
-                response = await client.request(method, backend_url, headers=headers, content=modified_body, cookies=request.cookies)
-                
-                return Response(content=response.content, status_code=response.status_code, headers=dict(response.headers))
-            
             else:
-                RedirectResponse(f"http://localhost:8083/")
+                response = RedirectResponse(url=f"{MAIN_URL}{LOGIN_WITH_MS}")
+                response.delete_cookie(COOKIES_KEY_NAME)
+
+                return response
+
+        get_user_info = user_collection.find_one({"_id": ObjectId(document['userId'])})
+        get_role = role_collection.find_one({"_id": ObjectId(get_user_info['role'])})
+                
+        if req_body:
+            response = await client.request(method, backend_url, headers=headers, content=req_body, cookies=request.cookies)
+            
+            return Response(content=response.content, status_code=response.status_code, headers=dict(response.headers))
+
+        else:
+            body_data = {'role': get_role['role_nm']}
+            body_data['tokenData'] = document
+            modified_body = json.dumps(body_data).encode('utf-8')
+            response = await client.request(method, backend_url, headers=headers, content=modified_body, cookies=request.cookies)
+            
+            return Response(content=response.content, status_code=response.status_code, headers=dict(response.headers))
+                
