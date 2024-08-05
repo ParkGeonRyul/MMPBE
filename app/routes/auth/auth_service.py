@@ -1,19 +1,19 @@
 
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, status, Response
-from fastapi.responses import JSONResponse
-
-from routes._path.ms_paths import MS_AUTHORITY, MS_CLIENT_ID, MS_CLIENT_SECRET, MS_PROFILE_PHOTO, MS_REDIRECT_URI, MS_TOKEN_URL, MS_USER_INFO_URL, REDIRECT_URL_HOME
-from constants import ACCESS_TOKEN_NOT_VALID, ACCESS_TOKEN_VAILD, COOKIES_KEY_NAME
+from fastapi import APIRouter, HTTPException, Response, Request
+from fastapi.responses import JSONResponse, RedirectResponse
+from httpx import AsyncClient
+from bson import ObjectId
 
 import msal
 
-from fastapi.responses import RedirectResponse
-from httpx import AsyncClient
+from routes._path.ms_paths import MS_AUTHORITY, MS_CLIENT_ID, MS_CLIENT_SECRET, MS_PROFILE_PHOTO, MS_REDIRECT_URI, MS_TOKEN_URL, MS_USER_INFO_URL, REDIRECT_URL_HOME
+from routes._path.api_paths import CREATE_USER
+from routes._path.main_path import MAIN_URL
+from constants import COOKIES_KEY_NAME
 from db.context import auth_collection, user_collection
-from fastapi import Request, HTTPException, status
-from bson import ObjectId
 from utils.objectId_convert import objectId_convert
+
 
 router = APIRouter()
 
@@ -60,7 +60,7 @@ async def login():
     url = msal_app.get_authorization_request_url(
         scopes=["User.Read", "https://accountmgmtservice.dce.mp.microsoft.com/user_impersonation"],
         redirect_uri=MS_REDIRECT_URI
-    )        
+    )
 
     return RedirectResponse(url)
 
@@ -107,17 +107,22 @@ async def auth_callback(code):
             response.set_cookie(key=COOKIES_KEY_NAME, value=user_token['access_token'], httponly=True)
 
             return response
+        
         else:
             document = {
                 "user_nm": user_data['displayName'],
                 "rank": user_data['jobTitle'],
                 "mobile_contact": user_data['mobilePhone'],
-                "email": user_data['mail'],
-                "role": 1,
-                "created_at": datetime.now()
+                "email": user_data['mail']
             }
-            create_user = user_collection.insert_one(document)
-            user_token = await access_token_manager(is_user, check_token_existence, access_token, refresh_token, create_user.inserted_id, user_data['mail'])
+
+            async with AsyncClient() as client:
+                insert_user_by_document = await client.post(
+                    f"{MAIN_URL}{CREATE_USER}",
+                    json=document
+                )
+                user_id = insert_user_by_document.json()
+            user_token = await access_token_manager(is_user, check_token_existence, access_token, refresh_token, ObjectId(user_id), user_data['mail'])
             response = RedirectResponse(url=REDIRECT_URL_HOME)
             response.set_cookie(key=COOKIES_KEY_NAME, value=user_token['access_token'], httponly=True)
 
@@ -130,9 +135,9 @@ async def validate_token(access_token: str):
             MS_USER_INFO_URL,
             headers={"Authorization": f"Bearer {access_token}"}
         )
-        if user_token == None:
-
-            raise HTTPException(status_code=user_response.status_code, detail=user_response.text)
+        if not user_token:
+            raise HTTPException(status_code=404, detail="There is no token")
+        
         if user_response.status_code == 200:
             user_token = auth_collection.find_one({"access_token": access_token})
             user_data = user_response.json()
@@ -148,6 +153,7 @@ async def validate_token(access_token: str):
             }
 
             return document
+        
         else:
             find_user = user_collection.find_one({"_id": user_token['user_id']})
             if find_user:
@@ -165,6 +171,7 @@ async def validate_token(access_token: str):
                 }
 
                 return document
+            
             else:
                 RedirectResponse(url=REDIRECT_URL_HOME)
 
@@ -175,6 +182,7 @@ async def validate(request: Request) -> JSONResponse:
         objectId_convert(valid_token, "userId")
 
         return JSONResponse(content=valid_token)
+    
     else:
         access_token = auth_collection.find_one({"user_id": valid_token['userId']})
         response = JSONResponse(content=valid_token)

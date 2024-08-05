@@ -53,7 +53,8 @@ class UsersFields:
     )
     role = Field(
         description = "역할 ID(INDEX)",
-        examples="client, admin, Super admin"
+        examples="client, admin, Super admin",
+        default="66a83409be3a5f7919351fbf"
     )
     created_at = Field(
         description="오늘 날짜(UTC + 0)",
@@ -70,14 +71,15 @@ class UsersFields:
     )
 
 class UserModel(BaseModel):
+    # id: Optional[PyObjectId] = UsersFields.id
     company_id: Optional[str] = UsersFields.company_id
     user_nm : str = UsersFields.user_nm
     rank: str = UsersFields.rank
     company_contact: Optional[str] = UsersFields.company_contact
     mobile_contact: str = UsersFields.mobile_contact
     email: str = UsersFields.email
-    responsible_party: str = UsersFields.responsible_party
-    role: int = UsersFields.role
+    responsible_party: Optional[str] = UsersFields.responsible_party
+    role: Optional[str] = UsersFields.role
     created_at: Optional[datetime] = UsersFields.created_at
     updated_at: Optional[datetime] = UsersFields.updated_at
     del_yn: Optional[str] = UsersFields.del_yn
