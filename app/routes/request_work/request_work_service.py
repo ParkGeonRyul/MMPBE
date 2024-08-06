@@ -21,9 +21,9 @@ from typing import List
 
 async def get_request_list(request: Request, value: bool) -> JSONResponse:
     req_data = json.loads(await request.body())
-    projection = {"_id": 1, "user_id": 1, "request_title": 1, "customer_nm": 1, "request_date": 1, 'created_at': 1, 'updated_at': 1, "del_yn": 1}     
+    projection = {"_id": 1, "user_id": 1, "request_title": 1, "sales_representative": 1, "request_date": 1, 'created_at': 1, 'updated_at': 1, "del_yn": 1}     
     content = await list_module.get_collection_list(
-    str(req_data['tokenData']['userId']), work_request_collection, await is_temprary(value),int(request.query_params.get("page")), projection)
+    str(req_data['tokenData']['userId']), work_request_collection, await is_temprary(value),int(request.query_params.get("page")), projection, ResponseWorkRequestModel)
     response_content=json.loads(json.dumps(content, indent=1, default=str))
     
     return response_content
