@@ -37,7 +37,7 @@ async def insert_token(access_token: str, refresh_token: str, user_id: ObjectId,
     return user_token
 
 async def get_role(user_id: str):
-            get_user_info = user_collection.find_one({"_id": ObjectId(user_id)})
+            get_user_info = user_collection.find_one({"_id": user_id})
             get_role = role_collection.find_one({"_id": ObjectId(get_user_info['role'])})
 
             return get_role['role_nm']
@@ -146,7 +146,7 @@ async def validate_token(access_token: str):
         
         if user_response.status_code == 200:
             user_token = auth_collection.find_one({"access_token": access_token})
-            role_nm = get_role(user_token['user_id'])
+            role_nm = await get_role(user_token['user_id'])
             user_data = user_response.json()
             document = {
                 "status": "valid",
@@ -168,7 +168,7 @@ async def validate_token(access_token: str):
                 reissue_token = msal_app.acquire_token_by_refresh_token(user_token["refresh_token"], scopes=["User.Read"])
                 await access_token_manager(True, True, reissue_token['access_token'], reissue_token['refresh_token'], user_token['user_id'], user_token['email'])
                 user_token = auth_collection.find_one({"access_token": reissue_token['access_token']})
-                role_nm = get_role(user_token['user_id'])
+                role_nm = await get_role(user_token['user_id'])
                 document = {
                     "status": "refresh",
                     "userId": user_token['user_id'],
@@ -189,6 +189,7 @@ async def validate_token(access_token: str):
 async def validate(request: Request) -> JSONResponse:
     access_token = request.cookies.get(COOKIES_KEY_NAME)
     valid_token = await validate_token(access_token)
+    print(valid_token)
     if valid_token['status'] == "valid":
         objectId_convert(valid_token, "userId")
 
