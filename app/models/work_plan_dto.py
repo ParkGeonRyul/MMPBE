@@ -24,11 +24,11 @@ class WorkPlanField:
         default=None,
         alias="planId"
     )
-    work_request_id = Field(
+    request_id = Field(
         description="작업 요청서 id(ObjectID)",
         min_length=1,
         default=None,
-        alias="contactNm"
+        alias="requestId"
     )
     plan_title = Field(
         description="계획서 제목",
@@ -83,7 +83,7 @@ class WorkPlanField:
 class CreateWorkPlanModel(BaseModel): # fe -> be
     user_id: str = WorkPlanField.user_id #등록자 id (작업계획서 수신자 id)
     acceptor_id: str = WorkPlanField.acceptor_id # 발신자 id (작업요청자 수신자 id)
-    work_request_id: str = WorkPlanField.work_request_id # 작업 요청서 id
+    request_id: str = WorkPlanField.request_id # 작업 요청서 id
     plan_title: str = WorkPlanField.plan_title # 필수
     plan_content: str = WorkPlanField.plan_content
     plan_date: Optional[datetime] = WorkPlanField.plan_date # None == 임시저장, 사용자가 요청 이후에 수정이 안 됨.
@@ -104,7 +104,7 @@ class CreateWorkPlanModel(BaseModel): # fe -> be
             "example": {
                 "userId": "6690cf7fa4897bf6b90541c1",
                 "acceptorId": "작업요청자 수신자 id(ObjectID)",
-                "workRequestId": "작업계획서(ObjectID)",
+                "requestId": "작업계획서(ObjectID)",
                 "planTitle": "계획서 제목",
                 "planContent": "계획서 내용",
                 "planDate": "2024-08-05 00:00:00",
@@ -148,7 +148,7 @@ class  UpdateWorkPlanModel(BaseModel):
                 "requestDate": "임시저장 == NULL",
                 "content": "작업 내용",
                 "file": "파일 명",
-                "status": "승인, 반려, 요청, 회수",
+                "status": "승인",
                 "delYn": "삭제 여부"
             }
         }

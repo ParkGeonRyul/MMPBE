@@ -22,18 +22,19 @@ async def get_plan_list(request: Request, value: bool) -> JSONResponse:
     access_token_cookie = request.cookies.get(COOKIES_KEY_NAME)
     token_data = await auth_service.validate_token(access_token_cookie)
     projection = {"_id": 1, "user_id": 1, "plan_title": 1, "acceptor_Id": 1, "acceptor_nm": 1, "plan_date": 1, "status": 1}     
-    content = await list_module.get_collection_list(
-    str(token_data['userId']), work_plan_collection, await is_temprary(value),int(request.query_params.get("page")), projection)
+    content = await list_module.get_collection_list(str(token_data['userId']), work_plan_collection, await is_temprary(value),int(request.query_params.get("page")), projection)
     response_content=json.loads(json.dumps(content, indent=1, default=str))
     
-    return await response_cookie_module.set_response_cookie(token_data, response_content)
+    return  await response_cookie_module.set_response_cookie(token_data, response_content)
 
 async def get_plan_dtl(request: Request) -> JSONResponse:
     access_token_cookie = request.cookies.get(COOKIES_KEY_NAME)
     token_data = await auth_service.validate_token(access_token_cookie)
-    request_id = request.query_params.get("requestId")
-    work_item = work_plan_collection.find_one(ObjectId(request_id))
+    _id = request.query_params.get("_id")
+    work_item = work_plan_collection.find_one(ObjectId(_id))
     response_content=json.loads(json.dumps(work_item, indent=1, default=str))
+    
+    print(work_item)
     
     return await response_cookie_module.set_response_cookie(token_data, response_content)
 

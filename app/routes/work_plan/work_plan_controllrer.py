@@ -40,11 +40,7 @@ async def get_temporary_list(request: Request):
 
 @router.get(SELECT_PLAN_DETAIL, status_code=status.HTTP_200_OK, response_model_by_alias=False)
 async def get_plan_dtl(request: Request):
-    try:
-        return await work_plan_service.get_plan_dtl(request)
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return await work_plan_service.get_plan_dtl(request)
 
 @router.post(CREATE_PLAN_TEMPORARY, status_code=status.HTTP_201_CREATED, response_model_by_alias=False)       
 async def create_temporary(request: Request, item: CreateWorkPlanModel):
