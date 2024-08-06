@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Any, List, Optional
 from typing_extensions import Annotated
 from bson import ObjectId
+from pydantic.alias_generators import to_camel
 
 
 class WorkRequestField:
@@ -24,11 +25,11 @@ class WorkRequestField:
         default=None,
         alias="requestPlanId"
     )
-    contact_nm = Field(
+    sales_representative = Field(
         description="담당자 이름(Maven)",
         example="Aiden",
         default=None,
-        alias="contactNm"
+        alias="salesRepresentative"
     )
     request_title = Field(
         description="요청 제목",
@@ -83,7 +84,8 @@ class WorkRequestField:
 class CreateWorkRequestModel(BaseModel): # fe -> be
     user_id: str = WorkRequestField.user_id # id 
     request_plan_id: str = WorkRequestField.request_plan_id # 작업계획서가 생성 될 때 update
-    contact_nm: str = WorkRequestField.contact_nm # 담당자 이름 (필수) 추후 ID로
+    sales_representative: str = WorkRequestField.sales_representative # 담당자 이름 (필수) 추후 ID로
+    customer_nm: str = WorkRequestField.customer_nm # 고객 명
     request_title: str = WorkRequestField.request_title # 필수
     request_date: Optional[datetime] = WorkRequestField.request_date # None == 임시저장, 사용자가 요청 이후에 수정이 안 됨.
     content: str = WorkRequestField.content
@@ -118,7 +120,7 @@ class  UpdateWorkRequestModel(BaseModel):
     id: Optional[PyObjectId] = None
     user_id: Optional[str] = None
     device_nm: Optional[str] = None
-    contact_nm: Optional[str] = None
+    sales_representative: Optional[str] = None
     request_title: Optional[str] = None
     customer_nm: Optional[str] = None
     request_dt: Optional[datetime] = None
@@ -164,4 +166,22 @@ class UpdateDelYnWorkRequestModel(BaseModel):
                 "request_id": "6690cf7fa4897bf6b90541c1(ObjectId)",
             }
         }
+    )
+
+class ResponseWorkRequestModel(BaseModel):
+    id: str = Field(alias='_id')
+    user_id: str = Field(alias='userId')
+    request_title: str = Field(alias='requestTitle')
+    sales_representative: str = Field(alias='salesRepresentative')
+    request_date: datetime = Field(None, alias='requestDate')
+    created_at: Optional[str] = Field(None, alias='createdAt')
+    updated_at: Optional[str] = Field(None, alias='updatedAt')
+    del_yn: Optional[str] = Field(None, alias='delYn')
+    model_config = ConfigDict(
+        extra='allow',
+        from_attributes=True,
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+        alias_generator=to_camel
     )
