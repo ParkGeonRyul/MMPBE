@@ -15,21 +15,24 @@ from constants import COOKIES_KEY_NAME
 from utils.objectId_convert import objectId_convert
 from routes._modules import list_module, response_cookie_module
 from routes._modules.list_module import is_temprary
+from models import work_request_dto
 from uuid import uuid4
 from typing import List
 
 
 async def get_request_list(request: Request, value: bool) -> JSONResponse:
     req_data = json.loads(await request.body())
-    projection = {"_id": 1, "user_id": 1, "request_title": 1, "customer_nm": 1, "request_date": 1, 'created_at': 1, 'updated_at': 1, "del_yn": 1}     
+    if value == False:
+        projection = {"_id": 1, "request_title": 1, "sales_representative_nm": 1, "request_date": 1, "status": 1}
+    else:
+        projection = {"_id": 1, "request_title": 1, "sales_representative_nm": 1, "status": 1}
     content = await list_module.get_collection_list(
-    str(req_data['tokenData']['userId']), work_request_collection, await is_temprary(value),int(request.query_params.get("page")), projection)
+    str(req_data['tokenData']['userId']), work_request_collection, await is_temprary(value),int(request.query_params.get("page")), projection, ResponseRequestListModel, work_request_dto)
     response_content=json.loads(json.dumps(content, indent=1, default=str))
     
     return response_content
 
 async def get_request_dtl(request: Request) -> JSONResponse:
-    req_data = json.loads(await request.body())
     request_id = request.query_params.get("requestId")
     work_item = work_request_collection.find_one(ObjectId(request_id))
     response_content=json.loads(json.dumps(work_item, indent=1, default=str))

@@ -1,5 +1,6 @@
 import pymongo
 from db.context import *
+from models import *
 
 class test:
     test= "test"
@@ -10,16 +11,12 @@ async def is_temprary(value: bool):
       else: 
         return {'$ne': None}
 
-async def get_collection_list(user_id: str, db_collection: str, is_null: dict | None, page: int | None, projection: dict):
+async def get_collection_list(id: str, db_collection: str, is_null: str | None, page: int | None, projection: dict, response_model: any, dto: any):
         skip = (page - 1) * 5
-        db_total = db_collection.count_documents({"user_id": user_id, "created_at": is_null})
-        db_item = db_collection.find({"user_id": user_id, "created_at":  is_null}, projection).skip(skip).limit(5)
-        db_list = list(db_item)
-        numbered_items = [{"number": skip + i + 1, **item, "_id": str(item["_id"])} for i, item in enumerate(db_list)]
-
+        db_total = db_collection.count_documents({"customer_id": id, "request_date": is_null})
+        get_list = await dto.get_list(id, projection, is_null, db_collection, skip, response_model)
         content = {
             "total": db_total,
-            "work_list": numbered_items
+            "list": get_list
         }
-
         return content
