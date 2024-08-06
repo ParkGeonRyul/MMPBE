@@ -7,7 +7,7 @@ from pydantic.alias_generators import to_camel
 from db.context import work_request_collection
 from motor.motor_asyncio import AsyncIOMotorClient
 
-import motor.motor_asyncio
+import json
 
 from utils.pymongo_object_id import PyObjectId
 
@@ -151,7 +151,7 @@ class ResponseRequestListModel(BaseModel):
     id: str = Field(alias="_id")
     request_title: str = Field(alias="rwTitle")
     sales_representative_nm: str = Field(alias="salesRepresentativeNm")
-    request_date: Optional[str] = Field(None, alias="rwDate")
+    request_date: Optional[str] = Field(None, alias="wrDate")
     status: str
     model_config = ConfigDict(
         extra='allow',
@@ -165,7 +165,7 @@ class ResponseRequestListModel(BaseModel):
                 "_id": "ObjectId",
                 "requestTitle": "요청 제목",
                 "salesRepresentative": "영업담당자",
-                "requestDate": "임시저장 == NULL",
+                "wrDate": "임시저장 == NULL",
                 "status": "승인, 반려, 요청, 회수"
             }
         }
@@ -226,7 +226,6 @@ async def get_list(id: str, projection: dict, is_null: str | None, db_collection
 
     return numbered_items
 
-
     # Request Work Dtl
     # rwId: string; // _id
     # companyId: string;
@@ -237,3 +236,47 @@ async def get_list(id: str, projection: dict, is_null: str | None, db_collection
     # filePath: string;
     # status: "승인" | "반려" | "요청" | "회수";
     # statusContent: string;
+
+async def get_dtl(id: str, projection: dict, is_null: str | None, db_collection: any, response_model: any):
+    pipeline = [
+              {
+                  "$match": {
+                      "_id": ObjectId(id),
+                      "request_date": is_null
+                  }
+              },
+              {
+                  "$lookup": {
+                      "from": "contract",
+                       "let": { "solutionId": "$solution_id" },
+                      "pipeline": [
+                          {
+                              "$match": {
+                                  "$expr": {
+                                      "$eq": [ {"$toString": "$_id"}, "$$solutionId"]
+                                  }
+                              }
+                          }
+                      ],
+                      "as": "contract_field"
+                  }
+              },
+              {
+                  "$unwind": "$contract_field"
+              },
+              {
+                  "$set": {
+                      "sales_representative_nm": "$contract_field.sales_manager"
+                  }
+              },
+              {
+                  "$project": projection
+              },
+              {
+                  "$limit": 1
+              }
+          ]
+    results = db_collection.aggregate(pipeline)
+    content = results[0]
+    
+    return content
