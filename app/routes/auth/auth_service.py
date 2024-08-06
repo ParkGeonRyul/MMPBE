@@ -11,7 +11,7 @@ from routes._path.ms_paths import MS_AUTHORITY, MS_CLIENT_ID, MS_CLIENT_SECRET, 
 from routes._path.api_paths import CREATE_USER
 from routes._path.main_path import MAIN_URL
 from constants import COOKIES_KEY_NAME
-from db.context import auth_collection, user_collection
+from db.context import auth_collection, user_collection, role_collection
 from utils.objectId_convert import objectId_convert
 
 
@@ -35,6 +35,12 @@ async def insert_token(access_token: str, refresh_token: str, user_id: ObjectId,
     user_token = auth_collection.find_one({"user_id": user_id})
 
     return user_token
+
+async def get_role(user_id: str):
+            get_user_info = user_collection.find_one({"_id": user_id})
+            get_role = role_collection.find_one({"_id": ObjectId(get_user_info['role'])})
+
+            return get_role['role_nm']
 
 async def access_token_manager(is_user:bool, check_token_existence:bool, access_token: str, refresh_token: str, user_id: ObjectId, email: str):                       
     if is_user:
@@ -140,6 +146,7 @@ async def validate_token(access_token: str):
         
         if user_response.status_code == 200:
             user_token = auth_collection.find_one({"access_token": access_token})
+            role_nm = await get_role(user_token['user_id'])
             user_data = user_response.json()
             document = {
                 "status": "valid",
@@ -148,7 +155,8 @@ async def validate_token(access_token: str):
                     "name": user_data.get("displayName"),
                     "email": user_data.get("mail"),
                     "jobTitle": user_data.get("jobTitle"),
-                    "mobilePhone": user_data.get("mobilePhone")
+                    "mobilePhone": user_data.get("mobilePhone"),
+                    "role": role_nm
                 }
             }
 
@@ -159,6 +167,8 @@ async def validate_token(access_token: str):
             if find_user:
                 reissue_token = msal_app.acquire_token_by_refresh_token(user_token["refresh_token"], scopes=["User.Read"])
                 await access_token_manager(True, True, reissue_token['access_token'], reissue_token['refresh_token'], user_token['user_id'], user_token['email'])
+                user_token = auth_collection.find_one({"access_token": reissue_token['access_token']})
+                role_nm = await get_role(user_token['user_id'])
                 document = {
                     "status": "refresh",
                     "userId": user_token['user_id'],
@@ -166,7 +176,8 @@ async def validate_token(access_token: str):
                         "name": find_user['user_nm'],
                         "email": find_user['email'],
                         "jobTitle": find_user['rank'],
-                        "mobilePhone": find_user['mobile_contact']
+                        "mobilePhone": find_user['mobile_contact'],
+                        "role": role_nm
                     }                
                 }
 
@@ -178,6 +189,7 @@ async def validate_token(access_token: str):
 async def validate(request: Request) -> JSONResponse:
     access_token = request.cookies.get(COOKIES_KEY_NAME)
     valid_token = await validate_token(access_token)
+    print(valid_token)
     if valid_token['status'] == "valid":
         objectId_convert(valid_token, "userId")
 
