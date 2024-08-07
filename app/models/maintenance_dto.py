@@ -28,7 +28,7 @@ class MaintenanceField:
     )
     file = Field(
         description="계약 자료 관련 파일",
-        examples="jun.zip",
+        example="jun.zip",
         min_length=1
     )
     contract_date = Field(

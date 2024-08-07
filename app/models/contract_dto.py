@@ -20,7 +20,7 @@ class ContractField:
     )
     work_type = Field(
         description="계약 타입",
-        examples="라이선스, 프로젝트",
+        example="라이선스, 프로젝트",
         alias="workType"
     )
     tenant_id = Field(
@@ -29,29 +29,29 @@ class ContractField:
     )
     inflow_path = Field(
         description="유입 경로",
-        examples="MS(세미나), 인바운드",
+        example="MS(세미나), 인바운드",
         alias="inflowPath"
     )
     customer_level = Field(
         description="고객 단계",
-        examples="EPG, SMC",
+        example="EPG, SMC",
         alias="customerLevel"
     )
     product_family = Field(
         description="제품 집단",
-        examples="Azure, PowerBI",
+        example="Azure, PowerBI",
         alias="productFamily"
     )
     contract_amt = Field(
         description="계약 가격",
-        examples="15000",
+        example="15000",
         ge=0,
         default=0,
         alias="contractAmt"
     )
     join_service = Field(
         description="서비스 단계",
-        examples="Basic, Pro",
+        example="Basic, Pro",
         alias="joinService"
     )
     m_d = Field(
@@ -68,12 +68,12 @@ class ContractField:
     )
     sales_manager = Field(
         description="판매 담당자",
-        examples="Livy Han, Cho",
+        example="Livy Han, Cho",
         alias="salesManager"
     )
     tech_manager = Field(
         description="기술 담당자",
-        examples="Aiden, Sun",
+        example="Aiden, Sun",
         alias="techManager"
     )
     tax_date = Field(

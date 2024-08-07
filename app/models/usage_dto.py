@@ -24,13 +24,13 @@ class UsageField:
     )
     cpu = Field(
         description="CPU 사용량",
-        examples="10, 80",
+        example="10, 80",
         ge=0,
         default=0
     )
     disk = Field(
         description="Disk 사용량",
-        examples="10, 50",
+        example="10, 50",
         ge=0,
         default=0
     )
