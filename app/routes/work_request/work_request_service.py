@@ -34,7 +34,7 @@ async def get_request_list(request: Request, value: bool) -> JSONResponse:
         total,
         work_request_collection,
         temporary_value,
-        int(request.query_params.get("page")),
+        # int(request.query_params.get("page")),
         projection,
         ResponseRequestListModel,
         work_request_dto
@@ -42,9 +42,20 @@ async def get_request_list(request: Request, value: bool) -> JSONResponse:
     response_content=json.loads(json.dumps(content, indent=1, default=str))
     
     return response_content
+    # _id: string; // _id
+    # wrTitle: string; 
+    # companyId: string;
+    # customerNm: string;
+    # customerId: string
+    # content: string;
+    # wrDate: IDateValue
+    # filePath: string;
+    # status: "승인" | "반려" | "요청" | "회수";
+    # statusContent: string;
 
 async def get_request_dtl(request: Request) -> JSONResponse:
     req_data = json.loads(await request.body())
+    projection = {"_id": 1, "wr_title": 1, "company_id": 1, "customer_id": 1, "content":1, "wr_date": 1, "status": 1}
     request_id = request.query_params.get("_id")
     work_item = work_request_collection.find_one(ObjectId(request_id))
     response_content=json.loads(json.dumps(work_item, indent=1, default=str))

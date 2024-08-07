@@ -4,8 +4,6 @@ from datetime import datetime
 from typing import List, Optional
 from bson import ObjectId
 from pydantic.alias_generators import to_camel
-from db.context import work_request_collection
-from motor.motor_asyncio import AsyncIOMotorClient
 
 import json
 
@@ -171,7 +169,7 @@ class ResponseRequestListModel(BaseModel):
         }
     )
 
-async def get_list(id: str, projection: dict, is_null: str | None, db_collection: any, skip: int, response_model: any):
+async def get_list(id: str, projection: dict, is_null: str | None, db_collection: any, response_model: any): #skip: int, 
     pipeline = [
               {
                   "$match": {
@@ -205,13 +203,13 @@ async def get_list(id: str, projection: dict, is_null: str | None, db_collection
               },
               {
                   "$project": projection
-              },
-              {
-                  "$skip": skip
-              },
-              {
-                  "$limit": 5
               }
+            #   {
+            #       "$skip": skip
+            #   },
+            #   {
+            #       "$limit": 5
+            #   }
           ]
     results = db_collection.aggregate(pipeline)
     content=[]
@@ -222,20 +220,9 @@ async def get_list(id: str, projection: dict, is_null: str | None, db_collection
         model_instance = response_model(**item)
         model_dict = model_instance.model_dump(by_alias=True, exclude_unset=True)
         content.append(model_dict)
-    numbered_items = [{"number": skip + i + 1, **item, "_id": str(item["_id"])} for i, item in enumerate(content)]
+    # numbered_items = [{"number": skip + i + 1, **item, "_id": str(item["_id"])} for i, item in enumerate(content)]
 
-    return numbered_items
-
-    # Request Work Dtl
-    # rwId: string; // _id
-    # companyId: string;
-    # customerNm: string;
-    # customerId: string
-    # content: string;
-    # rwDate: IDateValue
-    # filePath: string;
-    # status: "승인" | "반려" | "요청" | "회수";
-    # statusContent: string;
+    return content
 
 async def get_dtl(id: str, projection: dict, is_null: str | None, db_collection: any, response_model: any):
     pipeline = [
