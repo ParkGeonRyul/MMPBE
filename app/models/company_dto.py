@@ -16,7 +16,7 @@ class CompanyFields:
     )
     company_nm = Field(
         description="회사 이름",
-        examples="메이븐클라우드서비스",
+        example="메이븐클라우드서비스",
         alias="companyNm"
     )
 

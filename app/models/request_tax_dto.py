@@ -24,12 +24,12 @@ class RequestTaxField:
     )
     content = Field(
         description="요청 내용",
-        examples="202301 ~ 202302",
+        example="202301 ~ 202302",
         min_length=1
     )
     status = Field(
         description="요청 진행 상황",
-        examples="대기, 완료",
+        example="대기, 완료",
         default="대기"
     )
 

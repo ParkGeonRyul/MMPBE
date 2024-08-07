@@ -58,5 +58,7 @@ stages:
                                       --env MS_CLIENT_SECRET=$(MS_CLIENT_SECRET) \
                                       --env MS_REDIRECT_URI=$(MS_REDIRECT_URI) \
                                       --env REDIRECT_URL_HOME=$(REDIRECT_URL_HOME) \
+                                      --env MAIN_URL=$(MAIN_URL) \
+                                      --env API_URL=$(API_URL) \
                                       $(containerRegistry)/$(imageRepository):$(tag)
                 EOF

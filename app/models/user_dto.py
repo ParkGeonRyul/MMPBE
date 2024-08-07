@@ -27,33 +27,33 @@ class UsersFields:
     )
     rank = Field(
         description="직급",
-        examples="프로"
+        example="프로"
     )
     company_contact=Field(
         description="고객사 연락처",
-        examples="02)000-0000",
+        example="02)000-0000",
         default=None,
         alias="companyContact"
     )
     mobile_contact = Field(
         description="고객사 mobile",
-        examples="010-0000-0000",
+        example="010-0000-0000",
         alias="mobileContact"
     )
     email = Field(
         description="사용자 이메일",
-        examples="maven.kim@mavencloudservice.com",
+        example="maven.kim@mavencloudservice.com",
         pattern=r"^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$"
     )
     responsible_party = Field(
         description="분류",
-        examples="엔지니어",
+        example="엔지니어",
         default=None,
         alias="responsibleParty"
     )
     role = Field(
         description = "역할 ID(INDEX)",
-        examples="client, admin, Super admin",
+        example="client, admin, Super admin",
         default="66a83409be3a5f7919351fbf"
     )
     created_at = Field(

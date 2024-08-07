@@ -20,7 +20,7 @@ class TaxField:
     )
     tax_amt = Field(
         description="과금 내역",
-        examples="100000",
+        example="100000",
         ge=0,
         default=0,
         alias="taxAmt"

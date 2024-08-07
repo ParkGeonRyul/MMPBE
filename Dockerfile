@@ -14,4 +14,4 @@ RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 COPY app .
 
 # uvicorn 서버 실행
-CMD ["sh", "dev.bash"]
+CMD ["sh", "prod.sh"]
