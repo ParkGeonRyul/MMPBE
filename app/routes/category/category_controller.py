@@ -30,8 +30,3 @@ async def get_info_by_user(request: Request):
        
        return await category_service.get_info_by_user(request)
 
-@router.get(GET_INFO_BY_COMPANY, status_code=status.HTTP_200_OK, response_model_by_alias=False)
-async def get_info_by_user(request: Request):
-       
-       return await category_service.get_info_by_company(request)
-
