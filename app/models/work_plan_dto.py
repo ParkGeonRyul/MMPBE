@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Any, List, Optional
 from typing_extensions import Annotated
 from bson import ObjectId
+from pydantic.alias_generators import to_camel
 
 
 class WorkPlanField:
@@ -187,3 +188,53 @@ class UpdateDelYnWorkPlanModel(BaseModel):
             }
         }
     )
+
+# "_id": 1, "user_id": 1, "plan_title": 1, "acceptor_Id": 1, "acceptor_nm": 1, "plan_date": 1, "status": 1
+class ResponsePlanListModel(BaseModel):
+    id: str = Field(alias="_id")
+    user_id: str = Field(alias="userId")
+    plan_title: str = Field(alias="planTitle")
+    acceptor_id: Optional[str] = Field(None, alias="acceptorId")
+    plan_date: str = Field(alias="planDate")
+    status: str
+    model_config = ConfigDict(
+        extra='allow',
+        from_attributes=True,
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+        alias_generator=to_camel,
+        json_schema_extra={
+            "example": {
+                "_id": "ObjectId",
+                "requestTitle": "요청 제목",
+                "salesRepresentative": "영업담당자",
+                "wrDate": "임시저장 == NULL",
+                "status": "승인, 반려, 요청, 회수"
+            }
+        }
+    )
+
+async def get_list(id: str, projection: dict, is_null: str | None, db_collection: any, response_model: any):
+    pipeline = [
+              {
+                  "$match": {
+                      "user_id": id,
+                      "plan_date": is_null
+                  }
+              },
+              {
+                  "$project": projection
+              }
+          ]
+    results = db_collection.aggregate(pipeline)
+    content=[]
+    for item in results:
+        item['_id'] = str(item['_id'])
+        if is_null == {'$ne': None}:
+            item['plan_date'] = item['plan_date'].strftime('%Y-%m-%d')
+        model_instance = response_model(**item)
+        model_dict = model_instance.model_dump(by_alias=True, exclude_unset=True)
+        content.append(model_dict)
+
+    return content
