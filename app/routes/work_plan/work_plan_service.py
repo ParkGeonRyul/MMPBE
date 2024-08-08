@@ -23,8 +23,11 @@ async def get_plan_list(request: Request, value: bool) -> JSONResponse:
     req_data = json.loads(await request.body())
     is_temp = await is_temporary(value)
     id = str(req_data['tokenData']['userId'])
-    match = {"user_id": id, "plan_date": is_temp}
-    projection = {"_id": 1, "user_id": 1, "plan_title": 1, "acceptor_id": 1, "acceptor_nm": 1, "company_nm": 1,"request_nm":1, "plan_date": 1, "status": 1}   
+    if req_data['role'] == 'system admin':
+        match = {"acceptor_id": id, "plan_date": is_temp}
+    elif req_data['role'] == 'admin':# or req_data['role'] == 'system admin':
+        match = {"user_id": id, "plan_date": is_temp}
+    projection = {"_id": 1, "user_id": 1, "plan_title": 1, "acceptor_id": 1, "acceptor_nm": 1, "company_nm": 1,"requestor_nm":1, "plan_date": 1, "status": 1}   
     content = await list_module.get_collection_list(match, work_plan_collection, projection, ResponsePlanListModel, work_plan_dto)
     response_content=json.loads(json.dumps(content, indent=1, default=str))
     

@@ -197,7 +197,7 @@ class ResponsePlanListModel(BaseModel):
     acceptor_id: Optional[str] = Field(None, alias="acceptorId")
     acceptor_nm: Optional[str] = Field(None, alias="acceptorNm")
     company_nm: Optional[str] = Field(None, alias="companyNm")
-    request_nm: Optional[str] = Field(None, alias="requestNm")
+    requestor_nm: Optional[str] = Field(None, alias="requestorNm")
     plan_date: str = Field(alias="planDate")
     status: str
     model_config = ConfigDict(
@@ -271,7 +271,7 @@ async def get_list(match: dict, projection: dict, db_collection: any, response_m
                     "$set": {
                         "acceptor_id": {"$toString": "$acceptor_field._id"},
                         "acceptor_nm": "$acceptor_field.user_nm",
-                        "request_nm": "$user_field.user_nm"
+                        "requestor_nm": "$user_field.user_nm"
                     }
                 },
                 {
