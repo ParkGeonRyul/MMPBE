@@ -19,7 +19,7 @@ async def get_collection_list(user_id: str, db_collection: str, is_null: dict | 
 
         content = {
             "total": db_total,
-            "work_list": numbered_items
+            "list": numbered_items
         }
 
         return content

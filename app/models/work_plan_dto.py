@@ -154,6 +154,24 @@ class  UpdateWorkPlanModel(BaseModel):
         }
     )
 
+class  UpdatePlanStatusAcceptModel(BaseModel):
+    id: Optional[PyObjectId] = None
+    status: Optional[str] = None
+    statusContent: Optional[str] = None
+    updated_at: Optional[datetime] = None
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+        json_schema_extra={
+            "example": {
+                "status": "승인",
+                "statusContent": "승인내용",
+                "updated_at": "new Date() 오늘날짜"
+            }
+        }
+    )
+
 class DeletePlanTempraryModel(BaseModel):
     ids: List[str]
 

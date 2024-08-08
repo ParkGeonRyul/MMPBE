@@ -38,6 +38,20 @@ async def get_plan_dtl(request: Request) -> JSONResponse:
     
     return await response_cookie_module.set_response_cookie(token_data, response_content)
 
+async def update_plan_status_accept(request: Request, item: UpdatePlanStatusAcceptModel) -> JSONResponse:
+    print(request)
+    print(request.query_params.get("_id"))
+    print(request.query_params.get("status"))
+    print(request.query_params.get("statusContent"))
+    access_token = request.cookies.get(COOKIES_KEY_NAME)
+    _id = request.query_params.get("_id")
+    token_data = await auth_service.validate_token(access_token)
+    item['created_at'] = datetime.now()
+    work_plan_collection.update_one({"_id": ObjectId(_id)}, {"$set": item.model_dump()})
+    response_content = {"message": "Request Created"}
+
+    return await response_cookie_module.set_response_cookie(token_data, response_content)
+
 async def create_plan(request: Request, item: CreateWorkPlanModel) -> JSONResponse:
     access_token = request.cookies.get(COOKIES_KEY_NAME)
     token_data = await auth_service.validate_token(access_token)
