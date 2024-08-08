@@ -195,6 +195,9 @@ class ResponsePlanListModel(BaseModel):
     user_id: str = Field(alias="userId")
     plan_title: str = Field(alias="planTitle")
     acceptor_id: Optional[str] = Field(None, alias="acceptorId")
+    acceptor_nm: Optional[str] = Field(None, alias="acceptorNm")
+    company_nm: Optional[str] = Field(None, alias="companyNm")
+    request_nm: Optional[str] = Field(None, alias="requestNm")
     plan_date: str = Field(alias="planDate")
     status: str
     model_config = ConfigDict(
@@ -215,23 +218,98 @@ class ResponsePlanListModel(BaseModel):
         }
     )
 
-async def get_list(id: str, projection: dict, is_null: str | None, db_collection: any, response_model: any):
+async def get_list(match: dict, projection: dict, db_collection: any, response_model: any):
     pipeline = [
-              {
-                  "$match": {
-                      "user_id": id,
-                      "plan_date": is_null
+                {
+                    "$match": match
+                },
+                {
+                  "$lookup": {
+                        "from": "users",
+                        "let": { "acceptorId": "$acceptor_id" },
+                        "pipeline": [
+                          {
+                              "$match": {
+                                  "$expr": {
+                                      "$eq": [ {"$toString": "$_id"}, "$$acceptorId"]
+                                  }
+                              }
+                          }
+                      ],
+                      "as": "acceptor_field"
                   }
-              },
-              {
-                  "$project": projection
-              }
+                },
+                {
+                  "$lookup": {
+                      "from": "users",
+                       "let": { "userId": "$user_id" },
+                      "pipeline": [
+                          {
+                              "$match": {
+                                  "$expr": {
+                                      "$eq": [ {"$toString": "$_id"}, "$$userId"]
+                                  }
+                              }
+                          }
+                      ],
+                      "as": "user_field"
+                  }
+                },
+                {
+                    "$unwind": {
+                        "path": "$acceptor_field",
+                        "preserveNullAndEmptyArrays": True
+                        }
+                },
+                {
+                    "$unwind": {
+                        "path": "$user_field",
+                        "preserveNullAndEmptyArrays": True
+                        }
+                },
+                {
+                    "$set": {
+                        "acceptor_id": {"$toString": "$acceptor_field._id"},
+                        "acceptor_nm": "$acceptor_field.user_nm",
+                        "request_nm": "$user_field.user_nm"
+                    }
+                },
+                {
+                  "$lookup": {
+                        "from": "company",
+                        "let": { "companyId": "$acceptor_field.company_id" },
+                        "pipeline": [
+                          {
+                              "$match": {
+                                  "$expr": {
+                                      "$eq": [ {"$toString": "$_id"}, "$$companyId"]
+                                  }
+                              }
+                          }
+                      ],
+                      "as": "company_field"
+                  }
+                },
+                {
+                    "$unwind": {
+                        "path": "$company_field",
+                        "preserveNullAndEmptyArrays": True
+                        }
+                },
+                {
+                    "$set": {
+                        "company_nm": "$company_field.company_nm"
+                    }
+                },
+                {
+                    "$project": projection
+                }
           ]
     results = db_collection.aggregate(pipeline)
     content=[]
     for item in results:
         item['_id'] = str(item['_id'])
-        if is_null == {'$ne': None}:
+        if match['plan_date'] == {'$ne': None}:
             item['plan_date'] = item['plan_date'].strftime('%Y-%m-%d')
         model_instance = response_model(**item)
         model_dict = model_instance.model_dump(by_alias=True, exclude_unset=True)

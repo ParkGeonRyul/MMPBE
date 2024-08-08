@@ -11,10 +11,10 @@ async def is_temporary(value: bool):
       else: 
         return {'$ne': None}
 
-async def get_collection_list(id: str, db_collection: str, total: dict, is_temporary: str | None, projection: dict, response_model: any, dto: any): # page: int | None, total: dict, 
+async def get_collection_list(match: dict, db_collection: str, projection: dict, response_model: any, dto: any): # page: int | None, match: dict, 
         # skip = (page - 1) * 5
-        db_total = db_collection.count_documents(total)
-        get_list = await dto.get_list(id, projection, is_temporary, db_collection, response_model)
+        db_total = db_collection.count_documents(match)
+        get_list = await dto.get_list(match, projection, db_collection, response_model)
         content = {
             "total": db_total,
             "list": get_list

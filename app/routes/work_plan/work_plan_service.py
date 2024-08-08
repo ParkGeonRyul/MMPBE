@@ -21,11 +21,17 @@ from typing import List
     
 async def get_plan_list(request: Request, value: bool) -> JSONResponse:
     req_data = json.loads(await request.body())
-    id = str(req_data['tokenData']['userId'])
     is_temp = await is_temporary(value)
+<<<<<<< HEAD
     total = {"user_id": id, "plan_date": is_temp}
     projection = {"_id": 1, "user_id": 1, "plan_title": 1, "acceptor_id": 1, "acceptor_nm": 1, "plan_date": 1, "status": 1}   
     content = await list_module.get_collection_list(id, work_plan_collection, total, is_temp, projection, ResponsePlanListModel, work_plan_dto)
+=======
+    id = str(req_data['tokenData']['userId'])
+    match = {"user_id": id, "plan_date": is_temp}
+    projection = {"_id": 1, "user_id": 1, "plan_title": 1, "acceptor_id": 1, "acceptor_nm": 1, "company_nm": 1,"request_nm":1, "plan_date": 1, "status": 1}   
+    content = await list_module.get_collection_list(match, work_plan_collection, projection, ResponsePlanListModel, work_plan_dto)
+>>>>>>> d016647d8cc5df1342194e63a4108c55a92d1e59
     response_content=json.loads(json.dumps(content, indent=1, default=str))
     
     return response_content
