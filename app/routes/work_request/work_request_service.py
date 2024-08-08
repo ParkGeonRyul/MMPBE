@@ -30,13 +30,13 @@ async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
         match = {
                     "request_date": temporary_value
                 }
-        projection = {"_id": 1, "request_title": 1, "sales_representative_nm": 1, "customer_nm": 1, "company_nm": 1, "request_date": 1, "status": 1}
     elif role == "user":
         match = {
                     "customer_id": id,
                     "request_date": temporary_value
                 }
-        projection = {"_id": 1, "request_title": 1, "sales_representative_nm": 1, "request_date": 1, "status": 1}
+          
+    projection = {"_id": 1, "request_title": 1, "sales_representative_nm": 1, "customer_nm": 1, "company_nm": 1, "request_date": 1, "status": 1}
     
     wr_list = await list_module.get_collection_list(
         match,
