@@ -149,6 +149,8 @@ class ResponseRequestListModel(BaseModel):
     id: str = Field(alias="_id")
     request_title: str = Field(alias="wrTitle")
     sales_representative_nm: str = Field(alias="salesRepresentativeNm")
+    customer_nm: Optional[str] = Field(None, alias="customerNm")
+    company_nm: Optional[str] = Field(None, alias="companyNm")
     request_date: Optional[str] = Field(None, alias="wrDate")
     status: str
     model_config = ConfigDict(
@@ -169,50 +171,85 @@ class ResponseRequestListModel(BaseModel):
         }
     )
 
-async def get_list(match: dict, projection: dict, is_null: str | None, db_collection: any, response_model: any): #skip: int, 
+async def get_list(match: dict, projection: dict, db_collection: any, response_model: any): #skip: int, 
     pipeline = [
-              {
-                  "$match": match,
-              },
-              {
-                  "$lookup": {
-                      "from": "contract",
-                       "let": { "solutionId": "$solution_id" },
-                      "pipeline": [
-                          {
-                              "$match": {
-                                  "$expr": {
-                                      "$eq": [ {"$toString": "$_id"}, "$$solutionId"]
-                                  }
-                              }
-                          }
-                      ],
-                      "as": "contract_field"
+            {
+                "$match": match,
+            },
+            {
+                "$lookup": {
+                    "from": "contract",
+                    "let": { "solutionId": "$solution_id" },
+                    "pipeline": [
+                        {
+                            "$match": {
+                                "$expr": {
+                                    "$eq": [ {"$toString": "$_id"}, "$$solutionId"]
+                                }
+                            }
+                        }
+                    ],
+                    "as": "contract_field"
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "users",
+                    "let": { "customerId": "$customer_id" },
+                    "pipeline": [
+                        {
+                            "$match": {
+                                "$expr": {
+                                    "$eq": [ {"$toString": "$_id"}, "$$customerId"]
+                                }
+                            }
+                        }
+                    ],
+                    "as": "customer_field"
                   }
-              },
-              {
-                  "$unwind": "$contract_field"
-              },
-              {
-                  "$set": {
-                      "sales_representative_nm": "$contract_field.sales_manager"
+            },
+            {
+                "$unwind": "$contract_field"
+            },
+            {
+                "$unwind": "$customer_field"
+            },
+            {
+                "$lookup": {
+                    "from": "company",
+                    "let": { "companyId": "$customer_field.company_id" },
+                    "pipeline": [
+                        {
+                            "$match": {
+                                "$expr": {
+                                    "$eq": [ {"$toString": "$_id"}, "$$companyId"]
+                                }
+                            }
+                        }
+                    ],
+                    "as": "company_field"
                   }
-              },
-              {
-                  "$project": projection
-              }
-            #   {
-            #       "$skip": skip
-            #   },
-            #   {
-            #       "$limit": 5
-            #   }
+            },
+            {
+                "$unwind": "$company_field"
+            },
+            # projection = {"_id": 1, "wr_title": 1, "sales_representative_nm": 1, "customer_nm": 1, "company_nm": 1, "wr_date": 1, "status": 1}
+            {
+                "$set": {
+                    "sales_representative_nm": "$contract_field.sales_manager",
+                    "customer_nm": "$customer_field.user_nm",
+                    "company_nm": "$company_field.company_nm"
+                }
+            },
+            {
+                "$project": projection
+            }
           ]
     results = db_collection.aggregate(pipeline)
     content=[]
     for item in results:
         item['_id'] = str(item['_id'])
-        if is_null == {'$ne': None}:
+        if match['request_date'] == {'$ne': None}:
             item['request_date'] = str(item['request_date'])
 
         model_instance = response_model(**item)

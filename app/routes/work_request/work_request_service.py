@@ -22,53 +22,38 @@ from typing import List
 
 async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
     req_data = json.loads(await request.body())
-    if is_temp == False:
-        projection = {"_id": 1, "request_title": 1, "sales_representative_nm": 1, "request_date": 1, "status": 1}
-    else:
-        projection = {"_id": 1, "request_title": 1, "sales_representative_nm": 1, "status": 1}
-
     id = str(req_data['tokenData']['userId'])
     role = str(req_data['role'])
     temporary_value = await is_temporary(is_temp)
-    total = {"customer_id": id, "request_date": temporary_value}
+
     if (role == "admin" or role == "system admin"):
         match = {
                     "request_date": temporary_value
                 }
+        projection = {"_id": 1, "request_title": 1, "sales_representative_nm": 1, "customer_nm": 1, "company_nm": 1, "request_date": 1, "status": 1}
     elif role == "user":
         match = {
                     "customer_id": id,
                     "request_date": temporary_value
                 }
+        projection = {"_id": 1, "request_title": 1, "sales_representative_nm": 1, "request_date": 1, "status": 1}
     
     wr_list = await list_module.get_collection_list(
         match,
-        total,
         work_request_collection,
-        temporary_value,
-        # int(request.query_params.get("page")),
         projection,
         ResponseRequestListModel,
         work_request_dto
         )
+    # int(request.query_params.get("page")),
     
     content = {
-        "total": len(content),
+        # "total": len(content),
         "list": wr_list
     }
     response_content=json.loads(json.dumps(content, indent=1, default=str))
     
     return response_content
-    # _id: string; // _id
-    # wrTitle: string; 
-    # companyId: string;
-    # customerNm: string;
-    # customerId: string
-    # content: string;
-    # wrDate: IDateValue
-    # filePath: string;
-    # status: "승인" | "반려" | "요청" | "회수";
-    # statusContent: string;
 
 async def get_request_dtl(request: Request) -> JSONResponse:
     req_data = json.loads(await request.body())
