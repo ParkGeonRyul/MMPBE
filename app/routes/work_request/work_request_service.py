@@ -2,7 +2,7 @@ import json
 import pymongo
 import os
 
-from db.context import work_request_collection, auth_collection, user_collection
+from db.context import work_request_collection, contract_collection
 from fastapi import Request, Response, UploadFile
 from fastapi.responses import JSONResponse
 from db.context import Database
@@ -57,10 +57,48 @@ async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
 
 async def get_request_dtl(request: Request) -> JSONResponse:
     req_data = json.loads(await request.body())
-    projection = {"_id": 1, "wr_title": 1, "company_id": 1, "customer_id": 1, "content":1, "wr_date": 1, "status": 1}
+    print(req_data)
+    id = str(req_data['tokenData']['userId'])
     request_id = request.query_params.get("_id")
-    work_item = work_request_collection.find_one(ObjectId(request_id))
-    response_content=json.loads(json.dumps(work_item, indent=1, default=str))
+    role = str(req_data['role'])
+    if role == "user":
+        get_wr = work_request_collection.find_one({"_id": ObjectId(request_id), "customer_id": id})
+        if not get_wr:
+            raise HTTPException(status_code=404, detail="request not found")
+    elif role == "admin" or role == "system admin":
+        get_contract = work_request_collection.find_one({"_id": ObjectId(request_id)})
+        print(get_contract)
+        get_sales = contract_collection.find_one({"_id": ObjectId(get_contract['solution_id']),"sales_manager": req_data['tokenData']['userData']['name']})
+        print(req_data['tokenData']['userData']['name'])
+
+        if not get_sales:
+            raise HTTPException(status_code=404, detail="request not found")
+        
+    match = {
+        "_id": ObjectId(request_id)
+    }
+    projection = {
+        "_id": 1,
+        "request_title": 1,
+        "company_id": 1,
+        "company_nm": 1,
+        "sales_representative_nm": 1,
+        "customer_id": 1,
+        "customer_nm": 1,
+        "content": 1,
+        "request_date": 1,
+        "file_path": 1,
+        "status": 1,
+        "status_content": 1
+        }
+    wr_dtl = await list_module.get_collection_dtl(
+        match,
+        work_request_collection,
+        projection,
+        ResponseRequestDtlModel,
+        work_request_dto
+        )
+    response_content=json.loads(json.dumps(wr_dtl, indent=1, default=str))
     
     return response_content
 

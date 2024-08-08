@@ -171,6 +171,37 @@ class ResponseRequestListModel(BaseModel):
         }
     )
 
+class ResponseRequestDtlModel(BaseModel):
+    id: str = Field(alias="_id")
+    request_title: str = Field(alias="wrTitle")
+    company_id: str = Field(alias="companyId")
+    customer_id: str = Field(alias="customerId")
+    customer_nm: str = Field(alias="customerNm")
+    sales_representative_nm: str = Field(alias="salesRepresentativeNm")
+    company_id: str = Field(alias="companyId")
+    company_nm: Optional[str] = Field(None, alias="companyNm")
+    request_date: Optional[str] = Field(None, alias="wrDate")
+    file_path: Optional[str] = Field(alias="filePath")
+    status: str
+    status_content: Optional[str] = Field(alias="statusContent")
+    model_config = ConfigDict(
+        extra='allow',
+        from_attributes=True,
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+        alias_generator=to_camel,
+        json_schema_extra={
+            "example": {
+                "_id": "ObjectId",
+                "requestTitle": "요청 제목",
+                "salesRepresentative": "영업담당자",
+                "wrDate": "임시저장 == NULL",
+                "status": "승인, 반려, 요청, 회수"
+            }
+        }
+    )
+
 async def get_list(match: dict, projection: dict, db_collection: any, response_model: any): #skip: int, 
     pipeline = [
             {
@@ -259,13 +290,10 @@ async def get_list(match: dict, projection: dict, db_collection: any, response_m
 
     return content
 
-async def get_dtl(id: str, projection: dict, is_null: str | None, db_collection: any, response_model: any):
+async def get_dtl(match: dict, projection: dict, db_collection: any, response_model: any):
     pipeline = [
               {
-                  "$match": {
-                      "_id": ObjectId(id),
-                      "request_date": is_null
-                  }
+                  "$match": match
               },
               {
                   "$lookup": {
@@ -284,13 +312,55 @@ async def get_dtl(id: str, projection: dict, is_null: str | None, db_collection:
                   }
               },
               {
+                  "$lookup": {
+                      "from": "users",
+                       "let": { "customerId": "$customer_id" },
+                      "pipeline": [
+                          {
+                              "$match": {
+                                  "$expr": {
+                                      "$eq": [ {"$toString": "$_id"}, "$$customerId"]
+                                  }
+                              }
+                          }
+                      ],
+                      "as": "customer_field"
+                  }
+              },
+              {
                   "$unwind": "$contract_field"
               },
               {
-                  "$set": {
-                      "sales_representative_nm": "$contract_field.sales_manager"
-                  }
+                  "$unwind": "$customer_field"
               },
+              {
+                "$lookup": {
+                    "from": "company",
+                    "let": { "companyId": "$customer_field.company_id" },
+                    "pipeline": [
+                        {
+                            "$match": {
+                                "$expr": {
+                                    "$eq": [ {"$toString": "$_id"}, "$$companyId"]
+                                }
+                            }
+                        }
+                    ],
+                    "as": "company_field"
+                  }
+            },
+            {
+                "$unwind": "$company_field"
+            },
+            {
+                  "$set": {
+                      "sales_representative_nm": "$contract_field.sales_manager",
+                      "customer_nm": "$customer_field.user_nm",
+                      "content": "$request_content",
+                      "file_path": "$file",
+                      "company_nm": "$company_field.company_nm"
+                  }
+            },
               {
                   "$project": projection
               },
@@ -298,7 +368,13 @@ async def get_dtl(id: str, projection: dict, is_null: str | None, db_collection:
                   "$limit": 1
               }
           ]
-    results = db_collection.aggregate(pipeline)
-    content = results[0]
-    
-    return content
+    result = db_collection.aggregate(pipeline)
+    content=[]
+    for item in result:
+        item['_id'] = str(item['_id'])
+        item['request_date'] = str(item['request_date'])
+        model_instance = response_model(**item)
+        model_dict = model_instance.model_dump(by_alias=True, exclude_unset=True)
+        content.append(model_dict)
+
+    return content[0]
