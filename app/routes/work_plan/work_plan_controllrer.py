@@ -18,15 +18,12 @@ from dotenv import load_dotenv
 load_dotenv()
 router = APIRouter()
 
-
-
 class Router:
     def __init__(self):
         pass
 
 @router.get(SELECT_PLAN, status_code=status.HTTP_200_OK, response_model_by_alias=False)
 async def get_plan_list(request: Request):
-    print("get_plan_list 컨트롤러 도착 ---------------------")
     return await work_plan_service.get_plan_list(request, False)
 
 @router.get(SELECT_PLAN_DETAIL, status_code=status.HTTP_200_OK, response_model_by_alias=False)
