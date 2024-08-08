@@ -20,14 +20,14 @@ from uuid import uuid4
 from typing import List
 
 
-async def get_request_list(request: Request, value: bool) -> JSONResponse:
+async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
     req_data = json.loads(await request.body())
-    if value == False:
+    if is_temp == False:
         projection = {"_id": 1, "request_title": 1, "sales_representative_nm": 1, "request_date": 1, "status": 1}
     else:
         projection = {"_id": 1, "request_title": 1, "sales_representative_nm": 1, "status": 1}
     id = str(req_data['tokenData']['userId'])
-    temporary_value = await is_temporary(value)
+    temporary_value = await is_temporary(is_temp)
     total = {"customer_id": id, "request_date": temporary_value}
     content = await list_module.get_collection_list(
         id,
