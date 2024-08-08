@@ -15,7 +15,7 @@ from constants import COOKIES_KEY_NAME
 from utils.objectId_convert import objectId_convert
 from models.category_dto import ResponseModel
 from routes._modules import list_module, response_cookie_module
-from routes._modules.list_module import is_temprary
+from routes._modules.list_module import is_temporary
 from fastapi.encoders import jsonable_encoder
 from uuid import uuid4
 from typing import List

@@ -24,7 +24,7 @@ class authFields:
     )
 
 
-class CompanyModel(BaseModel):
+class AuthModel(BaseModel):
     id: Optional[PyObjectId] = authFields.id
     access_token: str = authFields.access_token
     refresh_token: str = authFields.refresh_token
