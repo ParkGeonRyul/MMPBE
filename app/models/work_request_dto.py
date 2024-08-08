@@ -169,13 +169,10 @@ class ResponseRequestListModel(BaseModel):
         }
     )
 
-async def get_list(id: str, projection: dict, is_null: str | None, db_collection: any, response_model: any): #skip: int, 
+async def get_list(match: dict, projection: dict, is_null: str | None, db_collection: any, response_model: any): #skip: int, 
     pipeline = [
               {
-                  "$match": {
-                      "customer_id": id,
-                      "request_date": is_null
-                  }
+                  "$match": match,
               },
               {
                   "$lookup": {
@@ -217,6 +214,7 @@ async def get_list(id: str, projection: dict, is_null: str | None, db_collection
         item['_id'] = str(item['_id'])
         if is_null == {'$ne': None}:
             item['request_date'] = str(item['request_date'])
+
         model_instance = response_model(**item)
         model_dict = model_instance.model_dump(by_alias=True, exclude_unset=True)
         content.append(model_dict)

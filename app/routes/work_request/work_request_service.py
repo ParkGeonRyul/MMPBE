@@ -26,11 +26,23 @@ async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
         projection = {"_id": 1, "request_title": 1, "sales_representative_nm": 1, "request_date": 1, "status": 1}
     else:
         projection = {"_id": 1, "request_title": 1, "sales_representative_nm": 1, "status": 1}
+
     id = str(req_data['tokenData']['userId'])
+    role = str(req_data['role'])
     temporary_value = await is_temporary(is_temp)
     total = {"customer_id": id, "request_date": temporary_value}
-    content = await list_module.get_collection_list(
-        id,
+    if (role == "admin" or role == "system admin"):
+        match = {
+                    "request_date": temporary_value
+                }
+    elif role == "user":
+        match = {
+                    "customer_id": id,
+                    "request_date": temporary_value
+                }
+    
+    wr_list = await list_module.get_collection_list(
+        match,
         total,
         work_request_collection,
         temporary_value,
@@ -39,6 +51,11 @@ async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
         ResponseRequestListModel,
         work_request_dto
         )
+    
+    content = {
+        "total": len(content),
+        "list": wr_list
+    }
     response_content=json.loads(json.dumps(content, indent=1, default=str))
     
     return response_content
