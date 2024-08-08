@@ -28,17 +28,16 @@ async def get_request_list(request: Request, value: bool) -> JSONResponse:
         projection = {"_id": 1, "request_title": 1, "sales_representative_nm": 1, "status": 1}
     id = str(req_data['tokenData']['userId'])
     temporary_value = await is_temporary(value)
-    total = {"customer_id": id, "request_date": temporary_value}
+    # total = {"customer_id": id, "request_date": temporary_value}
     content = await list_module.get_collection_list(
         id,
-        total,
         work_request_collection,
         temporary_value,
-        # int(request.query_params.get("page")),
         projection,
         ResponseRequestListModel,
         work_request_dto
         )
+    # int(request.query_params.get("page")),
     response_content=json.loads(json.dumps(content, indent=1, default=str))
     
     return response_content
