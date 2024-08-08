@@ -147,7 +147,7 @@ class DeleteRequestTempraryModel(BaseModel):
 
 class ResponseRequestListModel(BaseModel):
     id: str = Field(alias="_id")
-    request_title: str = Field(alias="rwTitle")
+    request_title: str = Field(alias="wrTitle")
     sales_representative_nm: str = Field(alias="salesRepresentativeNm")
     request_date: Optional[str] = Field(None, alias="wrDate")
     status: str
