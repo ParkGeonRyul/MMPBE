@@ -216,7 +216,7 @@ async def get_list(id: str, projection: dict, is_null: str | None, db_collection
     for item in results:
         item['_id'] = str(item['_id'])
         if is_null == {'$ne': None}:
-            item['request_date'] = item['request_date'].strftime('%Y-%m-%d')
+            item['request_date'] = str(item['request_date'])
         model_instance = response_model(**item)
         model_dict = model_instance.model_dump(by_alias=True, exclude_unset=True)
         content.append(model_dict)
