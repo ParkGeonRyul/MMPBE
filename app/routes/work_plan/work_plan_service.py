@@ -25,7 +25,9 @@ async def get_plan_list(request: Request, value: bool) -> JSONResponse:
     projection = {"_id": 1, "user_id": 1, "plan_title": 1, "acceptor_Id": 1, "acceptor_nm": 1, "plan_date": 1, "status": 1}   
     id = str(req_data['tokenData']['userId'])
     content = await list_module.get_collection_list(id, work_plan_collection, await is_temporary(value), projection, ResponsePlanListModel, work_plan_dto)
+    print(content)
     response_content=json.loads(json.dumps(content, indent=1, default=str))
+    print(response_content)
     
     return response_content
 
