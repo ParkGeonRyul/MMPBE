@@ -4,7 +4,7 @@ from fastapi.requests import Request
 from routes._path.api_paths import PLAN, SELECT_PLAN, SELECT_PLAN_TEMPORARY, SELECT_PLAN_DETAIL, CREATE_PLAN, CREATE_PLAN_TEMPORARY, UPDATE_PLAN, UPDATE_PLAN_STATUS_ACCEPT, UPDATE_PLAN_TEMPORARY, DELETE_PLAN, DELETE_PLAN_TEMPORARY
 
 import os
-
+import asyncio
 from datetime import datetime, timezone
 from utils import formating
 from routes.work_plan import work_plan_service
@@ -30,13 +30,9 @@ async def get_plan_list(request: Request):
 async def get_plan_dtl(request: Request):
     return await work_plan_service.get_plan_dtl(request)
 
-@router.put(UPDATE_PLAN_STATUS_ACCEPT, status_code=status.HTTP_200_OK, response_model_by_alias=False)       
-async def update_plan_status_accept(request: Request, item: UpdateWorkPlanModel):
-    try:
-        return await work_plan_service.update_plan_status_accept(request, item)
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+@router.post(UPDATE_PLAN_STATUS_ACCEPT, status_code=status.HTTP_200_OK, response_model_by_alias=False)       
+async def update_plan_status_accept(request: Request, item: UpdatePlanStatusAcceptModel):
+    return await work_plan_service.update_plan_status_accept(request, item)
 
 @router.get(SELECT_PLAN_TEMPORARY, status_code=status.HTTP_200_OK, response_model_by_alias=False)
 async def get_temporary_list(request: Request):
@@ -66,8 +62,6 @@ async def update_work_plan(request: Request, item: UpdateWorkPlanModel):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
 
 @router.put(UPDATE_PLAN_TEMPORARY, status_code=status.HTTP_200_OK, response_model_by_alias=False)       
 async def update_temporary(request: Request, item: UpdateWorkPlanModel):

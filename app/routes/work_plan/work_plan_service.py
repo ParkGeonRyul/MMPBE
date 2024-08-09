@@ -40,22 +40,21 @@ async def get_plan_dtl(request: Request) -> JSONResponse:
     work_item = work_plan_collection.find_one(ObjectId(_id))
     response_content=json.loads(json.dumps(work_item, indent=1, default=str))
     
-    print(work_item)
-    
     return await response_cookie_module.set_response_cookie(token_data, response_content)
 
 async def update_plan_status_accept(request: Request, item: UpdatePlanStatusAcceptModel) -> JSONResponse:
-    print(request)
-    print(request.query_params.get("_id"))
-    print(request.query_params.get("status"))
-    print(request.query_params.get("statusContent"))
+    print("item ::::: ",item)
+    print("dict(item) ::::: ",dict(item))
     access_token = request.cookies.get(COOKIES_KEY_NAME)
     _id = request.query_params.get("_id")
     token_data = await auth_service.validate_token(access_token)
-    item['created_at'] = datetime.now()
-    work_plan_collection.update_one({"_id": ObjectId(_id)}, {"$set": item.model_dump()})
-    response_content = {"message": "Request Created"}
-
+    if(_id != ""):
+        response = work_plan_collection.update_one({"_id": ObjectId(_id)}, {"$set": item.model_dump()})
+        print("response ::::: ",response)
+        response_content = {"result": "success"}
+    else:
+        response_content = {"result": "fail"}
+    
     return await response_cookie_module.set_response_cookie(token_data, response_content)
 
 async def create_plan(request: Request, item: CreateWorkPlanModel) -> JSONResponse:
