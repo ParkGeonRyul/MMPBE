@@ -1,23 +1,15 @@
-import json
-import pymongo
-import os
-
-from db.context import work_request_collection, contract_collection
 from fastapi import Request, Response, UploadFile
 from fastapi.responses import JSONResponse
-from db.context import Database
-from routes.auth import auth_service
+
+import json
+
+from db.context import work_request_collection, contract_collection
 from datetime import datetime
 from bson import ObjectId
-from utils import objectCleaner
 from models.work_request_dto import *
-from constants import COOKIES_KEY_NAME
-from utils.objectId_convert import objectId_convert
-from routes._modules import list_module, response_cookie_module
+from routes._modules import list_module
 from routes._modules.list_module import is_temporary
 from models import work_request_dto
-from uuid import uuid4
-from typing import List
 
 
 async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
@@ -28,15 +20,15 @@ async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
 
     if (role == "admin" or role == "system admin"):
         match = {
-                    "request_date": temporary_value
+                    "wr_date": temporary_value
                 }
     elif role == "user":
         match = {
                     "customer_id": id,
-                    "request_date": temporary_value
+                    "wr_date": temporary_value
                 }
           
-    projection = {"_id": 1, "request_title": 1, "sales_representative_nm": 1, "customer_nm": 1, "company_nm": 1, "request_date": 1, "status": 1}
+    projection = {"_id": 1, "wr_title": 1, "sales_representative_nm": 1, "customer_nm": 1, "company_nm": 1, "wr_date": 1, "status": 1}
     
     wr_list = await list_module.get_collection_list(
         match,
@@ -45,10 +37,9 @@ async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
         ResponseRequestListModel,
         work_request_dto
         )
-    # int(request.query_params.get("page")),
     
     content = {
-        # "total": len(content),
+        "total": len(wr_list),
         "list": wr_list
     }
     response_content=json.loads(json.dumps(content, indent=1, default=str))
@@ -61,32 +52,38 @@ async def get_request_dtl(request: Request) -> JSONResponse:
     id = str(req_data['tokenData']['userId'])
     request_id = request.query_params.get("_id")
     role = str(req_data['role'])
+    
     if role == "user":
-        get_wr = work_request_collection.find_one({"_id": ObjectId(request_id), "customer_id": id})
+        get_wr = work_request_collection.find_one({"_id": ObjectId(request_id), "customer_id": id})        
         if not get_wr:
+            
             raise HTTPException(status_code=404, detail="request not found")
+    
     elif role == "admin" or role == "system admin":
-        get_contract = work_request_collection.find_one({"_id": ObjectId(request_id)})
-        print(get_contract)
-        get_sales = contract_collection.find_one({"_id": ObjectId(get_contract['solution_id']),"sales_manager": req_data['tokenData']['userData']['name']})
-        print(req_data['tokenData']['userData']['name'])
+        contract = work_request_collection.find_one({"_id": ObjectId(request_id)})
+        if not contract:
+            
+            raise HTTPException(status_code=404, detail="request not found")
+        
+        get_sales = contract_collection.find_one({"_id": ObjectId(contract['solution_id']),"sales_manager": req_data['tokenData']['userData']['name']})
 
         if not get_sales:
-            raise HTTPException(status_code=404, detail="request not found")
+            
+            raise HTTPException(status_code=404, detail="contract not found")
         
     match = {
         "_id": ObjectId(request_id)
     }
     projection = {
         "_id": 1,
-        "request_title": 1,
+        "wr_title": 1,
         "company_id": 1,
         "company_nm": 1,
         "sales_representative_nm": 1,
         "customer_id": 1,
         "customer_nm": 1,
         "content": 1,
-        "request_date": 1,
+        "wr_date": 1,
         "file_path": 1,
         "status": 1,
         "status_content": 1
