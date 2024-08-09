@@ -15,8 +15,6 @@ USER_INFO = AUTH + SEPARATE + "userinfo"
 
 # Category paths
 CATEGORY = V1 + SEPARATE + "category"
-GET_INFO_BY_USER = CATEGORY + SEPARATE + "getinfobyUser"
-GET_INFO_BY_COMPANY = CATEGORY + SEPARATE + "getinfobycompany"
 
 
 # User paths
