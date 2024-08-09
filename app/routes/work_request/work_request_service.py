@@ -106,10 +106,23 @@ async def create_request(request: Request, item: CreateWorkRequestModel) -> JSON
     return response_content
 
 async def update_request(request: Request, item: UpdateWorkRequestModel) -> JSONResponse:
-    request_id = request.query_params.get("requestId")
-    item['created_at'] = datetime.now()
+    request_id = request.query_params.get("_id")
     work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set": item.model_dump()})
     response_content = {"message": "Request Created"}
+
+    return response_content
+
+async def delete_request(request: Request) -> JSONResponse:
+    request_id = request.query_params.get("_id")
+    request_id = request.query_params.get("requestId")
+    get_request = work_request_collection.find_one({"_id": ObjectId(request_id)})
+    if get_request['del_yn'] == "N":
+        work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set":{"del_yn": "Y"}})
+    else:
+        work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set":{"del_yn": "N"}})
+
+    response_content = {"message": "Request delete processing completed"}
+
 
     return response_content
 

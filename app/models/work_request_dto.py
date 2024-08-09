@@ -56,7 +56,7 @@ class WorkRequestField:
     )
     status = Field(
         description="요청 상태",
-        examples="요청, 회수, 승인, 반려",
+        example="요청, 회수, 승인, 반려",
         default="요청"
     )
     status_content = Field(
@@ -106,6 +106,7 @@ class CreateWorkRequestModel(BaseModel): # fe -> be
                 "content": "작업 내용",
                 "file": "파일 명",
                 "status": "승인, 반려, 요청, 회수",
+                "statusContent": "요청 답변 내용(Default Null)",
                 "delYn": "삭제 여부"
             }
         }
@@ -136,12 +137,13 @@ class  UpdateWorkRequestModel(BaseModel):
                 "userId": "6690cf7fa4897bf6b90541c1",
                 "requestPlanId": "작업계획서(ObjectID)",
                 "contactNm": "담당자 이름(Maven)",
-                "requestTitle": "요청 제목",
+                "wrTitle": "요청 제목",
                 "customerNm": "고객 이름",
-                "requestDate": "임시저장 == NULL",
+                "wrDate": "임시저장 == NULL",
                 "content": "작업 내용",
                 "file": "파일 명",
                 "status": "승인, 반려, 요청, 회수",
+                "statusContent": "요청 답변 내용(Default Null)",
                 "delYn": "삭제 여부"
             }
         }

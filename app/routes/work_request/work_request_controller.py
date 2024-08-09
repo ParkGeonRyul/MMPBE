@@ -13,17 +13,17 @@ class Router:
     def __init__(self):
         pass
 
-@router.get(READ_REQUEST, status_code=status.HTTP_200_OK, response_model_by_alias=False)
+@router.get(READ_REQUEST, status_code=status.HTTP_200_OK, response_model_by_alias=True)
 async def get_request_list(request: Request) -> JSONResponse:
        
     return await work_request_service.get_request_list(request, False)
 
-@router.get(READ_REQUEST_TEMPORARY, status_code=status.HTTP_200_OK, response_model_by_alias=False)
+@router.get(READ_REQUEST_TEMPORARY, status_code=status.HTTP_200_OK, response_model_by_alias=True)
 async def get_temporary_list(request: Request) -> JSONResponse:
         
     return await work_request_service.get_request_list(request, True)
 
-@router.get(READ_REQUEST_DETAIL, status_code=status.HTTP_200_OK, response_model_by_alias=False)
+@router.get(READ_REQUEST_DETAIL, status_code=status.HTTP_200_OK, response_model_by_alias=True)
 async def get_request_dtl(request: Request) -> JSONResponse:
 
     return await work_request_service.get_request_dtl(request)
@@ -37,6 +37,12 @@ async def create_request(request: Request, item: CreateWorkRequestModel) -> JSON
 async def update_work_request(request: Request, item: UpdateWorkRequestModel):
 
     return await work_request_service.update_request(request, item)
+
+@router.put(DELETE_REQUEST, status_code=status.HTTP_200_OK, response_model_by_alias=False)
+async def delete_work_request(request: Request):
+
+    return await work_request_service.delete_request(request)
+
 
 # @router.post(CREATE_REQUEST_TEMPORARY, status_code=status.HTTP_201_CREATED, response_model_by_alias=False)       
 # async def create_temporary(request: Request, item: CreateWorkRequestModel):
