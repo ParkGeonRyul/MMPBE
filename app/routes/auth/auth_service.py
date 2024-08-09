@@ -189,7 +189,6 @@ async def validate_token(access_token: str):
 async def validate(request: Request) -> JSONResponse:
     access_token = request.cookies.get(COOKIES_KEY_NAME)
     valid_token = await validate_token(access_token)
-    print(valid_token)
     if valid_token['status'] == "valid":
         objectId_convert(valid_token, "userId")
 

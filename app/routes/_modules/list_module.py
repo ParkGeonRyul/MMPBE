@@ -1,4 +1,3 @@
-import pymongo
 from db.context import *
 from models import *
 
@@ -11,17 +10,12 @@ async def is_temporary(value: bool):
       else: 
         return {'$ne': None}
 
-async def get_collection_list(id: str, total: dict, db_collection: str, is_temporary: str | None, projection: dict, response_model: any, dto: any): # page: int | None
-        # skip = (page - 1) * 5
-        db_total = db_collection.count_documents(total)
-        get_list = await dto.get_list(id, projection, is_temporary, db_collection, response_model)
-        content = {
-            "total": db_total,
-            "list": get_list
-        }
-        return content
+async def get_collection_list(match: dict, db_collection: str, projection: dict, response_model: any, dto: any) -> list: # page: int | None
+  get_list: list = await dto.get_list(match, projection, db_collection, response_model)
 
-async def get_collection_dtl(id: str, db_collection: str, is_temporary: str | None, projection: dict, response_model: any, dto: any):
-    get_dtl = await dto.get_dtl(id, projection, is_temporary, db_collection, response_model)
+  return get_list
 
-    return get_dtl
+async def get_collection_dtl(match: dict, db_collection: str, projection: dict, response_model: any, dto: any):
+  get_dtl = await dto.get_dtl(match, projection, db_collection, response_model)
+
+  return get_dtl

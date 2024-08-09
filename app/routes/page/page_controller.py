@@ -18,4 +18,4 @@ def main(req: Request):
     now = datetime.now()
     collection = Database.db.list_collection_names()
     print(f"Databases: {collection}")
-    return "collection"
+    return "Hello,"
