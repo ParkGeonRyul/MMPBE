@@ -19,28 +19,103 @@ from routes._modules.list_module import is_temporary
 from uuid import uuid4
 from typing import List
     
-async def get_plan_list(request: Request, value: bool) -> JSONResponse:
+async def get_plan_list(request: Request, is_temp: bool) -> JSONResponse:
     req_data = json.loads(await request.body())
-    is_temp = await is_temporary(value)
     id = str(req_data['tokenData']['userId'])
-    if req_data['role'] == 'system admin':
-        match = {"acceptor_id": id, "plan_date": is_temp}
-    elif req_data['role'] == 'admin':# or req_data['role'] == 'system admin':
-        match = {"user_id": id, "plan_date": is_temp}
+    role = str(req_data['role'])
+    temporary_value = await is_temporary(is_temp)
+
+    if role == 'user':
+        match = {
+                    "acceptor_id": id,
+                    "plan_date": temporary_value
+                }
+
+    elif role == 'admin' or role == 'system admin':    
+        match = {
+                    "user_id": id,
+                    "plan_date": temporary_value
+                }
+
     projection = {"_id": 1, "user_id": 1, "plan_title": 1, "acceptor_id": 1, "acceptor_nm": 1, "company_nm": 1,"requestor_nm":1, "plan_date": 1, "status": 1}   
-    content = await list_module.get_collection_list(match, work_plan_collection, projection, ResponsePlanListModel, work_plan_dto)
+    plan_list = await list_module.get_collection_list(match, work_plan_collection, projection, ResponsePlanListModel, work_plan_dto)
+        
+    content = {
+        "total": len(plan_list),
+        "list": plan_list
+    }
+
     response_content=json.loads(json.dumps(content, indent=1, default=str))
     
     return response_content
 
 async def get_plan_dtl(request: Request) -> JSONResponse:
-    access_token_cookie = request.cookies.get(COOKIES_KEY_NAME)
-    token_data = await auth_service.validate_token(access_token_cookie)
-    _id = request.query_params.get("_id")
-    work_item = work_plan_collection.find_one(ObjectId(_id))
-    response_content=json.loads(json.dumps(work_item, indent=1, default=str))
+    req_data = json.loads(await request.body())
+    id = str(req_data['tokenData']['userId'])
+    role = str(req_data['role'])
+    plan_id = request.query_params.get("_id")
+
+    if role == "user":
+        projection = {
+                        "_id": 1,
+                        "user_id": 1,
+                        "requestor_nm": 1,
+                        "request_id": 1,
+                        "request_title": 1,
+                        "acceptor_id": 1,
+                        "acceptor_nm": 1,
+                        "plan_title": 1,
+                        "plan_content": 1,
+                        "plan_date": 1,
+                        "file_path": 1,
+                        "status": 1,
+                        "status_content": 1,
+                        "updated_at": 1        
+                    }
+        get_plan = work_plan_collection.find_one({"_id": ObjectId(plan_id), "acceptor_id": id})        
+        if not get_plan:
+            
+            raise HTTPException(status_code=404, detail="plan not found")
     
-    return await response_cookie_module.set_response_cookie(token_data, response_content)
+    elif role == "admin" or role == "system admin":
+        projection = {
+                        "_id": 1,
+                        "user_id": 1,
+                        "requestor_nm": 1,
+                        "request_id": 1,
+                        "request_title": 1,
+                        "company_id": 1,
+                        "company_nm": 1,
+                        "acceptor_id": 1,
+                        "acceptor_nm": 1,
+                        "plan_title": 1,
+                        "plan_content": 1,
+                        "plan_date": 1,
+                        "file_path": 1,
+                        "status": 1,
+                        "status_content": 1,
+                        "updated_at": 1        
+                    }
+        get_plan = work_plan_collection.find_one({"_id": ObjectId(plan_id), "user_id": id})
+        if not get_plan:
+            
+            raise HTTPException(status_code=404, detail="plan not found")
+
+    match = {
+        "_id": ObjectId(plan_id)
+    }
+    
+    plan_dtl = await list_module.get_collection_dtl(
+        match,
+        work_plan_collection,
+        projection,
+        ResponsePlanDtlModel,
+        work_plan_dto
+        )
+    
+    response_content=json.loads(json.dumps(plan_dtl, indent=1, default=str))
+    
+    return response_content
 
 async def update_plan_status(request: Request, item: UpdatePlanStatusAcceptModel) -> JSONResponse:
     access_token = request.cookies.get(COOKIES_KEY_NAME)
@@ -56,16 +131,15 @@ async def update_plan_status(request: Request, item: UpdatePlanStatusAcceptModel
     return await response_cookie_module.set_response_cookie(token_data, response_content)
 
 async def update_plan_status_accept(request: Request, item: UpdatePlanStatusAcceptModel) -> JSONResponse:
-    access_token = request.cookies.get(COOKIES_KEY_NAME)
+    req_body = json.loads(await request.body())
     _id = request.query_params.get("_id")
-    token_data = await auth_service.validate_token(access_token)
     if(_id != ""):
         work_plan_collection.update_one({"_id": ObjectId(_id)}, {"$set": item.model_dump()})
         response_content = {"result": "success"}
     else:
         response_content = {"result": "fail"}
     
-    return await response_cookie_module.set_response_cookie(token_data, response_content)
+    return response_content
 
 async def create_plan(request: Request, item: CreateWorkPlanModel) -> JSONResponse:
     access_token = request.cookies.get(COOKIES_KEY_NAME)

@@ -1,63 +1,100 @@
-import json
-import pymongo
-import os
-
-from db.context import work_request_collection, auth_collection, user_collection
 from fastapi import Request, Response, UploadFile
 from fastapi.responses import JSONResponse
-from db.context import Database
-from routes.auth import auth_service
+
+import json
+
+from db.context import work_request_collection, contract_collection
 from datetime import datetime
 from bson import ObjectId
-from utils import objectCleaner
 from models.work_request_dto import *
-from constants import COOKIES_KEY_NAME
-from utils.objectId_convert import objectId_convert
-from routes._modules import list_module, response_cookie_module
+from routes._modules import list_module
 from routes._modules.list_module import is_temporary
 from models import work_request_dto
-from uuid import uuid4
-from typing import List
 
 
-async def get_request_list(request: Request, value: bool) -> JSONResponse:
+async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
     req_data = json.loads(await request.body())
-    if value == False:
-        projection = {"_id": 1, "request_title": 1, "sales_representative_nm": 1, "request_date": 1, "status": 1}
-    else:
-        projection = {"_id": 1, "request_title": 1, "sales_representative_nm": 1, "status": 1}
     id = str(req_data['tokenData']['userId'])
-    temporary_value = await is_temporary(value)
-    # total = {"customer_id": id, "request_date": temporary_value}
-    content = await list_module.get_collection_list(
-        id,
+    role = str(req_data['role'])
+    temporary_value = await is_temporary(is_temp)
+
+    if (role == "admin" or role == "system admin"):
+        match = {
+                    "wr_date": temporary_value
+                }
+    elif role == "user":
+        match = {
+                    "customer_id": id,
+                    "wr_date": temporary_value
+                }
+          
+    projection = {"_id": 1, "wr_title": 1, "sales_representative_nm": 1, "customer_nm": 1, "company_nm": 1, "wr_date": 1, "status": 1}
+    
+    wr_list = await list_module.get_collection_list(
+        match,
         work_request_collection,
-        temporary_value,
         projection,
         ResponseRequestListModel,
         work_request_dto
         )
-    # int(request.query_params.get("page")),
+    
+    content = {
+        "total": len(wr_list),
+        "list": wr_list
+    }
     response_content=json.loads(json.dumps(content, indent=1, default=str))
     
     return response_content
-    # _id: string; // _id
-    # wrTitle: string; 
-    # companyId: string;
-    # customerNm: string;
-    # customerId: string
-    # content: string;
-    # wrDate: IDateValue
-    # filePath: string;
-    # status: "승인" | "반려" | "요청" | "회수";
-    # statusContent: string;
 
 async def get_request_dtl(request: Request) -> JSONResponse:
     req_data = json.loads(await request.body())
-    projection = {"_id": 1, "wr_title": 1, "company_id": 1, "customer_id": 1, "content":1, "wr_date": 1, "status": 1}
+    id = str(req_data['tokenData']['userId'])
     request_id = request.query_params.get("_id")
-    work_item = work_request_collection.find_one(ObjectId(request_id))
-    response_content=json.loads(json.dumps(work_item, indent=1, default=str))
+    role = str(req_data['role'])
+    
+    if role == "user":
+        get_wr = work_request_collection.find_one({"_id": ObjectId(request_id), "customer_id": id})        
+        if not get_wr:
+            
+            raise HTTPException(status_code=404, detail="request not found")
+    
+    elif role == "admin" or role == "system admin":
+        contract = work_request_collection.find_one({"_id": ObjectId(request_id)})
+        if not contract:
+            
+            raise HTTPException(status_code=404, detail="request not found")
+        
+        get_sales = contract_collection.find_one({"_id": ObjectId(contract['solution_id']),"sales_manager": req_data['tokenData']['userData']['name']})
+
+        if not get_sales:
+            
+            raise HTTPException(status_code=404, detail="contract not found")
+        
+    match = {
+        "_id": ObjectId(request_id)
+    }
+    projection = {
+        "_id": 1,
+        "wr_title": 1,
+        "company_id": 1,
+        "company_nm": 1,
+        "sales_representative_nm": 1,
+        "customer_id": 1,
+        "customer_nm": 1,
+        "content": 1,
+        "wr_date": 1,
+        "file_path": 1,
+        "status": 1,
+        "status_content": 1
+        }
+    wr_dtl = await list_module.get_collection_dtl(
+        match,
+        work_request_collection,
+        projection,
+        ResponseRequestDtlModel,
+        work_request_dto
+        )
+    response_content=json.loads(json.dumps(wr_dtl, indent=1, default=str))
     
     return response_content
 
@@ -68,10 +105,23 @@ async def create_request(request: Request, item: CreateWorkRequestModel) -> JSON
     return response_content
 
 async def update_request(request: Request, item: UpdateWorkRequestModel) -> JSONResponse:
-    request_id = request.query_params.get("requestId")
-    item['created_at'] = datetime.now()
+    request_id = request.query_params.get("_id")
     work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set": item.model_dump()})
     response_content = {"message": "Request Created"}
+
+    return response_content
+
+async def delete_request(request: Request) -> JSONResponse:
+    request_id = request.query_params.get("_id")
+    request_id = request.query_params.get("requestId")
+    get_request = work_request_collection.find_one({"_id": ObjectId(request_id)})
+    if get_request['del_yn'] == "N":
+        work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set":{"del_yn": "Y"}})
+    else:
+        work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set":{"del_yn": "N"}})
+
+    response_content = {"message": "Request delete processing completed"}
+
 
     return response_content
 

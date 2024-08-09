@@ -229,6 +229,41 @@ class ResponsePlanListModel(BaseModel):
             }
         }
     )
+    
+class ResponsePlanDtlModel(BaseModel):
+    id: str = Field(alias="_id")
+    user_id: str = Field(alias="requestorId")
+    requestor_nm: str = Field(alias="requestorNm")
+    request_id: str = Field(alias="requestId")
+    request_title: str = Field(alias="requestTitle")
+    company_id: Optional[str] = Field(None, alias="companyId")
+    company_nm: Optional[str] = Field(None, alias="companyNm")
+    acceptor_id: str = Field(alias="acceptorId")
+    acceptor_nm: Optional[str] = Field(None, alias="acceptorNm")
+    plan_title: str = Field(alias='planTitle')
+    plan_content: str = Field(alias='planContent')
+    plan_date: datetime = Field(alias="planDate")
+    file_path: str = Field(alias="filePath")
+    status: str
+    status_content: Optional[str] = Field(None, alias="statusContent")
+    updated_at: Optional[datetime] = Field(None, alias="updatedAt")
+    model_config = ConfigDict(
+        extra='allow',
+        from_attributes=True,
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+        alias_generator=to_camel,
+        json_schema_extra={
+            "example": {
+                "_id": "ObjectId",
+                "requestTitle": "요청 제목",
+                "salesRepresentative": "영업담당자",
+                "wrDate": "임시저장 == NULL",
+                "status": "승인, 반려, 요청, 회수"
+            }
+        }
+    )
 
 async def get_list(match: dict, projection: dict, db_collection: any, response_model: any):
     pipeline = [
@@ -328,3 +363,115 @@ async def get_list(match: dict, projection: dict, db_collection: any, response_m
         content.append(model_dict)
 
     return content
+
+async def get_dtl(match: dict, projection: dict, db_collection: any, response_model: any):
+    pipeline = [
+              {
+                  "$match": match
+              },
+              {
+                  "$lookup": {
+                      "from": "users",
+                       "let": { "acceptorId": "$acceptor_id" },
+                      "pipeline": [
+                          {
+                              "$match": {
+                                  "$expr": {
+                                      "$eq": [ {"$toString": "$_id"}, "$$acceptorId"]
+                                  }
+                              }
+                          }
+                      ],
+                      "as": "acceptor_field"
+                  }
+              },
+              {
+                  "$lookup": {
+                      "from": "users",
+                       "let": { "userId": "$user_id" },
+                      "pipeline": [
+                          {
+                              "$match": {
+                                  "$expr": {
+                                      "$eq": [ {"$toString": "$_id"}, "$$userId"]
+                                  }
+                              }
+                          }
+                      ],
+                      "as": "user_field"
+                  }
+              },
+              {
+                  "$lookup": {
+                      "from": "workRequest",
+                       "let": { "requestId": "$request_id" },
+                      "pipeline": [
+                          {
+                              "$match": {
+                                  "$expr": {
+                                      "$eq": [ {"$toString": "$_id"}, "$$requestId"]
+                                  }
+                              }
+                          }
+                      ],
+                      "as": "request_field"
+                  }
+              },
+              {
+                  "$unwind": "$acceptor_field"
+              },
+              {
+                  "$unwind": "$user_field"
+              },
+              {
+                  "$unwind": "$request_field"
+              },
+              {
+                "$lookup": {
+                    "from": "company",
+                    "let": { "companyId": "$acceptor_field.company_id" },
+                    "pipeline": [
+                        {
+                            "$match": {
+                                "$expr": {
+                                    "$eq": [ {"$toString": "$_id"}, "$$companyId"]
+                                }
+                            }
+                        }
+                    ],
+                    "as": "company_field"
+                  }
+            },
+            {
+                "$unwind": "$company_field"
+            },
+            {
+                  "$set": {
+                      "requestor_nm": "$user_field.user_nm",
+                      "request_title": "$request_field.wr_title",
+                      "company_id": "$acceptor_field.company_id",
+                      "company_nm": "$company_field.company_nm",
+                      "customer_nm": "$customer_field.user_nm",
+                      "acceptor_nm": "$acceptor_field.user_nm",
+                      "company_nm": "$company_field.company_nm",
+                      "file_path": "file"
+                  }
+            },
+              {
+                  "$project": projection
+              },
+              {
+                  "$limit": 1
+              }
+          ]
+    result = db_collection.aggregate(pipeline)
+    content=[]
+    for item in result:
+        item['_id'] = str(item['_id'])
+        item['plan_date'] = str(item['plan_date'])
+        model_instance = response_model(**item)
+        model_dict = model_instance.model_dump(by_alias=True, exclude_unset=True)
+        content.append(model_dict)
+        # content.append(item)
+
+    return content[0]

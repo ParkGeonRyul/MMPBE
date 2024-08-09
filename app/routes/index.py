@@ -40,7 +40,7 @@ async def insert_token(access_token: str, refresh_token: str, user_id: ObjectId,
     return user_token
 
 async def access_token_manager(is_user:bool, check_token_existence:bool, access_token: str, refresh_token: str, user_id: ObjectId, email: str):                       
-    if is_user:
+    if is_user == True:
         document = {
             "access_token": access_token,
             "refresh_token": refresh_token,
@@ -65,7 +65,6 @@ async def proxy(request: Request, path: str):
     backend_url = f"{API_URL}{path}"
     access_token_cookie = request.cookies.get(COOKIES_KEY_NAME)
    
-
     if request.query_params:
         backend_url += f"?{request.url.query}"
 
@@ -77,7 +76,9 @@ async def proxy(request: Request, path: str):
         if not access_token_cookie: # 토큰 없는 경우
 
             RedirectResponse(url=f"{MAIN_URL}{LOGIN_WITH_MS}")
+
         user_token = auth_collection.find_one({"access_token": access_token_cookie})
+
         if not user_token: # DB에 토큰이 없는 경우
             
             if path == "auth/login" or path == "auth/oauth/callback":
@@ -90,7 +91,7 @@ async def proxy(request: Request, path: str):
             return response
 
         # 토큰 있고 브라우저도 토큰이 있다.
-        # validate
+        # validatel
         user_response = await client.get(
             MS_USER_INFO_URL,
             headers={"Authorization": f"Bearer {access_token_cookie}"}
