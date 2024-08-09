@@ -9,7 +9,7 @@ from models.work_request_dto import *
 from models.category_dto import ResponseCategoryModel
 
 
-async def get_info_by_user(request: Request) -> List[dict]:
+async def get_category(request: Request) -> List[dict]:
     req_data = json.loads(await request.body())
     projection = { "_id": 1, "contract_title": 1, "company_id": 1, "inflow_path": 1, "sales_manager": 1, "contract_date": 1}
     if req_data['role'] == 'user':
