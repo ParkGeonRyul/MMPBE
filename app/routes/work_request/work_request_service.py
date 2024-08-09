@@ -48,7 +48,6 @@ async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
 
 async def get_request_dtl(request: Request) -> JSONResponse:
     req_data = json.loads(await request.body())
-    print(req_data)
     id = str(req_data['tokenData']['userId'])
     request_id = request.query_params.get("_id")
     role = str(req_data['role'])
