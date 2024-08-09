@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Response, Cookie, UploadFile
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.requests import Request
-from routes._path.api_paths import CATEGORY, GET_INFO_BY_COMPANY, GET_INFO_BY_USER
+from routes._path.api_paths import CATEGORY
 
 import os
 
@@ -25,7 +25,7 @@ class Router:
     def __init__(self):
         pass
 
-@router.get(GET_INFO_BY_USER, status_code=status.HTTP_200_OK, response_model_by_alias=False)
+@router.get(CATEGORY, status_code=status.HTTP_200_OK, response_model_by_alias=False)
 async def get_info_by_user(request: Request):
        
        return await category_service.get_info_by_user(request)
