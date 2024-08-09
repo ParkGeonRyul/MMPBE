@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Response, Cookie, UploadFile
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.requests import Request
-from routes._path.api_paths import PLAN, SELECT_PLAN, SELECT_PLAN_TEMPORARY, SELECT_PLAN_DETAIL, CREATE_PLAN, CREATE_PLAN_TEMPORARY, UPDATE_PLAN, UPDATE_PLAN_STATUS_ACCEPT, UPDATE_PLAN_TEMPORARY, DELETE_PLAN, DELETE_PLAN_TEMPORARY
+from routes._path.api_paths import PLAN, SELECT_PLAN, SELECT_PLAN_TEMPORARY, SELECT_PLAN_DETAIL, CREATE_PLAN, CREATE_PLAN_TEMPORARY, UPDATE_PLAN, UPDATE_PLAN_STATUS_ACCEPT, UPDATE_PLAN_TEMPORARY, DELETE_PLAN, DELETE_PLAN_TEMPORARY, UPDATE_PLAN_STATUS
 
 import os
 import asyncio
@@ -29,6 +29,11 @@ async def get_plan_list(request: Request):
 @router.get(SELECT_PLAN_DETAIL, status_code=status.HTTP_200_OK, response_model_by_alias=False)
 async def get_plan_dtl(request: Request):
     return await work_plan_service.get_plan_dtl(request)
+
+@router.post(UPDATE_PLAN_STATUS, status_code=status.HTTP_200_OK, response_model_by_alias=False)       
+async def update_plan_status(request: Request, item: UpdatePlanStatusModel):
+    print("컨트롤러 도착 -----------------------")
+    return await work_plan_service.update_plan_status(request, item)
 
 @router.post(UPDATE_PLAN_STATUS_ACCEPT, status_code=status.HTTP_200_OK, response_model_by_alias=False)       
 async def update_plan_status_accept(request: Request, item: UpdatePlanStatusAcceptModel):

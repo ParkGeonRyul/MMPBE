@@ -171,6 +171,20 @@ class  UpdatePlanStatusAcceptModel(BaseModel):
         }
     )
 
+class  UpdatePlanStatusModel(BaseModel):
+    status: Optional[str] = None
+    updated_at: Optional[datetime] = WorkPlanField.updated_at
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+        json_schema_extra={
+            "example": {
+                "status": "승인",
+            }
+        }
+    )
+
 class DeletePlanTempraryModel(BaseModel):
     ids: List[str]
 

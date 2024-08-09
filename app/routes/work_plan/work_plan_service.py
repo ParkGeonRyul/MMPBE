@@ -42,15 +42,25 @@ async def get_plan_dtl(request: Request) -> JSONResponse:
     
     return await response_cookie_module.set_response_cookie(token_data, response_content)
 
+async def update_plan_status(request: Request, item: UpdatePlanStatusAcceptModel) -> JSONResponse:
+    access_token = request.cookies.get(COOKIES_KEY_NAME)
+    print("item ::::::::::::: ", dict(item))
+    _id = request.query_params.get("_id")
+    token_data = await auth_service.validate_token(access_token)
+    if(_id != ""):
+        work_plan_collection.update_one({"_id": ObjectId(_id)}, {"$set": item.model_dump()})
+        response_content = {"result": "success"}
+    else:
+        response_content = {"result": "fail"}
+    
+    return await response_cookie_module.set_response_cookie(token_data, response_content)
+
 async def update_plan_status_accept(request: Request, item: UpdatePlanStatusAcceptModel) -> JSONResponse:
-    print("item ::::: ",item)
-    print("dict(item) ::::: ",dict(item))
     access_token = request.cookies.get(COOKIES_KEY_NAME)
     _id = request.query_params.get("_id")
     token_data = await auth_service.validate_token(access_token)
     if(_id != ""):
-        response = work_plan_collection.update_one({"_id": ObjectId(_id)}, {"$set": item.model_dump()})
-        print("response ::::: ",response)
+        work_plan_collection.update_one({"_id": ObjectId(_id)}, {"$set": item.model_dump()})
         response_content = {"result": "success"}
     else:
         response_content = {"result": "fail"}
