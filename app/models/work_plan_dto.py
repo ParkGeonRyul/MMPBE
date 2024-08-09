@@ -72,7 +72,7 @@ class WorkPlanField:
     )
     updated_at = Field(
         description="유저 정보 업데이트 된 마지막 날짜(UTC + 0)",
-        default=None,
+        default=datetime.now(),
         alias="updatedAt"
     )
     del_yn = Field(
@@ -156,10 +156,9 @@ class  UpdateWorkPlanModel(BaseModel):
     )
 
 class  UpdatePlanStatusAcceptModel(BaseModel):
-    id: Optional[PyObjectId] = None
     status: Optional[str] = None
     statusContent: Optional[str] = None
-    updated_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = WorkPlanField.updated_at
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
@@ -168,7 +167,6 @@ class  UpdatePlanStatusAcceptModel(BaseModel):
             "example": {
                 "status": "승인",
                 "statusContent": "승인내용",
-                "updated_at": "new Date() 오늘날짜"
             }
         }
     )
