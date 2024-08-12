@@ -66,10 +66,10 @@ class ContractField:
         description="1시간 별 총 작업량",
         alias="mH"
     )
-    sales_manager = Field(
+    sales_representative_nm = Field(
         description="판매 담당자",
         example="Livy Han, Cho",
-        alias="salesManager"
+        alias="salesRepresentativeNm"
     )
     tech_manager = Field(
         description="기술 담당자",
@@ -118,10 +118,8 @@ class CreateContractModel(BaseModel):
     m_d : str = ContractField.m_d
     m_m : str = ContractField.m_h
     m_h : str = ContractField.m_h
-    sales_manager : str = ContractField.sales_manager
+    sales_representative_nm: str = ContractField.sales_representative_nm
     tech_manager : str = ContractField.tech_manager
-    tax_mail : Optional[str] = ContractField.tax_mail
-    payment_standard : str = ContractField.payment_standard
     contract_date : datetime = ContractField.contract_date
     contract_start_date : datetime = ContractField.contract_start_date
     contract_end_date : datetime = ContractField.contact_end_date
@@ -167,7 +165,7 @@ class UpdateContractModel(BaseModel):
     m_d : Optional[str] = None
     m_m : Optional[str] = None
     m_h : Optional[str] = None
-    sales_manager : Optional[str] = None
+    sales_representative_nm : Optional[str] = None
     tech_manager : Optional[str] = None
     tax_mail : Optional[str] = None
     payment_standard : Optional[str] = None
