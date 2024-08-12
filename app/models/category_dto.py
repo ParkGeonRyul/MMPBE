@@ -9,13 +9,13 @@ from bson import ObjectId
 from pydantic.alias_generators import to_camel
 
 
-# projection = { "_id": 1, "work_type": 1, "sales_manager": 1, "company_nm": 1, "contract_date": 1, "product_family": 1}
+# projection = { "_id": 1, "work_type": 1, "sales_representative_nm": 1, "company_nm": 1, "contract_date": 1, "product_family": 1}
 class ResponseCategoryModel(BaseModel):
        id: str = Field(alias='_id')
        contract_title: str = Field(alias='categoryTitle')
        company_id: str = Field(alias='companyId')
        inflow_path: str = Field(alias='inflowPath')
-       sales_manager: Optional[str] = Field(None, alias='salesManager')
+       sales_representative_nm: Optional[str] = Field(None, alias='salesManager')
        contract_date: datetime = Field(alias='contractDate')
        model_config = ConfigDict(
             extra='allow',

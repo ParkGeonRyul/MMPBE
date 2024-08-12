@@ -192,7 +192,7 @@ class UpdateContractModel(BaseModel):
                 "m_d": "하루 별 총 작업량",
                 "m_m": "한 달 별 총 작업량",
                 "m_h": "1시간 별 총 작업량",
-                "sales_manager": "판매 담당자",
+                "sales_representative_nm": "판매 담당자",
                 "tech_manager": "기술 담당자",
                 "tax_mail": "세금 요청 날짜",
                 "payment_standard": "미확인",

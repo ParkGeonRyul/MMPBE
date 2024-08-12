@@ -372,7 +372,7 @@ async def get_dtl(match: dict, projection: dict, db_collection: any, response_mo
             },
             {
                   "$set": {
-                      "sales_representative_nm": "$contract_field.sales_manager",
+                      "sales_representative_nm": "$contract_field.sales_representative_nm",
                       "customer_nm": "$customer_field.user_nm",
                       "company_id": "$customer_field.company_id",
                       "company_nm": "$company_field.company_nm"
