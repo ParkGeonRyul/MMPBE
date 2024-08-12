@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 COPY app .
 
 # file서버 생성
-RUN mkdir -p /file-server
+RUN mkdir -p /code/file-server
 
 # uvicorn 서버 실행
 CMD ["sh", "prod.sh"]
