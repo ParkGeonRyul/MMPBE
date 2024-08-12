@@ -9,7 +9,6 @@ from bson import ObjectId
 from pydantic.alias_generators import to_camel
 
 
-# projection = { "_id": 1, "work_type": 1, "sales_representative_nm": 1, "company_nm": 1, "contract_date": 1, "product_family": 1}
 class ResponseCategoryModel(BaseModel):
        id: str = Field(alias='_id')
        contract_title: str = Field(alias='categoryTitle')
