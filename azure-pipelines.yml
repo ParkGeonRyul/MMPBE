@@ -60,6 +60,6 @@ stages:
                                       --env REDIRECT_URL_HOME=$(REDIRECT_URL_HOME) \
                                       --env MAIN_URL=$(MAIN_URL) \
                                       --env API_URL=$(API_URL) \
-                                      -v /home/file-server:/code/file-server \
+                                      -v $(LOCAL_PATH):$(DOCKER_PATH) \
                                       $(containerRegistry)/$(imageRepository):$(tag)
                 EOF
