@@ -2,7 +2,7 @@ from fastapi import APIRouter, status, UploadFile
 from fastapi.responses import JSONResponse
 from fastapi.requests import Request
 
-from routes._path.api_paths import READ_REQUEST, READ_REQUEST_TEMPORARY, READ_REQUEST_DETAIL, CREATE_REQUEST, CREATE_REQUEST_TEMPORARY, UPDATE_REQUEST, UPDATE_REQUEST_TEMPORARY, DELETE_REQUEST, DELETE_REQUEST_TEMPORARY
+from routes._path.api_paths import READ_REQUEST, READ_REQUEST_TEMPORARY, READ_REQUEST_DETAIL, CREATE_REQUEST, UPDATE_REQUEST, DELETE_REQUEST, UPDATE_REQUEST_STATUS
 from routes.work_request import work_request_service
 from models.work_request_dto import *
 
@@ -42,6 +42,11 @@ async def update_work_request(request: Request, item: UpdateWorkRequestModel):
 async def delete_work_request(request: Request):
 
     return await work_request_service.delete_request(request)
+
+@router.put(UPDATE_REQUEST_STATUS, status_code=status.HTTP_200_OK, response_model_by_alias=True)
+async def update_request_status(request: Request, item: UpdateRequestStatusAcceptModel):
+
+    return await work_request_service.update_request_status(request, item)
 
 
 # @router.post(CREATE_REQUEST_TEMPORARY, status_code=status.HTTP_201_CREATED, response_model_by_alias=False)       

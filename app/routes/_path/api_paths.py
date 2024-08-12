@@ -35,6 +35,7 @@ UPDATE_REQUEST = REQUEST + SEPARATE + "updaterequest"
 UPDATE_REQUEST_TEMPORARY = REQUEST + SEPARATE + "updaterequest" + SEPARATE + "temporary"
 DELETE_REQUEST = REQUEST + SEPARATE + "deleterequest"
 DELETE_REQUEST_TEMPORARY = REQUEST + SEPARATE + "deleterequest" + SEPARATE + "temporary"
+UPDATE_REQUEST_STATUS = REQUEST + SEPARATE + "updatestatus"
 
 # Contract paths
 CONTRACT = V1 + SEPARATE + "contract"

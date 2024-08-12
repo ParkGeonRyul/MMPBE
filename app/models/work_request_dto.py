@@ -37,22 +37,22 @@ class WorkRequestField:
         description="작업 요청 제목",
         example="Web DNS 설정",
         min_length=1,
-        alias="requestTitle"
+        alias="wrTitle"
     )
     content = Field(
         description="작업 요청 내용",
         example="Web DNS 설정 및....",
-        min_length=1,
-        alias="requestContent"
+        min_length=1
     )
     wr_date = Field(
         description="요청 일자(UTC + 0), 임시저장 일때는 NULL",
         default=None,
-        alias="requestDate"
+        alias="wrDate"
     )
     file_path = Field(
         description="파일 경로",
-        default=None
+        default=None,
+        alias="filePath"
     )
     status = Field(
         description="요청 상태",
@@ -61,7 +61,8 @@ class WorkRequestField:
     )
     status_content = Field(
         description="상태 관련 답변",
-        default=None
+        default=None,
+        alias="statusContent"
     )
     created_at = Field(
         description="생성 날짜(UTC + 0)",
@@ -199,6 +200,22 @@ class ResponseRequestDtlModel(BaseModel):
                 "status": "요청 상태",
                 "statusContent": "상태 관련 답변",
                 "filePath": "파일 경로"
+            }
+        }
+    )
+
+class UpdateRequestStatusAcceptModel(BaseModel):
+    status: Optional[str] = None
+    status_content: Optional[str] = WorkRequestField.status_content
+    updated_at: Optional[str]= WorkRequestField.updated_at
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+        json_schema_extra={
+            "example": {
+                "status": "승인",
+                "statusContent": "승인내용",
             }
         }
     )

@@ -48,7 +48,6 @@ async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
 
 async def get_request_dtl(request: Request) -> JSONResponse:
     req_data = json.loads(await request.body())
-    print(req_data)
     id = str(req_data['tokenData']['userId'])
     request_id = request.query_params.get("_id")
     role = str(req_data['role'])
@@ -114,7 +113,6 @@ async def update_request(request: Request, item: UpdateWorkRequestModel) -> JSON
 
 async def delete_request(request: Request) -> JSONResponse:
     request_id = request.query_params.get("_id")
-    request_id = request.query_params.get("requestId")
     get_request = work_request_collection.find_one({"_id": ObjectId(request_id)})
     if get_request['del_yn'] == "N":
         work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set":{"del_yn": "Y"}})
@@ -123,6 +121,20 @@ async def delete_request(request: Request) -> JSONResponse:
 
     response_content = {"message": "Request delete processing completed"}
 
+
+    return response_content
+
+async def update_request_status(request: Request, item: UpdateRequestStatusAcceptModel) -> JSONResponse:
+    request_id = request.query_params.get("_id")
+    # try:
+
+    work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set":item.model_dump()})
+
+    # except Exception as e:
+            
+    #         raise HTTPException(status_code=500, detail=str(e))
+
+    response_content = {"message": "Status modify success"}
 
     return response_content
 
