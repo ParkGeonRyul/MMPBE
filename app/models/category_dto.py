@@ -15,7 +15,7 @@ class ResponseCategoryModel(BaseModel):
        contract_title: str = Field(alias='categoryTitle')
        company_id: str = Field(alias='companyId')
        inflow_path: str = Field(alias='inflowPath')
-       sales_representative_nm: Optional[str] = Field(None, alias='salesManager')
+       sales_representative_nm: Optional[str] = Field(None, alias='salesRepresentativeNm')
        contract_date: datetime = Field(alias='contractDate')
        model_config = ConfigDict(
             extra='allow',

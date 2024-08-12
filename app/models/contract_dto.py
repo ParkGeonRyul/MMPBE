@@ -143,7 +143,7 @@ class CreateContractModel(BaseModel):
                 "mD": "하루 별 총 작업량",
                 "mM": "한 달 별 총 작업량",
                 "mH": "1시간 별 총 작업량",
-                "salesManager": "판매 담당자",
+                "salesRepresentativeNm": "판매 담당자",
                 "techManager": "기술 담당자",
                 "taxDate": "세금 요청 날짜",
                 "contractDate": "계약 날짜",

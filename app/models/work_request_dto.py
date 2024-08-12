@@ -113,7 +113,8 @@ class ResponseRequestDtlModel(BaseModel):
     company_nm: Optional[str] = Field(None, alias="companyNm")
     wr_date: Optional[str] = Field(None, alias="wrDate")
     file_path: Optional[str] = Field(alias="filePath")
-    status: str
+    content: Optional[str]
+    status: Optional[str]
     status_content: Optional[str] = Field(alias="statusContent")
     model_config = ConfigDict(
         extra='allow',
@@ -130,7 +131,8 @@ class ResponseRequestDtlModel(BaseModel):
                 "salesRepresentativeMm": "판매 담당자 이름",
                 "companyId": "고객사 ID(ObjectId)",
                 "companyNm": "고객사 이름",
-                "wrDate": "작업 요청 날짜",                
+                "wrDate": "작업 요청 날짜",     
+                "content": "요청 내용",
                 "status": "요청 상태",
                 "statusContent": "상태 관련 답변",
                 "filePath": "파일 경로"
@@ -385,12 +387,19 @@ async def get_dtl(match: dict, projection: dict, db_collection: any, response_mo
                   "$limit": 1
               }
           ]
+    
     result = db_collection.aggregate(pipeline)
     content=[]
     for item in result:
         item['_id'] = str(item['_id'])
         item['wr_date'] = str(item['wr_date'])
-        model_instance = response_model(**item)
+
+        if response_model == ResponseRequestDtlModel:
+            model_instance = ResponseRequestDtlModel(**item)
+        # elif response_model == ResponsePlanDtlModel:
+        #     model_instance = ResponsePlanDtlModel(**item)
+        else:
+            raise ValueError("Unknown response model type")
         model_dict = model_instance.model_dump(by_alias=True, exclude_unset=True)
         content.append(model_dict)
 
