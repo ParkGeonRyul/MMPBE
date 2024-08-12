@@ -109,11 +109,6 @@ class UserModel(BaseModel):
 class UserCollection(BaseModel):
     users: List[UserModel]
 
-def to_camel_case(snake_str):
-    components = snake_str.split('_')
-    return components[0] + ''.join(x.title() for x in components[1:])
-
-
 class ResponseUserListModel(BaseModel):
     id: str = Field(alias="_id")
     company_id: Optional[str] = Field(alias="companyId")
