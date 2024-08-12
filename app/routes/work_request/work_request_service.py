@@ -18,15 +18,17 @@ async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
     role = str(req_data['role'])
     temporary_value = await is_temporary(is_temp)
 
-    if (role == "admin" or role == "system admin"):
-        match = {
-                    "wr_date": temporary_value
-                }
-    elif role == "user":
-        match = {
-                    "customer_id": id,
-                    "wr_date": temporary_value
-                }
+    match = {
+         "wr_date": temporary_value
+    }
+
+    if role != "system admin":
+        
+        match['del_yn']= "N"
+        
+    if role == "user":
+
+        match['customer_id'] = id
           
     projection = {"_id": 1, "wr_title": 1, "sales_representative_nm": 1, "customer_nm": 1, "company_nm": 1, "wr_date": 1, "status": 1}
     
@@ -48,32 +50,34 @@ async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
 
 async def get_request_dtl(request: Request) -> JSONResponse:
     req_data = json.loads(await request.body())
-    print(req_data)
     id = str(req_data['tokenData']['userId'])
     request_id = request.query_params.get("_id")
     role = str(req_data['role'])
+    match = {
+        "_id": ObjectId(request_id)
+    }
     
+    if role !="system admin":
+        match["del_yn"] = "N"
+
     if role == "user":
-        get_wr = work_request_collection.find_one({"_id": ObjectId(request_id), "customer_id": id})        
+        get_wr = work_request_collection.find_one({"_id": ObjectId(request_id), "customer_id": id})
         if not get_wr:
             
             raise HTTPException(status_code=404, detail="request not found")
     
-    elif role == "admin" or role == "system admin":
+    elif role == "admin":
         contract = work_request_collection.find_one({"_id": ObjectId(request_id)})
         if not contract:
             
             raise HTTPException(status_code=404, detail="request not found")
         
-        get_sales = contract_collection.find_one({"_id": ObjectId(contract['solution_id']),"sales_manager": req_data['tokenData']['userData']['name']})
+        get_sales = contract_collection.find_one({"_id": ObjectId(contract['solution_id']),"sales_representative_nm": req_data['tokenData']['userData']['name']})
 
         if not get_sales:
             
-            raise HTTPException(status_code=404, detail="contract not found")
+            raise HTTPException(status_code=404, detail="request by contract not found")
         
-    match = {
-        "_id": ObjectId(request_id)
-    }
     projection = {
         "_id": 1,
         "wr_title": 1,
@@ -100,29 +104,57 @@ async def get_request_dtl(request: Request) -> JSONResponse:
     return response_content
 
 async def create_request(request: Request, item: CreateWorkRequestModel) -> JSONResponse:
-    work_request_collection.insert_one(item.model_dump())
+    try:
+        work_request_collection.insert_one(item.model_dump())
+
+    except Exception as e:
+            
+            raise HTTPException(status_code=500, detail=str(e))
     response_content = {"message": "Work Request Created"}
 
     return response_content
 
 async def update_request(request: Request, item: UpdateWorkRequestModel) -> JSONResponse:
     request_id = request.query_params.get("_id")
-    work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set": item.model_dump()})
+    try:
+
+        work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set": item.model_dump()})
+    
+    except Exception as e:
+            
+            raise HTTPException(status_code=500, detail=str(e))
     response_content = {"message": "Request Created"}
 
     return response_content
 
 async def delete_request(request: Request) -> JSONResponse:
     request_id = request.query_params.get("_id")
-    request_id = request.query_params.get("requestId")
     get_request = work_request_collection.find_one({"_id": ObjectId(request_id)})
-    if get_request['del_yn'] == "N":
-        work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set":{"del_yn": "Y"}})
-    else:
-        work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set":{"del_yn": "N"}})
-
+    
+    try:         
+        if get_request['del_yn'] == "N":
+            work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set":{"del_yn": "Y"}})
+        else:
+            work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set":{"del_yn": "N"}})
+    
+    except Exception as e:
+            
+            raise HTTPException(status_code=500, detail=str(e))
     response_content = {"message": "Request delete processing completed"}
 
+
+    return response_content
+
+async def update_request_status(request: Request, item: UpdateRequestStatusAcceptModel) -> JSONResponse:
+    request_id = request.query_params.get("_id")
+    try:
+
+        work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set":item.model_dump()})
+
+    except Exception as e:
+            
+            raise HTTPException(status_code=500, detail=str(e))
+    response_content = {"message": "Status modify success"}
 
     return response_content
 
