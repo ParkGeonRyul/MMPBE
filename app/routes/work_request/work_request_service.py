@@ -99,14 +99,25 @@ async def get_request_dtl(request: Request) -> JSONResponse:
     return response_content
 
 async def create_request(request: Request, item: CreateWorkRequestModel) -> JSONResponse:
-    work_request_collection.insert_one(item.model_dump())
+    try:
+        work_request_collection.insert_one(item.model_dump())
+
+    except Exception as e:
+            
+            raise HTTPException(status_code=500, detail=str(e))
     response_content = {"message": "Work Request Created"}
 
     return response_content
 
 async def update_request(request: Request, item: UpdateWorkRequestModel) -> JSONResponse:
     request_id = request.query_params.get("_id")
-    work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set": item.model_dump()})
+    try:
+
+        work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set": item.model_dump()})
+    
+    except Exception as e:
+            
+            raise HTTPException(status_code=500, detail=str(e))
     response_content = {"message": "Request Created"}
 
     return response_content
@@ -114,10 +125,16 @@ async def update_request(request: Request, item: UpdateWorkRequestModel) -> JSON
 async def delete_request(request: Request) -> JSONResponse:
     request_id = request.query_params.get("_id")
     get_request = work_request_collection.find_one({"_id": ObjectId(request_id)})
-    if get_request['del_yn'] == "N":
-        work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set":{"del_yn": "Y"}})
-    else:
-        work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set":{"del_yn": "N"}})
+    
+    try:         
+        if get_request['del_yn'] == "N":
+            work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set":{"del_yn": "Y"}})
+        else:
+            work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set":{"del_yn": "N"}})
+    
+    except Exception as e:
+            
+            raise HTTPException(status_code=500, detail=str(e))
 
     response_content = {"message": "Request delete processing completed"}
 
@@ -126,14 +143,13 @@ async def delete_request(request: Request) -> JSONResponse:
 
 async def update_request_status(request: Request, item: UpdateRequestStatusAcceptModel) -> JSONResponse:
     request_id = request.query_params.get("_id")
-    # try:
+    try:
 
-    work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set":item.model_dump()})
+        work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set":item.model_dump()})
 
-    # except Exception as e:
+    except Exception as e:
             
-    #         raise HTTPException(status_code=500, detail=str(e))
-
+            raise HTTPException(status_code=500, detail=str(e))
     response_content = {"message": "Status modify success"}
 
     return response_content
