@@ -18,15 +18,17 @@ async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
     role = str(req_data['role'])
     temporary_value = await is_temporary(is_temp)
 
-    if (role == "admin" or role == "system admin"):
-        match = {
-                    "wr_date": temporary_value
-                }
-    elif role == "user":
-        match = {
-                    "customer_id": id,
-                    "wr_date": temporary_value
-                }
+    match = {
+         "wr_date": temporary_value
+    }
+
+    if role != "system admin":
+        
+        match['del_yn']= "N"
+        
+    if role == "user":
+
+        match['customer_id'] = id
           
     projection = {"_id": 1, "wr_title": 1, "sales_representative_nm": 1, "customer_nm": 1, "company_nm": 1, "wr_date": 1, "status": 1}
     
@@ -51,14 +53,20 @@ async def get_request_dtl(request: Request) -> JSONResponse:
     id = str(req_data['tokenData']['userId'])
     request_id = request.query_params.get("_id")
     role = str(req_data['role'])
+    match = {
+        "_id": ObjectId(request_id)
+    }
     
+    if role !="system admin":
+        match["del_yn"] = "N"
+
     if role == "user":
-        get_wr = work_request_collection.find_one({"_id": ObjectId(request_id), "customer_id": id})        
+        get_wr = work_request_collection.find_one({"_id": ObjectId(request_id), "customer_id": id})
         if not get_wr:
             
             raise HTTPException(status_code=404, detail="request not found")
     
-    elif role == "admin" or role == "system admin":
+    elif role == "admin":
         contract = work_request_collection.find_one({"_id": ObjectId(request_id)})
         if not contract:
             
@@ -68,11 +76,8 @@ async def get_request_dtl(request: Request) -> JSONResponse:
 
         if not get_sales:
             
-            raise HTTPException(status_code=404, detail="contract not found")
+            raise HTTPException(status_code=404, detail="request by contract not found")
         
-    match = {
-        "_id": ObjectId(request_id)
-    }
     projection = {
         "_id": 1,
         "wr_title": 1,
@@ -135,7 +140,6 @@ async def delete_request(request: Request) -> JSONResponse:
     except Exception as e:
             
             raise HTTPException(status_code=500, detail=str(e))
-
     response_content = {"message": "Request delete processing completed"}
 
 

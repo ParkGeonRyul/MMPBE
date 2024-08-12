@@ -77,72 +77,6 @@ class WorkRequestField:
         default="N"
     )
 
-class CreateWorkRequestModel(BaseModel): # fe -> be
-    company_id: str = WorkRequestField.company_id # id 
-    customer_id: str = WorkRequestField.customer_id # 담당자 ID
-    solution_id: str = WorkRequestField.solution_id # 계약 ID
-    wr_title: str = WorkRequestField.wr_title # 필수
-    content: str = WorkRequestField.content
-    wr_date: Optional[datetime] = WorkRequestField.wr_date # None == 임시저장, 사용자가 요청 이후에 수정이 안 됨.
-    status: Optional[str] = WorkRequestField.status # 승인, 반려, 요청, 회수(시스템 관리자만 볼 수 있음)
-    status_content: Optional[str] = WorkRequestField.status_content
-    file_path: str = WorkRequestField.file_path
-    created_at: Optional[datetime] = WorkRequestField.created_at # 최초 이후 수정이 안 됨
-    del_yn: Optional[str] = WorkRequestField.del_yn # 시스템 관리자를 위한
-    model_config = ConfigDict(
-        from_attributes=True,
-        extra='allow',
-        populate_by_name=True,
-        json_encoders={ObjectId: str},
-        arbitrary_types_allowed = True,
-        json_schema_extra={
-            "example": {
-                "companyId": "고객사 ID(ObjectID)",
-                "customerId": "고객 ID(Object ID)",
-                "solutionId": "계약 ID(ObjectID)",
-                "wrIitle": "작업 요청 제목",
-                "content": "작업 요청 내용",
-                "wrDate": "작업 요청 날짜",
-                "status": "요청 상태",
-                "statusContent": "상태 관련 답변",
-                "filePath": "파일 경로"
-            }
-        }
-    )
-
-class  UpdateWorkRequestModel(BaseModel):
-    company_id: Optional[str] = WorkRequestField.company_id # id 
-    customer_id: Optional[str] = WorkRequestField.customer_id # 담당자 ID
-    solution_id: Optional[str] = WorkRequestField.solution_id # 계약 ID
-    wr_title: Optional[str] = WorkRequestField.wr_title # 필수
-    content: Optional[str] = WorkRequestField.content
-    wr_date: Optional[datetime] = WorkRequestField.wr_date # None == 임시저장, 사용자가 요청 이후에 수정이 안 됨.
-    status: Optional[str] = WorkRequestField.status # 승인, 반려, 요청, 회수(시스템 관리자만 볼 수 있음)
-    status_content: Optional[str] = WorkRequestField.status_content
-    file_path: Optional[str] = WorkRequestField.file_path
-    updated_at: Optional[datetime] = WorkRequestField.updated_at # 업데이트 된 날짜(수정 불가)
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-        json_encoders={ObjectId: str},
-        json_schema_extra={
-            "example": {
-                "companyId": "고객사 ID(ObjectID)",
-                "customerId": "고객 ID(Object ID)",
-                "solutionId": "계약 ID(ObjectID)",
-                "wrTitle": "작업 요청 제목",
-                "content": "작업 요청 내용",
-                "wrDate": "작업 요청 날짜",
-                "status": "요청 상태",
-                "statusContent": "상태 관련 답변",
-                "filePath": "파일 경로"
-            }
-        }
-    )
-
-class DeleteRequestTempraryModel(BaseModel):
-    ids: List[str]
-
 class ResponseRequestListModel(BaseModel):
     id: str = Field(alias="_id")
     wr_title: str = Field(alias="wrTitle")
@@ -203,6 +137,73 @@ class ResponseRequestDtlModel(BaseModel):
             }
         }
     )
+
+class CreateWorkRequestModel(BaseModel): # fe -> be
+    company_id: str = WorkRequestField.company_id # id 
+    customer_id: str = WorkRequestField.customer_id # 담당자 ID
+    solution_id: str = WorkRequestField.solution_id # 계약 ID
+    wr_title: str = WorkRequestField.wr_title # 필수
+    content: str = WorkRequestField.content
+    wr_date: Optional[datetime] = WorkRequestField.wr_date # None == 임시저장, 사용자가 요청 이후에 수정이 안 됨.
+    status: Optional[str] = WorkRequestField.status # 승인, 반려, 요청, 회수(시스템 관리자만 볼 수 있음)
+    status_content: Optional[str] = WorkRequestField.status_content
+    file_path: str = WorkRequestField.file_path
+    created_at: Optional[datetime] = WorkRequestField.created_at # 최초 이후 수정이 안 됨
+    del_yn: Optional[str] = WorkRequestField.del_yn # 시스템 관리자를 위한
+    model_config = ConfigDict(
+        from_attributes=True,
+        extra='allow',
+        populate_by_name=True,
+        json_encoders={ObjectId: str},
+        arbitrary_types_allowed = True,
+        json_schema_extra={
+            "example": {
+                "companyId": "고객사 ID(ObjectID)",
+                "customerId": "고객 ID(Object ID)",
+                "solutionId": "계약 ID(ObjectID)",
+                "wrIitle": "작업 요청 제목",
+                "content": "작업 요청 내용",
+                "wrDate": "작업 요청 날짜",
+                "status": "요청 상태",
+                "statusContent": "상태 관련 답변",
+                "filePath": "파일 경로"
+            }
+        }
+    )
+
+class  UpdateWorkRequestModel(BaseModel):
+    company_id: Optional[str] = WorkRequestField.company_id # id 
+    customer_id: Optional[str] = WorkRequestField.customer_id # 담당자 ID
+    solution_id: Optional[str] = WorkRequestField.solution_id # 계약 ID
+    wr_title: Optional[str] = WorkRequestField.wr_title # 필수
+    content: Optional[str] = WorkRequestField.content
+    wr_date: Optional[datetime] = WorkRequestField.wr_date # None == 임시저장, 사용자가 요청 이후에 수정이 안 됨.
+    status: Optional[str] = WorkRequestField.status # 승인, 반려, 요청, 회수(사용자, 시스템 관리자만 볼 수 있음)
+    status_content: Optional[str] = WorkRequestField.status_content
+    file_path: Optional[str] = WorkRequestField.file_path
+    updated_at: Optional[datetime] = WorkRequestField.updated_at # 업데이트 된 날짜(수정 불가)
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+        json_schema_extra={
+            "example": {
+                "companyId": "고객사 ID(ObjectID)",
+                "customerId": "고객 ID(Object ID)",
+                "solutionId": "계약 ID(ObjectID)",
+                "wrTitle": "작업 요청 제목",
+                "content": "작업 요청 내용",
+                "wrDate": "작업 요청 날짜",
+                "status": "요청 상태",
+                "statusContent": "상태 관련 답변",
+                "filePath": "파일 경로"
+            }
+        }
+    )
+
+class DeleteRequestTempraryModel(BaseModel):
+    ids: List[str]
+
 
 class UpdateRequestStatusAcceptModel(BaseModel):
     status: Optional[str] = None
