@@ -274,7 +274,7 @@ async def get_list(match: dict, projection: dict, db_collection: any, response_m
             # projection = {"_id": 1, "wr_title": 1, "sales_representative_nm": 1, "customer_nm": 1, "company_nm": 1, "wr_date": 1, "status": 1}
             {
                 "$set": {
-                    "sales_representative_nm": "$contract_field.sales_manager",
+                    "sales_representative_nm": "$contract_field.sales_representative_nm",
                     "customer_nm": "$customer_field.user_nm",
                     "company_nm": "$company_field.company_nm"
                 }
