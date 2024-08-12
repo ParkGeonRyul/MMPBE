@@ -1,10 +1,15 @@
-from random import randint
+from fastapi import Request
+from fastapi.responses import JSONResponse
 
-from db import user_db
+import json
 
-from utils import formating
 from models.user_dto import UserModel
 from db.context import user_collection
+from datetime import datetime
+from bson import ObjectId
+from models.user_dto import *
+from routes._modules import list_module
+from models import user_dto
 
 
 
@@ -12,6 +17,31 @@ async def create_user(item: UserModel):
     insert_user_by_item = user_collection.insert_one(item.model_dump())
 
     return str(insert_user_by_item.inserted_id)
+
+async def get_user(request: Request) -> JSONResponse:
+    req_data = json.loads(await request.body())
+    role = str(req_data['role'])
+    match = {}
+    if role == "admin":
+
+        match['del_yn'] = "N"
+    projection = {"company_field": 0}
+    
+    user_list = await list_module.get_collection_list(
+        match,
+        user_collection,
+        projection,
+        ResponseUserListModel,
+        user_dto
+        )
+    
+    content = {
+        "total": len(user_list),
+        "list": user_list
+    }
+    response_content=json.loads(json.dumps(content, indent=1, default=str))
+    
+    return response_content
 # def get(limit: int, offset: int) -> list[db.User]:
 #     return user_db.get(limit=limit, offset=offset)
             
