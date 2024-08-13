@@ -174,7 +174,7 @@ async def update_plan_status_accept(request: Request, item: UpdatePlanStatusAcce
 async def create_plan(request: Request, item: CreateWorkPlanModel) -> JSONResponse:
     req_data = json.loads(await request.body())
     document = item.model_dump()
-    document['customer_id'] = req_data['userData']['userId']
+    document['user_id'] = req_data['userData']['userId']
     work_plan_collection.insert_one(document)
     response_content = {"message": "Request Plan Created"}
     
