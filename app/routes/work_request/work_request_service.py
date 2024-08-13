@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 
 import json
 
-from db.context import work_request_collection, contract_collection
+from db.context import work_request_collection, contract_collection, user_collection
 from datetime import datetime
 from bson import ObjectId
 from models.work_request_dto import *
@@ -104,18 +104,25 @@ async def get_request_dtl(request: Request) -> JSONResponse:
     return response_content
 
 async def create_request(request: Request, item: CreateWorkRequestModel) -> JSONResponse:
+    req_data = json.loads(await request.body())
+    document = item.model_dump()
+    document['customer_id'] = req_data['userData']['userId']
     try:
-        work_request_collection.insert_one(item.model_dump())
+        work_request_collection.insert_one(document)
 
     except Exception as e:
             
             raise HTTPException(status_code=500, detail=str(e))
+    
     response_content = {"message": "Work Request Created"}
 
     return response_content
 
 async def update_request(request: Request, item: UpdateWorkRequestModel) -> JSONResponse:
     request_id = request.query_params.get("_id")
+    req_data = json.loads(await request.body())
+    document = item.model_dump()
+    document['customer_id'] = req_data['userData']['userId']
     try:
 
         work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set": item.model_dump()})
