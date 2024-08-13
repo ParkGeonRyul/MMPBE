@@ -2,7 +2,7 @@ import json
 import pymongo
 import os
 
-from db.context import work_plan_collection, auth_collection, user_collection
+from db.context import work_plan_collection, work_request_collection
 from fastapi import HTTPException, Request, Response, UploadFile
 from fastapi.responses import JSONResponse
 from db.context import Database
@@ -12,6 +12,8 @@ from bson import ObjectId
 from utils import objectCleaner
 from models import work_plan_dto
 from models.work_plan_dto import *
+from models.work_request_dto import *
+from models import work_request_dto
 from constants import COOKIES_KEY_NAME
 from utils.objectId_convert import objectId_convert
 from routes._modules import list_module, response_cookie_module
@@ -117,21 +119,49 @@ async def get_plan_dtl(request: Request) -> JSONResponse:
     
     return response_content
 
+
+async def get_approve_wr_list(request: Request, is_temp: bool) -> JSONResponse:
+    req_data = json.loads(await request.body())
+    id = str(req_data['tokenData']['userId'])
+    role = str(req_data['role'])
+    temporary_value = await is_temporary(is_temp)
+
+    match = {
+                "wr_date": temporary_value,
+                "status" : "승인"
+            }
+          
+    projection = {"_id": 1, "wr_title": 1, "sales_representative_nm": 1, "customer_id" : 1, "customer_nm": 1, "company_nm": 1, "wr_date": 1, "status": 1}
+    
+    wr_list = await list_module.get_collection_list(
+        match,
+        work_request_collection,
+        projection,
+        ResponseRequestListModel,
+        work_request_dto
+        )
+    
+    content = {
+        "total": len(wr_list),
+        "list": wr_list
+    }
+    response_content=json.loads(json.dumps(content, indent=1, default=str))
+    
+    return response_content
+
 async def update_plan_status(request: Request, item: UpdatePlanStatusAcceptModel) -> JSONResponse:
     access_token = request.cookies.get(COOKIES_KEY_NAME)
     print("item ::::::::::::: ", dict(item))
     _id = request.query_params.get("_id")
-    token_data = await auth_service.validate_token(access_token)
     if(_id != ""):
         work_plan_collection.update_one({"_id": ObjectId(_id)}, {"$set": item.model_dump()})
         response_content = {"result": "success"}
     else:
         response_content = {"result": "fail"}
     
-    return await response_cookie_module.set_response_cookie(token_data, response_content)
+    return response_content
 
 async def update_plan_status_accept(request: Request, item: UpdatePlanStatusAcceptModel) -> JSONResponse:
-    req_body = json.loads(await request.body())
     _id = request.query_params.get("_id")
     if(_id != ""):
         work_plan_collection.update_one({"_id": ObjectId(_id)}, {"$set": item.model_dump()})
@@ -142,12 +172,13 @@ async def update_plan_status_accept(request: Request, item: UpdatePlanStatusAcce
     return response_content
 
 async def create_plan(request: Request, item: CreateWorkPlanModel) -> JSONResponse:
-    access_token = request.cookies.get(COOKIES_KEY_NAME)
-    token_data = await auth_service.validate_token(access_token)
-    work_plan_collection.insert_one(item.model_dump())
+    req_data = json.loads(await request.body())
+    document = item.model_dump()
+    document['customer_id'] = req_data['userData']['userId']
+    work_plan_collection.insert_one(document)
     response_content = {"message": "Request Plan Created"}
     
-    return await response_cookie_module.set_response_cookie(token_data, response_content)
+    return response_content
 
 async def create_temporary(request: Request, item: CreateWorkPlanModel) -> JSONResponse:
     access_token = request.cookies.get(COOKIES_KEY_NAME)

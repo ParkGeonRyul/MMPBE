@@ -156,6 +156,7 @@ class ResponseRequestListModel(BaseModel):
     id: str = Field(alias="_id")
     wr_title: str = Field(alias="wrTitle")
     sales_representative_nm: str = Field(alias="salesRepresentativeNm")
+    customer_id: Optional[str] = Field(None, alias="customerId")
     customer_nm: Optional[str] = Field(None, alias="customerNm")
     company_nm: Optional[str] = Field(None, alias="companyNm")
     wr_date: Optional[str] = Field(None, alias="wrDate")

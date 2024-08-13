@@ -17,13 +17,13 @@ class WorkPlanField:
     )
     user_id = Field(
         description="작업계획서 수신자 id(ObjectID)",
-        alias="requester_id"
+        alias="userId"
     )
     acceptor_id = Field(
         description="작업계획서 발신자 id(ObjectID)",
         min_length=1,
         default=None,
-        alias="planId"
+        alias="acceptorId"
     )
     request_id = Field(
         description="작업 요청서 id(ObjectID)",
@@ -44,7 +44,7 @@ class WorkPlanField:
     )
     plan_date = Field(
         description="요청 일자(UTC + 0), 임시저장 일때는 NULL",
-        default=None,
+        default=datetime.now(),
         alias="planDate"
     )
     file = Field(
@@ -56,7 +56,7 @@ class WorkPlanField:
     status = Field(
         description="승인 여부",
         example="요청, 회수, 승인, 반려",
-        default=None,
+        default="요청",
         alias="status"
     )
     status_content = Field(
@@ -82,26 +82,26 @@ class WorkPlanField:
     )
 
 class CreateWorkPlanModel(BaseModel): # fe -> be
-    user_id: str = WorkPlanField.user_id #등록자 id (작업계획서 수신자 id)
-    acceptor_id: str = WorkPlanField.acceptor_id # 발신자 id (작업요청자 수신자 id)
-    request_id: str = WorkPlanField.request_id # 작업 요청서 id
-    plan_title: str = WorkPlanField.plan_title # 필수
-    plan_content: str = WorkPlanField.plan_content
-    plan_date: Optional[datetime] = WorkPlanField.plan_date # None == 임시저장, 사용자가 요청 이후에 수정이 안 됨.
-    file: Optional[str] = WorkPlanField.file #파일경로
-    status: Optional[str] = WorkPlanField.status # 승인, 반려, 요청, 회수(시스템 관리자만 볼 수 있음)
-    status_content : Optional[str] = WorkPlanField.status_content # 승인내용, 반려사유 (계획서 수신자가 작성)
-    created_at: Optional[datetime] = WorkPlanField.created_at # 최초 이후 수정이 안 됨
-    updated_at: Optional[datetime] = WorkPlanField.updated_at 
-    del_yn: Optional[str] = WorkPlanField.del_yn # 시스템 관리자를 위한
-    
-    model_config = ConfigDict(
-        from_attributes=True,
-        extra='allow',
-        populate_by_name=True,
-        json_encoders={ObjectId: str},
-        arbitrary_types_allowed = True,
-        json_schema_extra={
+    user_id: Optional[str] = Field(default=None, alias="userId") #등록자 id (작업계획서 수신자 id)
+    acceptor_id: str = Field(default=None, alias="acceptorId") # 발신자 id (작업요청자 수신자 id)
+    request_id: str = Field(default=None, alias="requestId") # 작업 요청서 id
+    plan_title: str = Field(default=None, alias="planTitle") # 필수
+    plan_content: str = Field(default=None, alias="planContent")
+    plan_date: Optional[datetime] = Field(default_factory=datetime.now, alias="planDate") # None == 임시저장, 사용자가 요청 이후에 수정이 안 됨.
+    file: Optional[str] = Field(default=None, alias="file") #파일경로
+    status: Optional[str] = Field(default="요청", alias="status") # 승인, 반려, 요청, 회수(시스템 관리자만 볼 수 있음)
+    status_content : Optional[str] = Field(default=None , alias="statusContent") # 승인내용, 반려사유 (계획서 수신자가 작성)
+    created_at: Optional[datetime] = Field(default_factory=datetime.now, alias="createdAt") # 최초 이후 수정이 안 됨
+    updated_at: Optional[datetime] = Field(default_factory=datetime.now, alias="updatedAt") 
+    del_yn: Optional[str] = Field(default="N", alias="delYn") # 시스템 관리자를 위한
+
+    class Config:
+        from_attributes = True
+        extra = 'allow'
+        populate_by_name = True
+        json_encoders = {ObjectId: str}
+        arbitrary_types_allowed = True
+        json_schema_extra = {
             "example": {
                 "userId": "6690cf7fa4897bf6b90541c1",
                 "acceptorId": "작업요청자 수신자 id(ObjectID)",
@@ -111,13 +111,12 @@ class CreateWorkPlanModel(BaseModel): # fe -> be
                 "planDate": "2024-08-05 00:00:00",
                 "file": "파일 명",
                 "status": "요청",
-                "acceptorNm" : "제갈길동" ,
-                "createdAt" : "2024-08-05 00:00:00",
-                "updatedAt" : "2024-08-05 00:00:00",                
+                "statusContent": "승인내용",
+                "createdAt": "2024-08-05 00:00:00",
+                "updatedAt": "2024-08-05 00:00:00",
                 "delYn": "N"
             }
         }
-    )
 
 class  UpdateWorkPlanModel(BaseModel):
     id: Optional[PyObjectId] = None
@@ -264,7 +263,7 @@ class ResponsePlanDtlModel(BaseModel):
             }
         }
     )
-
+       
 async def get_list(match: dict, projection: dict, db_collection: any, response_model: any):
     pipeline = [
                 {
@@ -357,7 +356,7 @@ async def get_list(match: dict, projection: dict, db_collection: any, response_m
     for item in results:
         item['_id'] = str(item['_id'])
         if match['plan_date'] == {'$ne': None}:
-            item['plan_date'] = item['plan_date'].strftime('%Y-%m-%d')
+            item['plan_date'] = str(item['plan_date'])
         model_instance = response_model(**item)
         model_dict = model_instance.model_dump(by_alias=True, exclude_unset=True)
         content.append(model_dict)
