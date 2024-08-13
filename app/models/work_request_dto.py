@@ -141,8 +141,6 @@ class ResponseRequestDtlModel(BaseModel):
     )
 
 class CreateWorkRequestModel(BaseModel): # fe -> be
-    company_id: str = WorkRequestField.company_id # id 
-    customer_id: str = WorkRequestField.customer_id # 담당자 ID
     solution_id: str = WorkRequestField.solution_id # 계약 ID
     wr_title: str = WorkRequestField.wr_title # 필수
     content: str = WorkRequestField.content
@@ -154,16 +152,13 @@ class CreateWorkRequestModel(BaseModel): # fe -> be
     del_yn: Optional[str] = WorkRequestField.del_yn # 시스템 관리자를 위한
     model_config = ConfigDict(
         from_attributes=True,
-        extra='allow',
         populate_by_name=True,
         json_encoders={ObjectId: str},
         arbitrary_types_allowed = True,
         json_schema_extra={
             "example": {
-                "companyId": "고객사 ID(ObjectID)",
-                "customerId": "고객 ID(Object ID)",
                 "solutionId": "계약 ID(ObjectID)",
-                "wrIitle": "작업 요청 제목",
+                "wrTitle": "작업 요청 제목",
                 "content": "작업 요청 내용",
                 "wrDate": "작업 요청 날짜",
                 "status": "요청 상태",
@@ -174,8 +169,6 @@ class CreateWorkRequestModel(BaseModel): # fe -> be
     )
 
 class  UpdateWorkRequestModel(BaseModel):
-    company_id: Optional[str] = WorkRequestField.company_id # id 
-    customer_id: Optional[str] = WorkRequestField.customer_id # 담당자 ID
     solution_id: Optional[str] = WorkRequestField.solution_id # 계약 ID
     wr_title: Optional[str] = WorkRequestField.wr_title # 필수
     content: Optional[str] = WorkRequestField.content
@@ -190,8 +183,6 @@ class  UpdateWorkRequestModel(BaseModel):
         json_encoders={ObjectId: str},
         json_schema_extra={
             "example": {
-                "companyId": "고객사 ID(ObjectID)",
-                "customerId": "고객 ID(Object ID)",
                 "solutionId": "계약 ID(ObjectID)",
                 "wrTitle": "작업 요청 제목",
                 "content": "작업 요청 내용",
