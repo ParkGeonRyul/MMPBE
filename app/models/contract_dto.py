@@ -118,10 +118,8 @@ class CreateContractModel(BaseModel):
     m_d : str = ContractField.m_d
     m_m : str = ContractField.m_h
     m_h : str = ContractField.m_h
-    sales_representative_nm : str = ContractField.sales_manager
+    sales_representative_nm: str = ContractField.sales_representative_nm
     tech_manager : str = ContractField.tech_manager
-    tax_mail : Optional[str] = ContractField.tax_mail
-    payment_standard : str = ContractField.payment_standard
     contract_date : datetime = ContractField.contract_date
     contract_start_date : datetime = ContractField.contract_start_date
     contract_end_date : datetime = ContractField.contact_end_date

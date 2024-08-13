@@ -11,13 +11,13 @@ from models.category_dto import ResponseCategoryModel
 
 async def get_category(request: Request) -> List[dict]:
     req_data = json.loads(await request.body())
-    projection = { "_id": 1, "contract_title": 1, "company_id": 1, "inflow_path": 1, "sales_manager": 1, "contract_date": 1}
+    projection = { "_id": 1, "contract_title": 1, "company_id": 1, "inflow_path": 1, "sales_representative_nm": 1, "contract_date": 1}
     if req_data['role'] == 'user':
         get_user = user_collection.find_one({"_id": ObjectId(req_data['tokenData']['userId'])})
         dict_for_find = {"company_id": get_user['company_id']}
     
     elif req_data['role'] == 'admin' or req_data['role'] == 'system admin':
-        dict_for_find = {"sales_manager": req_data['tokenData']['userData']['name']}
+        dict_for_find = {"sales_representative_nm": req_data['tokenData']['userData']['name']}
         
     get_contract_by_user = contract_collection.find(dict_for_find, projection)
     content = []

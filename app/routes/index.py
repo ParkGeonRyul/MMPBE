@@ -134,7 +134,10 @@ async def proxy(request: Request, path: str):
         get_role = role_collection.find_one({"_id": ObjectId(get_user_info['role'])})
                 
         if req_body:
-            response = await client.request(method, backend_url, headers=headers, content=req_body, cookies=request.cookies)
+            req_json = json.loads(req_body)
+            req_json['userData'] = document
+            modified_body = json.dumps(req_json)
+            response = await client.request(method, backend_url, headers={"Content-Type": "application/json"}, content=modified_body, cookies=request.cookies)
             
             return Response(content=response.content, status_code=response.status_code, headers=dict(response.headers))
 
