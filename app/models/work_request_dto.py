@@ -169,8 +169,6 @@ class CreateWorkRequestModel(BaseModel): # fe -> be
     )
 
 class  UpdateWorkRequestModel(BaseModel):
-    company_id: Optional[str] = WorkRequestField.company_id # id 
-    customer_id: Optional[str] = WorkRequestField.customer_id # 담당자 ID
     solution_id: Optional[str] = WorkRequestField.solution_id # 계약 ID
     wr_title: Optional[str] = WorkRequestField.wr_title # 필수
     content: Optional[str] = WorkRequestField.content
@@ -185,8 +183,6 @@ class  UpdateWorkRequestModel(BaseModel):
         json_encoders={ObjectId: str},
         json_schema_extra={
             "example": {
-                "companyId": "고객사 ID(ObjectID)",
-                "customerId": "고객 ID(Object ID)",
                 "solutionId": "계약 ID(ObjectID)",
                 "wrTitle": "작업 요청 제목",
                 "content": "작업 요청 내용",
