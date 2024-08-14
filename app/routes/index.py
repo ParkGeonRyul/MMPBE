@@ -101,7 +101,7 @@ async def proxy(request: Request, path: str):
         if user_response.status_code == 200:
             user_data = user_response.json()
             document = {
-                "status": "valid",
+                "sign_status": "valid",
                 "userId": str(user_token['user_id']),
                 "name": user_data.get("displayName"),
                 "email": user_data.get("mail"),
@@ -114,7 +114,7 @@ async def proxy(request: Request, path: str):
                 reissue_token = msal_app.acquire_token_by_refresh_token(user_token["refresh_token"], scopes=["User.Read"])
                 await access_token_manager(True, True, reissue_token['access_token'], reissue_token['refresh_token'], user_token['user_id'], user_token['email'])
                 document = {
-                    "status": "refresh",
+                    "sign_status": "refresh",
                     "userId": str(user_token['user_id']),
                     "name": find_user['user_nm'],
                     "email": find_user['email'],
@@ -138,13 +138,15 @@ async def proxy(request: Request, path: str):
             file = req_data.get("images")
             if file:
                 req_json = {key: value for key, value in req_data.items() if key != "images"}
+                file_status = {'file_name': (file.filename, await file.read(), file.content_type)}
             else:
-                req_json = dict(req_body)
+                req_json = {key: value for key, value in req_data.items()}
+                file_status = None
 
             for key, value in document.items():
                 req_json[key] = value
 
-            response = await client.request(method, backend_url, data=req_json, cookies=request.cookies, files={'file_name': (file.filename, await file.read(), file.content_type)})
+            response = await client.request(method, backend_url, data=req_json, cookies=request.cookies, files=file_status)
             
             return Response(content=response.content, status_code=response.status_code, headers=dict(response.headers))
 

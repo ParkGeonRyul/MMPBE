@@ -12,23 +12,31 @@ load_dotenv()
 
 upload_path = os.getenv("UPLOAD_PATH")
 
-async def upload_file(file: UploadFile = File(None)):
-    if file:
-        test_uuid = str(uuid.uuid4())
-        _, file_extension = os.path.splitext(file.filename)
+async def upload_file(file: UploadFile = File(...)):
+    uuid_data = str(uuid.uuid4())
+    _, file_extension = os.path.splitext(file.filename)
 
-        test_uuid_file = test_uuid + file_extension
+    uuid_file = uuid_data + file_extension
 
-        file_collection.insert_one({})
-
-        upload_dir = upload_path
-        if not os.path.exists(upload_dir):
+    upload_dir = upload_path
+    if not os.path.exists(upload_dir):
             os.makedirs(upload_dir)
 
-        file_path = os.path.join(upload_dir, test_uuid_file)
+    file_path = os.path.join(upload_dir, uuid_file)
 
-        with open(file_path, "wb") as buffer:
-            buffer.write(await file.read())
+    with open(file_path, "wb") as buffer:
+        buffer.write(await file.read())
+
+    file_data = {
+        'origin': file.filename,
+        'uuid': uuid_file,
+        'extension': file_extension,
+        'size': file.size
+        }
+    insert_file_data = file_collection.insert_one(file_data)
+    response_data = {"file_id": str(insert_file_data.inserted_id)}
+
+    return response_data
 
 async def download_file(uuid_filename:str):
     file_path = os.path.join(upload_path, uuid_filename)

@@ -12,6 +12,7 @@ from bson import ObjectId
 from models.work_request_dto import *
 from routes._modules import list_module
 from routes._modules.list_module import is_temporary
+from routes._modules.file_server import *
 from models import work_request_dto
 
 load_dotenv()
@@ -115,25 +116,8 @@ async def create_request(item: dict, file: None | UploadFile = File(...)) -> JSO
 
     try: 
         if file:
-            uuid_field = str(uuid.uuid4())
-            _, file_extension = os.path.splitext(file.filename)
-            uuid_file = uuid_field + file_extension
-            upload_dir = upload_path
-            if not os.path.exists(upload_dir):
-
-                os.makedirs(upload_dir)
-            file_path = os.path.join(upload_dir, uuid_file)
-            with open(file_path, "wb") as buffer:
-
-                buffer.write(await file.read())
-            file_data = {
-                 'origin': file.filename,
-                 'uuid': uuid_file,
-                 'extension': file_extension,
-                 'size': file.size
-            }
-            insert_file_data = file_collection.insert_one(file_data)
-            document['file_path'] = insert_file_data.inserted_id
+             file_data = await upload_file(file)
+             document['file_path'] = file_data['file_id']
 
         work_request_collection.insert_one(document)
 
@@ -145,14 +129,16 @@ async def create_request(item: dict, file: None | UploadFile = File(...)) -> JSO
 
     return response_content
 
-async def update_request(request: Request, item: UpdateWorkRequestModel) -> JSONResponse:
+async def update_request(request: Request, item: dict, file: None | UploadFile = File(...)) -> JSONResponse:
     request_id = request.query_params.get("_id")
-    req_data = json.loads(await request.body())
-    document = item.model_dump()
-    document['customer_id'] = req_data['userData']['userId']
+    document = dict(CreateWorkRequestModel(**item))
+    document['customer_id'] = item['userId']
     try:
+        if file:
+             file_data = await upload_file(file)
+             document['file_path'] = file_data['file_id']
 
-        work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set": item.model_dump()})
+        work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set": document})
     
     except Exception as e:
             
