@@ -102,7 +102,11 @@ async def proxy(request: Request, path: str):
             user_data = user_response.json()
             document = {
                 "status": "valid",
-                "userId": str(user_token['user_id'])
+                "userId": str(user_token['user_id']),
+                "name": user_data.get("displayName"),
+                "email": user_data.get("mail"),
+                "jobTitle": user_data.get("jobTitle"),
+                "mobilePhone": user_data.get("mobilePhone")
                 }
         else:  # 401
             find_user = user_collection.find_one({"_id": user_token['user_id']})
@@ -111,7 +115,11 @@ async def proxy(request: Request, path: str):
                 await access_token_manager(True, True, reissue_token['access_token'], reissue_token['refresh_token'], user_token['user_id'], user_token['email'])
                 document = {
                     "status": "refresh",
-                    "userId": str(user_token['user_id'])
+                    "userId": str(user_token['user_id']),
+                    "name": find_user['user_nm'],
+                    "email": find_user['email'],
+                    "jobTitle": find_user['rank'],
+                    "mobilePhone": find_user['mobile_contact']
                     }
             else:
                 response = RedirectResponse(url=f"{MAIN_URL}{LOGIN_WITH_MS}")
