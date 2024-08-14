@@ -18,14 +18,9 @@ async def create_user(item: UserModel):
 
     return str(insert_user_by_item.inserted_id)
 
-async def get_user(request: Request) -> JSONResponse:
-    req_data = json.loads(await request.body())
-    role = str(req_data['role'])
+async def get_user_list(request: Request) -> JSONResponse:
     match = {}
-    if role == "admin":
-
-        match['del_yn'] = "N"
-    projection = {"company_field": 0}
+    projection = {"_id": 1, "company_nm": 1, "user_nm": 1, "email": 1, "created_at": 1, "del_yn": 1}
     
     user_list = await list_module.get_collection_list(
         match,
@@ -40,6 +35,23 @@ async def get_user(request: Request) -> JSONResponse:
         "list": user_list
     }
     response_content=json.loads(json.dumps(content, indent=1, default=str))
+    
+    return response_content
+
+async def get_user_detail(request: Request) -> JSONResponse:
+    user_id = request.query_params.get("_id")
+    match = {"_id": ObjectId(user_id)}
+    projection = {"company_field": 0}
+    
+    user_list = await list_module.get_collection_list(
+        match,
+        user_collection,
+        projection,
+        ResponseUserListModel,
+        user_dto
+        )
+
+    response_content=json.loads(json.dumps(user_list, indent=1, default=str))
     
     return response_content
 # def get(limit: int, offset: int) -> list[db.User]:

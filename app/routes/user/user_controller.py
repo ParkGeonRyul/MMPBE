@@ -7,7 +7,7 @@ from routes.user import user_service
 from utils import dependencies
 from models.user_dto import UserModel
 from routes.user import user_service
-from routes._path.api_paths import CREATE_USER, READ_USER
+from routes._path.api_paths import CREATE_USER, READ_USER, READ_USER_DETAIL
 # -------------------------------------------------
 
 from fastapi import APIRouter, HTTPException, status, Response
@@ -35,7 +35,12 @@ async def create_user(item: UserModel):
 
 @router.get(READ_USER)
 async def get_user(request: Request):
-    return await user_service.get_user(request)
+    return await user_service.get_user_list(request)
+
+@router.get(READ_USER_DETAIL)
+async def get_user(request: Request):
+    return await user_service.get_user_detail(request)
+
 # @router.get("/all", response_model=list[dto.GetUser])
 # def get_all(limit: int = Query(1000, gt=0), offset: int = Query(0, ge=0)) -> list[db.User]:
 #     return user_service.get(limit, offset)

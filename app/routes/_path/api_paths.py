@@ -19,7 +19,8 @@ CATEGORY = V1 + SEPARATE + "category"
 
 # User paths
 USER = V1 + SEPARATE + "user"
-READ_USER = USER + SEPARATE + "readuser"
+READ_USER = USER + SEPARATE + "selectUser"
+READ_USER_DETAIL = READ_USER + SEPARATE + "detail"
 CREATE_USER = USER + SEPARATE + "createuser"
 UPDATE_USER = USER + SEPARATE + "updateuser"
 DELETE_USER = USER + SEPARATE + "deleteuser"

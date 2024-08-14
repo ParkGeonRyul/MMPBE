@@ -111,6 +111,32 @@ class UserCollection(BaseModel):
 
 class ResponseUserListModel(BaseModel):
     id: str = Field(alias="_id")
+    company_nm: Optional[str] = Field(alias="companyNm")
+    user_nm : str = UsersFields.user_nm
+    email: str = UsersFields.email
+    created_at: Optional[datetime] = UsersFields.created_at
+    del_yn: Optional[str] = UsersFields.del_yn
+    model_config = ConfigDict(
+        extra='allow',
+        from_attributes=True,
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+        alias_generator=to_camel,
+        json_schema_extra={
+            "example": {
+                "_id": "ObjectID",
+                "companyNm": "고객사 이름",
+                "userNm": "고객 이름",
+                "email": "고객사 Email",
+                "createdAt": "생성 날짜",
+                "delYn": "삭제 여부"
+            }
+        }
+    )
+
+class ResponseUserDtlModel(BaseModel):
+    id: str = Field(alias="_id")
     company_id: Optional[str] = Field(alias="companyId")
     company_nm: Optional[str] = Field(alias="companyNm")
     user_nm : str = UsersFields.user_nm
@@ -194,5 +220,51 @@ async def get_list(match: dict, projection: dict, db_collection: any, response_m
     convert_content = convert_keys_to_camel_case(content)
 
     return convert_content
-    
+
+async def get_dtl(match: dict, projection: dict, db_collection: any, response_model: any):
+    pipeline = [
+        {
+            "$match": match
+        },
+        {
+            "$lookup": {
+                "from": "company",
+                "let": { "companyId": "$company_id" },
+                "pipeline": [
+                    {
+                        "$match": {
+                            "$expr": {
+                                "$eq": [ {"$toString": "$_id"}, "$$companyId"]
+                            }
+                        }
+                    }
+                ],
+                "as": "company_field"
+                }
+        },
+        {
+            "$unwind": "$company_field"
+        },
+        {
+            "$set": {
+                "company_nm": "$company_field.company_nm"
+            }
+        },
+        {
+            "$project": projection
+        }
+    ]
+    results = db_collection.aggregate(pipeline)
+    content=[]
+    for item in results:
+        item['_id'] = str(item['_id'])
+        item['created_at'] = str(item['created_at'])
+        if item['updated_at'] != None:
+            item['updated_at'] = str(item['updated_at'])
+        model_instance = response_model(**item)
+        model_dict = model_instance.model_dump(by_alias=True, exclude_unset=True)
+        content.append(model_dict)
+    convert_content = convert_keys_to_camel_case(content)
+
+    return convert_content[0]
 
