@@ -116,7 +116,7 @@ class ResponseRequestDtlModel(BaseModel):
     file_path: Optional[str] = Field(alias="filePath")
     content: Optional[str]
     status: Optional[str]
-    status_content: Optional[str] = Field(alias="statusContent")
+    status_content: str = Field(default = None, alias="statusContent")
     model_config = ConfigDict(
         extra='allow',
         from_attributes=True,
