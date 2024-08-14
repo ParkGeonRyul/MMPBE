@@ -132,9 +132,9 @@ async def proxy(request: Request, path: str):
                 
         if req_body:
             req_data = await request.form()
-            file = req_data.get("images")
+            file = req_data.get("files")
             if file:
-                req_json = {key: value for key, value in req_data.items() if key != "images"}
+                req_json = {key: value for key, value in req_data.items() if key != "files"}
                 file_status = {'file_name': (file.filename, await file.read(), file.content_type)}
             else:
                 req_json = {key: value for key, value in req_data.items()}

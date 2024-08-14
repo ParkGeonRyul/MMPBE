@@ -112,8 +112,7 @@ async def get_request_dtl(request: Request) -> JSONResponse:
     response = await generate_multipart_response(response_content, file_path)
 
     return response
-    
-    return JSONResponse(content=response_content)
+
 
 async def create_request(item: dict, file: None | UploadFile = File(...)) -> JSONResponse:
     document = dict(CreateWorkRequestModel(**item))
