@@ -88,6 +88,7 @@ async def get_request_dtl(request: Request) -> JSONResponse:
     projection = {
         "_id": 1,
         "wr_title": 1,
+        "solution_id": 1,
         "company_id": 1,
         "company_nm": 1,
         "sales_representative_nm": 1,
@@ -97,7 +98,9 @@ async def get_request_dtl(request: Request) -> JSONResponse:
         "wr_date": 1,
         "file_path": 1,
         "status": 1,
-        "status_content": 1
+        "status_content": 1,
+        # "file_origin_nm": 1,
+        # "file_url": 1
         }
     wr_dtl = await list_module.get_collection_dtl(
         match,
@@ -106,12 +109,11 @@ async def get_request_dtl(request: Request) -> JSONResponse:
         ResponseRequestDtlModel,
         work_request_dto
         )
-    file_path = await download_file(wr_dtl['filePath'])
+    test = file_collection.find_one({"_id": ObjectId(wr_dtl['filePath'])})
+    
     response_content=json.loads(json.dumps(wr_dtl, indent=1, default=str))
 
-    response = await generate_multipart_response(response_content, file_path)
-
-    return response
+    return response_content
 
 
 async def create_request(item: dict, file: None | UploadFile = File(...)) -> JSONResponse:

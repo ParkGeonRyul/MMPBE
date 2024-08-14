@@ -44,9 +44,6 @@ async def upload_file(file: UploadFile = File(...)):
 async def download_file(file_id:str | None):
     if file_id:
         test = file_collection.find_one({"_id": ObjectId(file_id)})
-        if not test:
-
-            return None
         uuid_filename = test['uuid']
         file_path = os.path.join(upload_path, uuid_filename)
 
@@ -58,7 +55,7 @@ async def download_file(file_id:str | None):
     return None
 
 async def generate_multipart_response(item, file_path):
-    boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW"
+    boundary = f"----WebKitFormBoundary{uuid.uuid4().hex}"
     headers = {
         "Content-Type": f"multipart/form-data; boundary={boundary}"
     }
@@ -71,7 +68,7 @@ async def generate_multipart_response(item, file_path):
             f"Content-Type: application/json\r\n\r\n"
             f"{jsonable_encoder(item)}\r\n"
         )
-        yield json_part.encode("utf-8")
+        yield json_part.encode("utf-8") 
 
         if file_path:
             # File part

@@ -22,8 +22,7 @@ class WorkRequestField:
     )
     customer_id = Field(
         description="고객 ID(ObjectID)",
-        alias="customerId",
-        default=None
+        alias="customerId"
     )
     solution_id = Field(
         description="계약 ID(ObjectID)",
@@ -84,7 +83,6 @@ class ResponseRequestListModel(BaseModel):
     sales_representative_nm: str = Field(alias="salesRepresentativeNm")
     customer_nm: Optional[str] = Field(None, alias="customerNm")
     company_nm: Optional[str] = Field(None, alias="companyNm")
-    contract_title: Optional[str] = Field(None, alias="contractTitle")
     wr_date: Optional[str] = Field(None, alias="wrDate")
     status: str
     model_config = ConfigDict(
@@ -107,6 +105,7 @@ class ResponseRequestListModel(BaseModel):
 
 class ResponseRequestDtlModel(BaseModel):
     id: str = Field(alias="_id")
+    solution_id: str = Field(alias="solutionId")
     wr_title: str = Field(alias="wrTitle")
     customer_id: str = Field(alias="customerId")
     customer_nm: str = Field(alias="customerNm")
@@ -117,7 +116,7 @@ class ResponseRequestDtlModel(BaseModel):
     file_path: Optional[str] = Field(alias="filePath")
     content: Optional[str]
     status: Optional[str]
-    status_content: Optional[str] = Field(default = None, alias="statusContent")
+    status_content: Optional[str] = Field(alias="statusContent")
     model_config = ConfigDict(
         extra='allow',
         from_attributes=True,
@@ -144,7 +143,6 @@ class ResponseRequestDtlModel(BaseModel):
 
 class CreateWorkRequestModel(BaseModel): # fe -> be
     solution_id: str = WorkRequestField.solution_id # 계약 ID
-    customer_id: Optional[str] = WorkRequestField.customer_id # 고객 ID
     wr_title: str = WorkRequestField.wr_title # 필수
     content: str = WorkRequestField.content
     wr_date: Optional[datetime] = WorkRequestField.wr_date # None == 임시저장, 사용자가 요청 이후에 수정이 안 됨.
@@ -281,7 +279,6 @@ async def get_list(match: dict, projection: dict, db_collection: any, response_m
             },
             {
                 "$set": {
-                    "contract_title": "$contract_field.contract_title",
                     "sales_representative_nm": "$contract_field.sales_representative_nm",
                     "customer_nm": "$customer_field.user_nm",
                     "company_nm": "$company_field.company_nm"
