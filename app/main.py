@@ -13,7 +13,6 @@ from routes.category import category_controller
 from routes.file_server import file_controller
 from routes.work_request import work_request_controller
 from routes import index
-from db.context import auth_collection
 
 from middlewares import cors_middleware
 # from middlewares import static_middleware

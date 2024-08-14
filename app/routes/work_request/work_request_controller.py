@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, UploadFile
+from fastapi import APIRouter, Form, status, UploadFile
 from fastapi.responses import JSONResponse
 from fastapi.requests import Request
 
@@ -29,9 +29,15 @@ async def get_request_dtl(request: Request) -> JSONResponse:
     return await work_request_service.get_request_dtl(request)
 
 @router.post(CREATE_REQUEST, status_code=status.HTTP_200_OK, response_model_by_alias=False)       
-async def create_request(request: Request, item: CreateWorkRequestModel) -> JSONResponse:
-        
-    return await work_request_service.create_request(request, item)
+async def create_request(request: Request) -> JSONResponse:
+    req_body = await request.form()
+    file = req_body.get("file_name")
+    if file:
+        request_data = {key: value for key, value in req_body.items() if key != "images"}
+    else:
+        request_data = dict(req_body)
+
+    return await work_request_service.create_request(request_data, file)
 
 @router.put(UPDATE_REQUEST, status_code=status.HTTP_200_OK, response_model_by_alias=False)       
 async def update_work_request(request: Request, item: UpdateWorkRequestModel):

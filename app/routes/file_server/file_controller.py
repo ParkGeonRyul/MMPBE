@@ -8,7 +8,7 @@ from fastapi.responses import RedirectResponse
 from routes.auth import auth_service
 from constants import COOKIES_KEY_NAME
 from dotenv import load_dotenv
-from db.context import file_collection
+from db.context import *
 from routes._path.api_paths import AUTH_CALLBACK, CHECK_SESSION, LOGIN_WITH_MS, LOGOUT, USER_INFO
 
 load_dotenv()
@@ -16,13 +16,16 @@ router = APIRouter()
 
 upload_path = os.getenv("UPLOAD_PATH")
 
-@router.post("/test-upload")
-async def test(file: UploadFile = File(None)):
+@router.post("/upload")
+async def test(request: Request, file: UploadFile = File(None)):
+    test = await request.form()
+    file = test.get('files')
     if file:
-        test_uuid = str(uuid.uuid4())
+        file_data = {key: value for key, value in test.items() if key != "files"}
+        uuid_field = str(uuid.uuid4())
         _, file_extension = os.path.splitext(file.filename)
 
-        test_uuid_file = test_uuid + file_extension
+        uuid_file = uuid_field + file_extension
 
         file_collection.insert_one({})
 
@@ -30,7 +33,7 @@ async def test(file: UploadFile = File(None)):
         if not os.path.exists(upload_dir):
             os.makedirs(upload_dir)
 
-        file_path = os.path.join(upload_dir, test_uuid_file)
+        file_path = os.path.join(upload_dir, uuid_file)
 
         with open(file_path, "wb") as buffer:
             buffer.write(await file.read())

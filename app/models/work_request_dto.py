@@ -22,7 +22,8 @@ class WorkRequestField:
     )
     customer_id = Field(
         description="고객 ID(ObjectID)",
-        alias="customerId"
+        alias="customerId",
+        default=None
     )
     solution_id = Field(
         description="계약 ID(ObjectID)",
@@ -142,6 +143,7 @@ class ResponseRequestDtlModel(BaseModel):
 
 class CreateWorkRequestModel(BaseModel): # fe -> be
     solution_id: str = WorkRequestField.solution_id # 계약 ID
+    customer_id: Optional[str] = WorkRequestField.customer_id # 고객 ID
     wr_title: str = WorkRequestField.wr_title # 필수
     content: str = WorkRequestField.content
     wr_date: Optional[datetime] = WorkRequestField.wr_date # None == 임시저장, 사용자가 요청 이후에 수정이 안 됨.

@@ -1,9 +1,12 @@
-from fastapi import Request, Response, UploadFile
+from fastapi import Request, Response, UploadFile, File
 from fastapi.responses import JSONResponse
+from dotenv import load_dotenv
 
 import json
+import uuid
+import os
 
-from db.context import work_request_collection, contract_collection, user_collection
+from db.context import work_request_collection, contract_collection, auth_collection, file_collection
 from datetime import datetime
 from bson import ObjectId
 from models.work_request_dto import *
@@ -11,6 +14,9 @@ from routes._modules import list_module
 from routes._modules.list_module import is_temporary
 from models import work_request_dto
 
+load_dotenv()
+
+upload_path = os.getenv("UPLOAD_PATH")
 
 async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
     req_data = json.loads(await request.body())
@@ -103,11 +109,32 @@ async def get_request_dtl(request: Request) -> JSONResponse:
     
     return response_content
 
-async def create_request(request: Request, item: CreateWorkRequestModel) -> JSONResponse:
-    req_data = json.loads(await request.body())
-    document = item.model_dump()
-    document['customer_id'] = req_data['userData']['userId']
-    try:
+async def create_request(item: dict, file: None | UploadFile = File(...)) -> JSONResponse:
+    document = dict(CreateWorkRequestModel(**item))
+    document['customer_id'] = item['userId']
+
+    try: 
+        if file:
+            uuid_field = str(uuid.uuid4())
+            _, file_extension = os.path.splitext(file.filename)
+            uuid_file = uuid_field + file_extension
+            upload_dir = upload_path
+            if not os.path.exists(upload_dir):
+
+                os.makedirs(upload_dir)
+            file_path = os.path.join(upload_dir, uuid_file)
+            with open(file_path, "wb") as buffer:
+
+                buffer.write(await file.read())
+            file_data = {
+                 'origin': file.filename,
+                 'uuid': uuid_file,
+                 'extension': file_extension,
+                 'size': file.size
+            }
+            insert_file_data = file_collection.insert_one(file_data)
+            document['file_path'] = insert_file_data.inserted_id
+
         work_request_collection.insert_one(document)
 
     except Exception as e:
