@@ -106,9 +106,14 @@ async def get_request_dtl(request: Request) -> JSONResponse:
         ResponseRequestDtlModel,
         work_request_dto
         )
+    file_path = await download_file(wr_dtl['filePath'])
     response_content=json.loads(json.dumps(wr_dtl, indent=1, default=str))
+
+    response = await generate_multipart_response(response_content, file_path)
+
+    return response
     
-    return response_content
+    return JSONResponse(content=response_content)
 
 async def create_request(item: dict, file: None | UploadFile = File(...)) -> JSONResponse:
     document = dict(CreateWorkRequestModel(**item))

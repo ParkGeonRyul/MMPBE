@@ -1,9 +1,12 @@
 from fastapi import File, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import StreamingResponse
+from fastapi.encoders import jsonable_encoder
 from dotenv import load_dotenv
-import uuid
+from bson import ObjectId
 
+import uuid
 import os
+import aiofiles
 
 from db.context import file_collection
 
@@ -38,10 +41,54 @@ async def upload_file(file: UploadFile = File(...)):
 
     return response_data
 
-async def download_file(uuid_filename:str):
-    file_path = os.path.join(upload_path, uuid_filename)
+async def download_file(file_id:str | None):
+    if file_id:
+        test = file_collection.find_one({"_id": ObjectId(file_id)})
+        if not test:
 
-    if not os.path.exists(file_path):
-        return {"message": "File not found"}
+            return None
+        uuid_filename = test['uuid']
+        file_path = os.path.join(upload_path, uuid_filename)
+
+        if not os.path.exists(file_path):
+            return {"message": "File not found"}
+        
+        return file_path
     
-    return FileResponse(path=file_path, filename=uuid_filename)
+    return None
+
+async def generate_multipart_response(item, file_path):
+    boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW"
+    headers = {
+        "Content-Type": f"multipart/form-data; boundary={boundary}"
+    }
+
+    async def response_generator():
+        # JSON part
+        json_part = (
+            f"--{boundary}\r\n"
+            f"Content-Disposition: form-data; name=\"json_data\"\r\n"
+            f"Content-Type: application/json\r\n\r\n"
+            f"{jsonable_encoder(item)}\r\n"
+        )
+        yield json_part.encode("utf-8")
+
+        if file_path:
+            # File part
+            file_part_header = (
+                f"--{boundary}\r\n"
+                f"Content-Disposition: form-data; name=\"file\"; filename=\"{os.path.basename(file_path)}\"\r\n"
+                f"Content-Type: application/octet-stream\r\n\r\n"
+            )
+            yield file_part_header.encode("utf-8")
+            
+            async with aiofiles.open(file_path, 'rb') as file:
+                chunk = await file.read(1024)
+                while chunk:
+                    yield chunk
+                    chunk = await file.read(1024)
+
+            # Closing boundary
+            yield f"\r\n--{boundary}--\r\n".encode("utf-8")
+
+    return StreamingResponse(response_generator(), headers=headers)
