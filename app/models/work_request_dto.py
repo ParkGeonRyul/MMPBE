@@ -84,6 +84,7 @@ class ResponseRequestListModel(BaseModel):
     sales_representative_nm: str = Field(alias="salesRepresentativeNm")
     customer_nm: Optional[str] = Field(None, alias="customerNm")
     company_nm: Optional[str] = Field(None, alias="companyNm")
+    contract_title: Optional[str] = Field(None, alias="contractTitle")
     wr_date: Optional[str] = Field(None, alias="wrDate")
     status: str
     model_config = ConfigDict(
@@ -280,6 +281,7 @@ async def get_list(match: dict, projection: dict, db_collection: any, response_m
             },
             {
                 "$set": {
+                    "contract_title": "$contract_field.contract_title",
                     "sales_representative_nm": "$contract_field.sales_representative_nm",
                     "customer_nm": "$customer_field.user_nm",
                     "company_nm": "$company_field.company_nm"
