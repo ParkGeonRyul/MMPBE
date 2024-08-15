@@ -24,20 +24,27 @@ from typing import List
 async def get_plan_list(request: Request, is_temp: bool) -> JSONResponse:
     req_data = json.loads(await request.body())
     id = str(req_data['tokenData']['userId'])
+    menu = request.query_params.get("menu")
     role = str(req_data['role'])
     temporary_value = await is_temporary(is_temp)
+    
+    match = {
+        "plan_date": temporary_value,
+    }
+    if menu == "user":
+            match['status'] = {"$ne" : "회수"}
 
-    if role == 'user':
-        match = {
-                    "acceptor_id": id,
-                    "plan_date": temporary_value
-                }
+    if role != "system admin":
+        
+        match['del_yn']= "N"
+        
+    if role == "user":
 
-    elif role == 'admin' or role == 'system admin':    
-        match = {
-                    "user_id": id,
-                    "plan_date": temporary_value
-                }
+        match['acceptor_id'] = id
+        
+    if role == "admin":
+
+        match['user_id'] = id
 
     projection = {"_id": 1, "user_id": 1, "plan_title": 1, "acceptor_id": 1, "acceptor_nm": 1, "company_nm": 1,"requestor_nm":1, "plan_date": 1, "status": 1}   
     plan_list = await list_module.get_collection_list(match, work_plan_collection, projection, ResponsePlanListModel, work_plan_dto)
@@ -56,7 +63,7 @@ async def get_plan_dtl(request: Request) -> JSONResponse:
     id = str(req_data['tokenData']['userId'])
     role = str(req_data['role'])
     plan_id = request.query_params.get("_id")
-
+    
     if role == "user":
         projection = {
                         "_id": 1,
@@ -75,6 +82,7 @@ async def get_plan_dtl(request: Request) -> JSONResponse:
                         "updated_at": 1        
                     }
         get_plan = work_plan_collection.find_one({"_id": ObjectId(plan_id), "acceptor_id": id})        
+    
         if not get_plan:
             
             raise HTTPException(status_code=404, detail="plan not found")
@@ -98,11 +106,13 @@ async def get_plan_dtl(request: Request) -> JSONResponse:
                         "status_content": 1,
                         "updated_at": 1        
                     }
-        get_plan = work_plan_collection.find_one({"_id": ObjectId(plan_id), "user_id": id})
+        if role == "admin":
+            get_plan = work_plan_collection.find_one({"_id": ObjectId(plan_id), "user_id": id})
+        if role == "system admin":
+            get_plan = work_plan_collection.find_one({"_id": ObjectId(plan_id)})
         if not get_plan:
-            
             raise HTTPException(status_code=404, detail="plan not found")
-
+    
     match = {
         "_id": ObjectId(plan_id)
     }
