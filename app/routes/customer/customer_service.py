@@ -33,17 +33,31 @@ async def get_customer_list(request: Request) -> JSONResponse:
 
 async def get_customer_detail(request: Request) -> JSONResponse:
     user_id = request.query_params.get("_id")
-    match = {"_id": ObjectId(user_id)}
-    projection = {"company_field": 0}
-    
-    customer_dtl = await list_module.get_collection_list(
+    match = {
+        "_id": ObjectId(user_id)
+    }
+    projection = {
+        "_id" : 1,
+        "company_id" : 1,
+        "company_nm" : 1,
+        "user_nm" : 1,
+        "image" : 1,
+        "rank" : 1,
+        "company_contact" : 1,
+        "mobile_contact" : 1,
+        "email" : 1,
+        "responsible_party" : 1,
+        "role" : 1,
+        "created_at" : 1,
+        "del_yn" : 1
+    }
+    plan_dtl = await list_module.get_collection_dtl(
         match,
         user_collection,
         projection,
-        ResponseUserListModel,
+        ResponseUserDtlModel,
         user_dto
         )
-
-    response_content=json.loads(json.dumps(customer_dtl, indent=1, default=str))
+    response_content=json.loads(json.dumps(plan_dtl, indent=1, default=str))
     
     return response_content

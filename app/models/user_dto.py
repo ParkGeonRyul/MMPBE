@@ -112,10 +112,11 @@ class UserCollection(BaseModel):
 class ResponseUserListModel(BaseModel):
     id: str = Field(alias="_id")
     company_nm: Optional[str] = Field(alias="companyNm")
-    user_nm : str = UsersFields.user_nm
-    email: str = UsersFields.email
-    created_at: Optional[datetime] = UsersFields.created_at
-    del_yn: Optional[str] = UsersFields.del_yn
+    user_nm : str = Field(alias="userNm")
+    email: str
+    created_at: Optional[datetime] = Field(alias="createdAt")
+    mobile_contact: Optional[str] = Field(alias="mobileContact")
+    del_yn: Optional[str] = Field(alias="delYn")
     model_config = ConfigDict(
         extra='allow',
         from_attributes=True,
@@ -139,16 +140,15 @@ class ResponseUserDtlModel(BaseModel):
     id: str = Field(alias="_id")
     company_id: Optional[str] = Field(alias="companyId")
     company_nm: Optional[str] = Field(alias="companyNm")
-    user_nm : str = UsersFields.user_nm
-    rank: str = UsersFields.rank
-    company_contact: Optional[str] = UsersFields.company_contact
-    mobile_contact: str = UsersFields.mobile_contact
-    email: str = UsersFields.email
-    responsible_party: Optional[str] = UsersFields.responsible_party
-    role: Optional[str] = UsersFields.role
-    created_at: Optional[datetime] = UsersFields.created_at
-    updated_at: Optional[datetime] = UsersFields.updated_at
-    del_yn: Optional[str] = UsersFields.del_yn
+    user_nm : str = Field(alias="userNm")
+    rank: str
+    company_contact: Optional[str] = Field(alias="companyContact")
+    mobile_contact: str = Field(alias="mobileContact")
+    email: str
+    responsible_party: Optional[str] = Field(alias="responsibleParty")
+    role: Optional[str]
+    created_at: Optional[datetime] = Field(alias="createdAt")
+    del_yn: Optional[str] = Field(alias="delYn")
     model_config = ConfigDict(
         extra='allow',
         from_attributes=True,
@@ -168,7 +168,6 @@ class ResponseUserDtlModel(BaseModel):
                 "responsibleParty": "고객 분류",
                 "role": "역할(User, Admin, SystemAdmin)",
                 "createdAt": "생성 날짜",
-                "updatedAt": "수정 날짜",
                 "delYn": "삭제 여부"
             }
         }
@@ -215,9 +214,8 @@ async def get_list(match: dict, projection: dict, db_collection: any, response_m
         model_instance = response_model(**item)
         model_dict = model_instance.model_dump(by_alias=True, exclude_unset=True)
         content.append(model_dict)
-    convert_content = convert_keys_to_camel_case(content)
 
-    return convert_content
+    return content
 
 async def get_dtl(match: dict, projection: dict, db_collection: any, response_model: any):
     pipeline = [
@@ -257,8 +255,6 @@ async def get_dtl(match: dict, projection: dict, db_collection: any, response_mo
     for item in results:
         item['_id'] = str(item['_id'])
         item['created_at'] = str(item['created_at'])
-        if item['updated_at'] != None:
-            item['updated_at'] = str(item['updated_at'])
         model_instance = response_model(**item)
         model_dict = model_instance.model_dump(by_alias=True, exclude_unset=True)
         content.append(model_dict)
