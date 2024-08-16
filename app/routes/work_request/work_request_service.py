@@ -1,16 +1,23 @@
-from fastapi import Request, Response, UploadFile
+from fastapi import Request, Response, UploadFile, File
 from fastapi.responses import JSONResponse
+from dotenv import load_dotenv
 
 import json
+import uuid
+import os
 
-from db.context import work_request_collection, contract_collection, user_collection
+from db.context import work_request_collection, contract_collection, auth_collection, file_collection
 from datetime import datetime
 from bson import ObjectId
 from models.work_request_dto import *
 from routes._modules import list_module
 from routes._modules.list_module import is_temporary
+from routes._modules.file_server import *
 from models import work_request_dto
 
+load_dotenv()
+
+upload_path = os.getenv("UPLOAD_PATH")
 
 async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
     req_data = json.loads(await request.body())
@@ -30,7 +37,7 @@ async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
 
         match['customer_id'] = id
           
-    projection = {"_id": 1, "wr_title": 1, "sales_representative_nm": 1, "customer_nm": 1, "company_nm": 1, "wr_date": 1, "status": 1}
+    projection = {"_id": 1, "wr_title": 1, "sales_representative_nm": 1, "customer_nm": 1, "company_nm": 1, "contract_title":1, "wr_date": 1, "status": 1}
     
     wr_list = await list_module.get_collection_list(
         match,
@@ -81,6 +88,7 @@ async def get_request_dtl(request: Request) -> JSONResponse:
     projection = {
         "_id": 1,
         "wr_title": 1,
+        "solution_id": 1,
         "company_id": 1,
         "company_nm": 1,
         "sales_representative_nm": 1,
@@ -90,7 +98,9 @@ async def get_request_dtl(request: Request) -> JSONResponse:
         "wr_date": 1,
         "file_path": 1,
         "status": 1,
-        "status_content": 1
+        "status_content": 1,
+        "file_origin_nm": 1,
+        "file_url": 1
         }
     wr_dtl = await list_module.get_collection_dtl(
         match,
@@ -99,15 +109,22 @@ async def get_request_dtl(request: Request) -> JSONResponse:
         ResponseRequestDtlModel,
         work_request_dto
         )
-    response_content=json.loads(json.dumps(wr_dtl, indent=1, default=str))
+    test = file_collection.find_one({"_id": ObjectId(wr_dtl['filePath'])})
     
+    response_content=json.loads(json.dumps(wr_dtl, indent=1, default=str))
+
     return response_content
 
-async def create_request(request: Request, item: CreateWorkRequestModel) -> JSONResponse:
-    req_data = json.loads(await request.body())
-    document = item.model_dump()
-    document['customer_id'] = req_data['userData']['userId']
-    try:
+
+async def create_request(item: dict, file: None | UploadFile = File(...)) -> JSONResponse:
+    document = dict(CreateWorkRequestModel(**item))
+    document['customer_id'] = item['userId']
+
+    try: 
+        if file:
+             file_data = await upload_file(file)
+             document['file_path'] = file_data['file_id']
+
         work_request_collection.insert_one(document)
 
     except Exception as e:
@@ -118,14 +135,16 @@ async def create_request(request: Request, item: CreateWorkRequestModel) -> JSON
 
     return response_content
 
-async def update_request(request: Request, item: UpdateWorkRequestModel) -> JSONResponse:
+async def update_request(request: Request, item: dict, file: None | UploadFile = File(...)) -> JSONResponse:
     request_id = request.query_params.get("_id")
-    req_data = json.loads(await request.body())
-    document = item.model_dump()
-    document['customer_id'] = req_data['userData']['userId']
+    document = dict(CreateWorkRequestModel(**item))
+    document['customer_id'] = item['userId']
     try:
+        if file:
+             file_data = await upload_file(file)
+             document['file_path'] = file_data['file_id']
 
-        work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set": item.model_dump()})
+        work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set": document})
     
     except Exception as e:
             

@@ -17,7 +17,7 @@ async def get_category(request: Request) -> List[dict]:
         dict_for_find = {"company_id": get_user['company_id']}
     
     elif req_data['role'] == 'admin' or req_data['role'] == 'system admin':
-        dict_for_find = {"sales_representative_nm": req_data['tokenData']['userData']['name']}
+        dict_for_find = {"sales_representative_nm": req_data['tokenData']['name']}
         
     get_contract_by_user = contract_collection.find(dict_for_find, projection)
     content = []

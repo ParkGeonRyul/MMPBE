@@ -7,3 +7,7 @@ venv/
 venv/**
 venv/*
 dev.env
+.png
+.jpg
+.jpeg
+.pdf

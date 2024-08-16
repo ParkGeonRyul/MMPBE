@@ -62,6 +62,7 @@ async def access_token_manager(is_user:bool, check_token_existence:bool, access_
 
 @router.api_route("/v1/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", 'HEAD', 'PATCH'])
 async def proxy(request: Request, path: str):
+    req_body = await request.body()
     backend_url = f"{API_URL}{path}"
     access_token_cookie = request.cookies.get(COOKIES_KEY_NAME)
    
@@ -71,7 +72,7 @@ async def proxy(request: Request, path: str):
     async with AsyncClient() as client:
         method = request.method
         headers = request.headers
-        req_body = await request.body()
+        # req_body = await request.body()
 
         if not access_token_cookie: # 토큰 없는 경우
 
@@ -100,30 +101,26 @@ async def proxy(request: Request, path: str):
         if user_response.status_code == 200:
             user_data = user_response.json()
             document = {
-                "status": "valid",
+                "sign_status": "valid",
                 "userId": str(user_token['user_id']),
-                "userData": {
-                    "name": user_data.get("displayName"),
-                    "email": user_data.get("mail"),
-                    "jobTitle": user_data.get("jobTitle"),
-                    "mobilePhone": user_data.get("mobilePhone")
+                "name": user_data.get("displayName"),
+                "email": user_data.get("mail"),
+                "jobTitle": user_data.get("jobTitle"),
+                "mobilePhone": user_data.get("mobilePhone")
                 }
-            }
         else:  # 401
             find_user = user_collection.find_one({"_id": user_token['user_id']})
             if find_user:
                 reissue_token = msal_app.acquire_token_by_refresh_token(user_token["refresh_token"], scopes=["User.Read"])
                 await access_token_manager(True, True, reissue_token['access_token'], reissue_token['refresh_token'], user_token['user_id'], user_token['email'])
                 document = {
-                    "status": "refresh",
+                    "sign_status": "refresh",
                     "userId": str(user_token['user_id']),
-                    "user": {
-                        "name": find_user['user_nm'],
-                        "email": find_user['email'],
-                        "jobTitle": find_user['rank'],
-                        "mobilePhone": find_user['mobile_contact']
-                    }                
-                }
+                    "name": find_user['user_nm'],
+                    "email": find_user['email'],
+                    "jobTitle": find_user['rank'],
+                    "mobilePhone": find_user['mobile_contact']
+                    }
             else:
                 response = RedirectResponse(url=f"{MAIN_URL}{LOGIN_WITH_MS}")
                 response.delete_cookie(COOKIES_KEY_NAME)
@@ -134,10 +131,19 @@ async def proxy(request: Request, path: str):
         get_role = role_collection.find_one({"_id": ObjectId(get_user_info['role'])})
                 
         if req_body:
-            req_json = json.loads(req_body)
-            req_json['userData'] = document
-            modified_body = json.dumps(req_json)
-            response = await client.request(method, backend_url, headers={"Content-Type": "application/json"}, content=modified_body, cookies=request.cookies)
+            req_data = await request.form()
+            file = req_data.get("files")
+            if file:
+                req_json = {key: value for key, value in req_data.items() if key != "files"}
+                file_status = {'file_name': (file.filename, await file.read(), file.content_type)}
+            else:
+                req_json = {key: value for key, value in req_data.items()}
+                file_status = None
+
+            for key, value in document.items():
+                req_json[key] = value
+
+            response = await client.request(method, backend_url, data=req_json, cookies=request.cookies, files=file_status)
             
             return Response(content=response.content, status_code=response.status_code, headers=dict(response.headers))
 
@@ -145,6 +151,6 @@ async def proxy(request: Request, path: str):
             body_data = {'role': get_role['role_nm']}
             body_data['tokenData'] = document
             modified_body = json.dumps(body_data).encode('utf-8')
-            response = await client.request(method, backend_url, headers=headers, content=modified_body, cookies=request.cookies)
+            response = await client.request(method, backend_url, content=modified_body, cookies=request.cookies)
             
             return Response(content=response.content, status_code=response.status_code, headers=dict(response.headers))

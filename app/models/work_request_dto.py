@@ -4,11 +4,16 @@ from datetime import datetime
 from typing import List, Optional
 from bson import ObjectId
 from pydantic.alias_generators import to_camel
+from dotenv import load_dotenv
 
 import json
+import os
 
 from utils.pymongo_object_id import PyObjectId
 
+load_dotenv()
+
+file_url = os.getenv("FILE_URL")
 
 class WorkRequestField:
     id = Field(
@@ -105,6 +110,7 @@ class ResponseRequestListModel(BaseModel):
 
 class ResponseRequestDtlModel(BaseModel):
     id: str = Field(alias="_id")
+    solution_id: str = Field(alias="solutionId")
     wr_title: str = Field(alias="wrTitle")
     customer_id: str = Field(alias="customerId")
     customer_nm: str = Field(alias="customerNm")
@@ -116,6 +122,8 @@ class ResponseRequestDtlModel(BaseModel):
     content: Optional[str]
     status: Optional[str]
     status_content: Optional[str] = Field(alias="statusContent")
+    file_origin_nm: Optional[str] = Field(None, alias="fileOriginNm")
+    file_url: Optional[str] = Field(None, alias="fileUrl")
     model_config = ConfigDict(
         extra='allow',
         from_attributes=True,
@@ -339,10 +347,31 @@ async def get_dtl(match: dict, projection: dict, db_collection: any, response_mo
                   }
               },
               {
+                "$lookup": {
+                    "from": "files",
+                    "let": { "fileId": "$file_path" },
+                    "pipeline": [
+                        {
+                            "$match": {
+                                "$expr": {
+                                    "$eq": [ {"$toString": "$_id"}, "$$fileId"]
+                                }
+                            }
+                        }
+                    ],
+                    "as": "file_field"
+                  }
+              },
+              {
                   "$unwind": "$contract_field"
               },
               {
                   "$unwind": "$customer_field"
+              },
+              {
+                  "$unwind": {
+                  "path": "$file_field",
+                  "preserveNullAndEmptyArrays": True}
               },
               {
                 "$lookup": {
@@ -368,15 +397,17 @@ async def get_dtl(match: dict, projection: dict, db_collection: any, response_mo
                       "sales_representative_nm": "$contract_field.sales_representative_nm",
                       "customer_nm": "$customer_field.user_nm",
                       "company_id": "$customer_field.company_id",
-                      "company_nm": "$company_field.company_nm"
+                      "company_nm": "$company_field.company_nm",
+                      "file_origin_nm": {"$ifNull": ["$file_field.origin", None]},
+                      "file_url": {"$concat": [file_url, "$file_field.uuid"]}
                   }
             },
-              {
+            {
                   "$project": projection
-              },
-              {
+            },
+            {
                   "$limit": 1
-              }
+            }
           ]
     
     result = db_collection.aggregate(pipeline)
