@@ -10,8 +10,10 @@ from routes._modules import list_module
 from models import user_dto
 
 async def get_customer_list(request: Request) -> JSONResponse:
-    match = {}
-    projection = {"_id": 1, "company_nm": 1, "user_nm": 1, "email": 1, "created_at": 1, "del_yn": 1}
+    match = {
+        "role" : '66a83425be3a5f7919351fc1'
+    }
+    projection = {"_id": 1, "company_nm": 1, "user_nm": 1, "mobile_contact":1, "email": 1, "created_at": 1, "del_yn": 1}
     
     customer_list = await list_module.get_collection_list(
         match,
