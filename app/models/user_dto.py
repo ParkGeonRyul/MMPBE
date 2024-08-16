@@ -212,8 +212,6 @@ async def get_list(match: dict, projection: dict, db_collection: any, response_m
     for item in results:
         item['_id'] = str(item['_id'])
         item['created_at'] = str(item['created_at'])
-        if item['updated_at'] != None:
-            item['updated_at'] = str(item['updated_at'])
         model_instance = response_model(**item)
         model_dict = model_instance.model_dump(by_alias=True, exclude_unset=True)
         content.append(model_dict)
