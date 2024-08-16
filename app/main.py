@@ -8,7 +8,7 @@ from fastapi import FastAPI, Request
 from utils import lifespan
 from routes.auth import auth_controller
 from routes.page import page_controller
-from routes.user import user_controller
+from routes.customer import customer_controller
 from routes.category import category_controller
 from routes.work_request import work_request_controller
 from routes import index
@@ -25,7 +25,7 @@ cors_middleware.add(app)
 app.include_router(index.router)
 app.include_router(auth_controller.router)
 app.include_router(page_controller.router)
-app.include_router(user_controller.router)
+app.include_router(customer_controller.router)
 app.include_router(work_request_controller.router)
 app.include_router(category_controller.router)
 
