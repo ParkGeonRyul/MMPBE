@@ -43,3 +43,4 @@ msal
 pymongo
 alembic
 apscheduler
+aiofiles

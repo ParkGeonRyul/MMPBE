@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, UploadFile
+from fastapi import APIRouter, Form, status, Query
 from fastapi.responses import JSONResponse
 from fastapi.requests import Request
 
@@ -24,19 +24,31 @@ async def get_temporary_list(request: Request) -> JSONResponse:
     return await work_request_service.get_request_list(request, True)
 
 @router.get(READ_REQUEST_DETAIL, status_code=status.HTTP_200_OK, response_model_by_alias=True)
-async def get_request_dtl(request: Request) -> JSONResponse:
+async def get_request_dtl(request: Request, _id: str = Query(...)) -> JSONResponse:
 
     return await work_request_service.get_request_dtl(request)
 
 @router.post(CREATE_REQUEST, status_code=status.HTTP_200_OK, response_model_by_alias=False)       
-async def create_request(request: Request, item: CreateWorkRequestModel) -> JSONResponse:
-        
-    return await work_request_service.create_request(request, item)
+async def create_request(request: Request) -> JSONResponse:
+    req_body = await request.form()
+    file = req_body.get("file_name")
+    if file:
+        request_data = {key: value for key, value in req_body.items() if key != "files"}
+    else:
+        request_data = {key: value for key, value in req_body.items()}
+
+    return await work_request_service.create_request(request_data, file)
 
 @router.put(UPDATE_REQUEST, status_code=status.HTTP_200_OK, response_model_by_alias=False)       
-async def update_work_request(request: Request, item: UpdateWorkRequestModel):
+async def update_work_request(request: Request):
+    req_body = await request.form()
+    file = req_body.get("file_name")
+    if file:
+        request_data = {key: value for key, value in req_body.items() if key != "files"}
+    else:
+        request_data = dict(req_body)
 
-    return await work_request_service.update_request(request, item)
+    return await work_request_service.update_request(request, request_data, file)
 
 @router.put(DELETE_REQUEST, status_code=status.HTTP_200_OK, response_model_by_alias=False)
 async def delete_work_request(request: Request):

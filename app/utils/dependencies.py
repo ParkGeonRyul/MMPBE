@@ -7,7 +7,7 @@ from fastapi import HTTPException
 
 from constants import COOKIES_KEY_NAME
 # from models import db
-from routes.user import user_service
+from routes.customer import customer_service
 
 
 # def get_user(req: Request, res: Response) -> db.User:

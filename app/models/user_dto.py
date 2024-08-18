@@ -111,18 +111,44 @@ class UserCollection(BaseModel):
 
 class ResponseUserListModel(BaseModel):
     id: str = Field(alias="_id")
+    company_nm: Optional[str] = Field(alias="companyNm")
+    user_nm : str = Field(alias="userNm")
+    email: str
+    created_at: Optional[datetime] = Field(alias="createdAt")
+    mobile_contact: Optional[str] = Field(alias="mobileContact")
+    del_yn: Optional[str] = Field(alias="delYn")
+    model_config = ConfigDict(
+        extra='allow',
+        from_attributes=True,
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+        alias_generator=to_camel,
+        json_schema_extra={
+            "example": {
+                "_id": "ObjectID",
+                "companyNm": "고객사 이름",
+                "userNm": "고객 이름",
+                "email": "고객사 Email",
+                "createdAt": "생성 날짜",
+                "delYn": "삭제 여부"
+            }
+        }
+    )
+
+class ResponseUserDtlModel(BaseModel):
+    id: str = Field(alias="_id")
     company_id: Optional[str] = Field(alias="companyId")
     company_nm: Optional[str] = Field(alias="companyNm")
-    user_nm : str = UsersFields.user_nm
-    rank: str = UsersFields.rank
-    company_contact: Optional[str] = UsersFields.company_contact
-    mobile_contact: str = UsersFields.mobile_contact
-    email: str = UsersFields.email
-    responsible_party: Optional[str] = UsersFields.responsible_party
-    role: Optional[str] = UsersFields.role
-    created_at: Optional[datetime] = UsersFields.created_at
-    updated_at: Optional[datetime] = UsersFields.updated_at
-    del_yn: Optional[str] = UsersFields.del_yn
+    user_nm : str = Field(alias="userNm")
+    rank: str
+    company_contact: Optional[str] = Field(alias="companyContact")
+    mobile_contact: str = Field(alias="mobileContact")
+    email: str
+    responsible_party: Optional[str] = Field(alias="responsibleParty")
+    role: Optional[str]
+    created_at: Optional[datetime] = Field(alias="createdAt")
+    del_yn: Optional[str] = Field(alias="delYn")
     model_config = ConfigDict(
         extra='allow',
         from_attributes=True,
@@ -142,7 +168,6 @@ class ResponseUserListModel(BaseModel):
                 "responsibleParty": "고객 분류",
                 "role": "역할(User, Admin, SystemAdmin)",
                 "createdAt": "생성 날짜",
-                "updatedAt": "수정 날짜",
                 "delYn": "삭제 여부"
             }
         }
@@ -186,13 +211,54 @@ async def get_list(match: dict, projection: dict, db_collection: any, response_m
     for item in results:
         item['_id'] = str(item['_id'])
         item['created_at'] = str(item['created_at'])
-        if item['updated_at'] != None:
-            item['updated_at'] = str(item['updated_at'])
+        model_instance = response_model(**item)
+        model_dict = model_instance.model_dump(by_alias=True, exclude_unset=True)
+        content.append(model_dict)
+
+    return content
+
+async def get_dtl(match: dict, projection: dict, db_collection: any, response_model: any):
+    pipeline = [
+        {
+            "$match": match
+        },
+        {
+            "$lookup": {
+                "from": "company",
+                "let": { "companyId": "$company_id" },
+                "pipeline": [
+                    {
+                        "$match": {
+                            "$expr": {
+                                "$eq": [ {"$toString": "$_id"}, "$$companyId"]
+                            }
+                        }
+                    }
+                ],
+                "as": "company_field"
+                }
+        },
+        {
+            "$unwind": "$company_field"
+        },
+        {
+            "$set": {
+                "company_nm": "$company_field.company_nm"
+            }
+        },
+        {
+            "$project": projection
+        }
+    ]
+    results = db_collection.aggregate(pipeline)
+    content=[]
+    for item in results:
+        item['_id'] = str(item['_id'])
+        item['created_at'] = str(item['created_at'])
         model_instance = response_model(**item)
         model_dict = model_instance.model_dump(by_alias=True, exclude_unset=True)
         content.append(model_dict)
     convert_content = convert_keys_to_camel_case(content)
 
-    return convert_content
-    
+    return convert_content[0]
 

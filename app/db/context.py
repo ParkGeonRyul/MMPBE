@@ -23,6 +23,7 @@ user_collection = Database.db["users"]
 work_request_collection = Database.db["workRequest"]
 work_plan_collection = Database.db["workPlan"]
 auth_collection = Database.db["auth"]
+file_collection = Database.db["files"]
 
 # authCollection.drop_index("expireAt_1")
 

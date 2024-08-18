@@ -19,10 +19,16 @@ CATEGORY = V1 + SEPARATE + "category"
 
 # User paths
 USER = V1 + SEPARATE + "user"
-READ_USER = USER + SEPARATE + "readuser"
+SELECT_USER = USER + SEPARATE + "selectUser"
+SELECT_USER_DETAIL = SELECT_USER + SEPARATE + "detail"
 CREATE_USER = USER + SEPARATE + "createuser"
 UPDATE_USER = USER + SEPARATE + "updateuser"
 DELETE_USER = USER + SEPARATE + "deleteuser"
+
+# User paths
+CUSTOMER= V1 + SEPARATE + "customer"
+SELECT_CUSTOMER = CUSTOMER + SEPARATE + "selectCustomer"
+SELECT_CUSTOMER_DETAIL = SELECT_CUSTOMER + SEPARATE + "detail"
 
 # Request paths
 REQUEST = V1 + SEPARATE + "request"
