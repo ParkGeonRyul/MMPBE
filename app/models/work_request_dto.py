@@ -86,6 +86,7 @@ class ResponseRequestListModel(BaseModel):
     id: str = Field(alias="_id")
     wr_title: str = Field(alias="wrTitle")
     sales_representative_nm: str = Field(alias="salesRepresentativeNm")
+    customer_id: Optional[str] = Field(None, alias="customerId")
     customer_nm: Optional[str] = Field(None, alias="customerNm")
     company_nm: Optional[str] = Field(None, alias="companyNm")
     wr_date: Optional[str] = Field(None, alias="wrDate")
@@ -399,7 +400,7 @@ async def get_dtl(match: dict, projection: dict, db_collection: any, response_mo
                       "company_id": "$customer_field.company_id",
                       "company_nm": "$company_field.company_nm",
                       "file_origin_nm": {"$ifNull": ["$file_field.origin", None]},
-                      "file_url": {"$concat": [file_url, "$file_field.uuid"]}
+                      "file_url": {"$concat": [file_url, "$file_field.user_id", "/", "$file_field.uuid"]}
                   }
             },
             {
