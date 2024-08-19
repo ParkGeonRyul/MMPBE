@@ -134,7 +134,8 @@ async def get_approve_wr_list(request: Request, is_temp: bool) -> JSONResponse:
     return response_content
 
 async def update_plan_status(request: Request, item: UpdatePlanStatusAcceptModel) -> JSONResponse:
-    plan_id = item('_id')
+    req_body = await request.json()
+    plan_id = req_body['id']
     if(plan_id != ""):
         work_plan_collection.update_one({"_id": ObjectId(plan_id)}, {"$set": item.model_dump()})
         response_content = {"result": "success"}
@@ -144,7 +145,8 @@ async def update_plan_status(request: Request, item: UpdatePlanStatusAcceptModel
     return response_content
 
 async def update_plan_status_accept(request: Request, item: UpdatePlanStatusAcceptModel) -> JSONResponse:
-    plan_id = item('_id')
+    req_body = await request.json()
+    plan_id = req_body['id']
     if(plan_id != ""):
         work_plan_collection.update_one({"_id": ObjectId(plan_id)}, {"$set": item.model_dump()})
         response_content = {"result": "success"}
@@ -200,7 +202,8 @@ async def delete_temporary(request: Request, item: DeletePlanTempraryModel):
     return response_content
 
 async def del_yn_plan(request: Request):
-    request_id = request.query_params.get("requestId")
+    req_body = await request.json()
+    request_id = req_body['id']
     test = work_plan_collection.find_one({"_id": ObjectId(request_id)})
     if test['del_yn'] == "N":
         work_plan_collection.update_one({"_id": ObjectId(request_id)}, {"$set":{"del_yn": "Y"}})
