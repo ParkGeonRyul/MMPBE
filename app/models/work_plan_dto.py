@@ -159,7 +159,7 @@ class  UpdateWorkPlanModel(BaseModel):
 
 class  UpdatePlanStatusAcceptModel(BaseModel):
     status: Optional[str] = None
-    status_content: Optional[str] = WorkPlanField.status_content
+    status_content: Optional[str] = None
     updated_at: Optional[datetime] = WorkPlanField.updated_at
     model_config = ConfigDict(
         populate_by_name=True,
