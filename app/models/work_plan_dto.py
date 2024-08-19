@@ -236,8 +236,6 @@ class ResponsePlanDtlModel(BaseModel):
     user_id: str = Field(alias="requestorId")
     request_id: str = Field(alias="requestId")
     wr_title: str = Field(alias="wrTitle")
-    # user_field: dict
-    # acceptor_field: dict
     requestor_data: dict
     acceptor_data: dict
     plan_title: str = Field(alias='planTitle')
@@ -476,7 +474,7 @@ async def get_dtl(match: dict, projection: dict, db_collection: any, response_mo
                         "rank": "$user_field.rank",
                         "email": "$user_field.email",
                         "companyContact": "$user_field.company_contact",
-                        "mobileContact": "user_field.mobile_contact"
+                        "mobileContact": "$user_field.mobile_contact"
                       },
                       "acceptor_data": {
                           "_id": "$acceptor_field._id",
