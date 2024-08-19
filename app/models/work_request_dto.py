@@ -186,7 +186,7 @@ class  UpdateWorkRequestModel(BaseModel):
     status: Optional[str] = WorkRequestField.status # 승인, 반려, 요청, 회수(사용자, 시스템 관리자만 볼 수 있음)
     status_content: Optional[str] = WorkRequestField.status_content
     file_path: Optional[str] = WorkRequestField.file_path
-    updated_at: Optional[datetime] = WorkRequestField.updated_at # 업데이트 된 날짜(수정 불가)
+    updated_at: datetime = WorkRequestField.updated_at # 업데이트 된 날짜(수정 불가)
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
