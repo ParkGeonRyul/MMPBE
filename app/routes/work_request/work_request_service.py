@@ -170,7 +170,8 @@ async def delete_request(request: Request) -> JSONResponse:
     return response_content
 
 async def update_request_status(request: Request, item: UpdateRequestStatusAcceptModel) -> JSONResponse:
-    request_id = request.query_params.get("_id")
+    req_body = await request.body()
+    request_id = req_body['_id']
     try:
         work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set":item.model_dump()})
 
