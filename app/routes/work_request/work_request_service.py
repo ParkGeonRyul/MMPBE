@@ -120,7 +120,7 @@ async def create_request(item: dict, file: None | UploadFile = File(...)) -> JSO
 
     try: 
         if file:
-             file_data = await upload_file(file)
+             file_data = await upload_file(item['userId'], file)
              document['file_path'] = file_data['file_id']
 
         work_request_collection.insert_one(document)
@@ -135,11 +135,11 @@ async def create_request(item: dict, file: None | UploadFile = File(...)) -> JSO
 
 async def update_request(request: Request, item: dict, file: None | UploadFile = File(...)) -> JSONResponse:
     request_id = request.query_params.get("_id")
-    document = dict(CreateWorkRequestModel(**item))
+    document = dict(UpdateWorkRequestModel(**item))
     document['customer_id'] = item['userId']
     try:
         if file:
-             file_data = await upload_file(file)
+             file_data = await upload_file(item['userId'], file)
              document['file_path'] = file_data['file_id']
 
         work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set": document})
