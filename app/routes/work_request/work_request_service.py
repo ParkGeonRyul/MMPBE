@@ -134,7 +134,6 @@ async def create_request(item: dict, file: None | UploadFile = File(...)) -> JSO
     return response_content
 
 async def update_request(request: Request, item: dict, file: None | UploadFile = File(...)) -> JSONResponse:
-    request_id = request.query_params.get("_id")
     document = dict(UpdateWorkRequestModel(**item))
     document['customer_id'] = item['userId']
     try:
@@ -142,7 +141,7 @@ async def update_request(request: Request, item: dict, file: None | UploadFile =
              file_data = await upload_file(item['userId'], file)
              document['file_path'] = file_data['file_id']
 
-        work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set": document})
+        work_request_collection.update_one({"_id": ObjectId(document['id'])}, {"$set": document})
     
     except Exception as e:
             
@@ -170,7 +169,9 @@ async def delete_request(request: Request) -> JSONResponse:
     return response_content
 
 async def update_request_status(request: Request, item: UpdateRequestStatusAcceptModel) -> JSONResponse:
-    request_id = request.query_params.get("_id")
+    req_body = await request.json()
+    request_id = req_body["_id"]
+    print(request_id)
     try:
         work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set":item.model_dump()})
 
