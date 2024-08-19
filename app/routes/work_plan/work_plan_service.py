@@ -3,7 +3,7 @@ import pymongo
 import os
 
 from db.context import work_plan_collection, work_request_collection
-from fastapi import HTTPException, Request, Response, UploadFile
+from fastapi import HTTPException, Request, Response, UploadFile, File
 from fastapi.responses import JSONResponse
 from db.context import Database
 from routes.auth import auth_service
@@ -18,6 +18,7 @@ from constants import COOKIES_KEY_NAME
 from utils.objectId_convert import objectId_convert
 from routes._modules import list_module, response_cookie_module
 from routes._modules.list_module import is_temporary
+from routes._modules.file_server import *
 from uuid import uuid4
 from typing import List
     
@@ -181,41 +182,44 @@ async def update_plan_status_accept(request: Request, item: UpdatePlanStatusAcce
     
     return response_content
 
-async def create_plan(request: Request, item: CreateWorkPlanModel) -> JSONResponse:
-    req_data = json.loads(await request.body())
-    document = item.model_dump()
-    document['user_id'] = req_data['userData']['userId']
-    work_plan_collection.insert_one(document)
+async def create_plan(item: dict, file: None | UploadFile = File(...)) -> JSONResponse:
+    document = dict(CreateWorkPlanModel(**item))
+    document['user_id'] = item['userId']
+
+    try: 
+        if file:
+             file_data = await upload_file(item['userId'], file)
+             document['file_path'] = file_data['file_id']
+
+        work_plan_collection.insert_one(document)
+
+    except Exception as e:
+            
+            raise HTTPException(status_code=500, detail=str(e))
+    
     response_content = {"message": "Request Plan Created"}
     
     return response_content
 
-async def create_temporary(request: Request, item: CreateWorkPlanModel) -> JSONResponse:
-    access_token = request.cookies.get(COOKIES_KEY_NAME)
-    token_data = await auth_service.validate_token(access_token)
-    work_plan_collection.insert_one(item.model_dump())
-    response_content = {"message": "Temporary Request Created"}
+async def update_plan(request: Request, item: dict, file: None | UploadFile = File(...)) -> JSONResponse:
+    request_id = request.query_params.get("requestId")
+    document = dict(CreateWorkPlanModel(**item))
+    document['user_id'] = item['userId']
+
+    try: 
+        if file:
+             file_data = await upload_file(item['userId'], file)
+             document['file_path'] = file_data['file_id']
+
+        work_plan_collection.update_one({"_id": ObjectId(request_id)}, {"$set": document})
+
+    except Exception as e:
+            
+            raise HTTPException(status_code=500, detail=str(e))
     
-    return await response_cookie_module.set_response_cookie(token_data, response_content)
+    response_content = {"message": "Request Plan Updated"}
 
-async def update_temporary(request: Request, item: UpdateWorkPlanModel) -> JSONResponse:
-    access_token = request.cookies.get(COOKIES_KEY_NAME)
-    request_id = request.query_params.get("requestId")
-    token_data = await auth_service.validate_token(access_token)
-    work_plan_collection.update_one({"_id": ObjectId(request_id)}, {"$set": item.model_dump()})
-    response_content = {"message": "Temporary Request Updated"}
-
-    return await response_cookie_module.set_response_cookie(token_data, response_content)
-
-async def update_plan(request: Request, item: UpdateWorkPlanModel) -> JSONResponse:
-    access_token = request.cookies.get(COOKIES_KEY_NAME)
-    request_id = request.query_params.get("requestId")
-    token_data = await auth_service.validate_token(access_token)
-    item['created_at'] = datetime.now()
-    work_plan_collection.update_one({"_id": ObjectId(request_id)}, {"$set": item.model_dump()})
-    response_content = {"message": "Request Created"}
-
-    return await response_cookie_module.set_response_cookie(token_data, response_content)
+    return response_content
 
 async def delete_temporary(request: Request, item: DeletePlanTempraryModel):
     access_token = request.cookies.get(COOKIES_KEY_NAME)

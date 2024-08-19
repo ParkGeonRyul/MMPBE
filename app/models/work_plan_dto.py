@@ -47,11 +47,11 @@ class WorkPlanField:
         default=datetime.now(),
         alias="planDate"
     )
-    file = Field(
+    file_path = Field(
         description="첨부 파일",
         example="Zone파일.zip",
         default=None,
-        alias="file"
+        alias="filePath"
     )
     status = Field(
         description="승인 여부",
@@ -82,24 +82,23 @@ class WorkPlanField:
     )
 
 class CreateWorkPlanModel(BaseModel): # fe -> be
-    user_id: Optional[str] = Field(default=None, alias="userId") #등록자 id (작업계획서 수신자 id)
-    acceptor_id: str = Field(default=None, alias="acceptorId") # 발신자 id (작업요청자 수신자 id)
-    request_id: str = Field(default=None, alias="requestId") # 작업 요청서 id
-    plan_title: str = Field(default=None, alias="planTitle") # 필수
-    plan_content: str = Field(default=None, alias="planContent")
-    plan_date: Optional[datetime] = Field(default_factory=datetime.now, alias="planDate") # None == 임시저장, 사용자가 요청 이후에 수정이 안 됨.
-    file: Optional[str] = Field(default=None, alias="file") #파일경로
-    status: Optional[str] = Field(default="요청", alias="status") # 승인, 반려, 요청, 회수(시스템 관리자만 볼 수 있음)
-    status_content : Optional[str] = Field(default=None , alias="statusContent") # 승인내용, 반려사유 (계획서 수신자가 작성)
-    created_at: Optional[datetime] = Field(default_factory=datetime.now, alias="createdAt") # 최초 이후 수정이 안 됨
-    updated_at: Optional[datetime] = Field(default_factory=datetime.now, alias="updatedAt") 
-    del_yn: Optional[str] = Field(default="N", alias="delYn") # 시스템 관리자를 위한
-
-    class Config:
-        from_attributes = True
-        populate_by_name = True
-        json_encoders = {ObjectId: str}
-        arbitrary_types_allowed = True
+    user_id: Optional[str] = WorkPlanField.user_id
+    acceptor_id: str = WorkPlanField.acceptor_id
+    request_id: str = WorkPlanField.request_id
+    plan_title: str = WorkPlanField.plan_title
+    plan_content: str = WorkPlanField.plan_content
+    plan_date: Optional[datetime] = WorkPlanField.plan_date
+    file_path: Optional[str] = WorkPlanField.file_path
+    status: Optional[str] = WorkPlanField.status
+    status_content : Optional[str] = WorkPlanField.status_content
+    created_at: Optional[datetime] = WorkPlanField.created_at
+    updated_at: Optional[datetime] = WorkPlanField.updated_at
+    del_yn: Optional[str] = WorkPlanField.del_yn
+    model_config = ConfigDict(
+        from_attributes = True,
+        populate_by_name = True,
+        json_encoders = {ObjectId: str},
+        arbitrary_types_allowed = True,
         json_schema_extra = {
             "example": {
                 "userId": "6690cf7fa4897bf6b90541c1",
@@ -108,31 +107,28 @@ class CreateWorkPlanModel(BaseModel): # fe -> be
                 "planTitle": "계획서 제목",
                 "planContent": "계획서 내용",
                 "planDate": "2024-08-05 00:00:00",
-                "file": "파일 명",
+                "filePath": "파일ID(ObjectID)",
                 "status": "요청",
                 "statusContent": "승인내용",
                 "createdAt": "2024-08-05 00:00:00",
-                "updatedAt": "2024-08-05 00:00:00",
-                "delYn": "N"
+                "updatedAt": "2024-08-05 00:00:00"
             }
         }
+    )
 
 class  UpdateWorkPlanModel(BaseModel):
-    id: Optional[PyObjectId] = None
-    user_id: Optional[str] = None
-    device_nm: Optional[str] = None
-    contact_nm: Optional[str] = None
-    plan_title: Optional[str] = None
-    customer_nm: Optional[str] = None
-    plan_dt: Optional[datetime] = None
-    plan_content: Optional[str] = None
-    file: Optional[str] = None
-    status: Optional[str] = None
-    acceptor_nm: Optional[str] = None
-    reg_yn: Optional[str] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-    del_yn: Optional[str] = None
+    user_id: Optional[str] = WorkPlanField.user_id
+    acceptor_id: str = WorkPlanField.acceptor_id
+    request_id: str = WorkPlanField.request_id
+    plan_title: str = WorkPlanField.plan_title
+    plan_content: str = WorkPlanField.plan_content
+    plan_date: Optional[datetime] = WorkPlanField.plan_date
+    file_path: Optional[str] = WorkPlanField.file_path
+    status: Optional[str] = WorkPlanField.status
+    status_content : Optional[str] = WorkPlanField.status_content
+    created_at: Optional[datetime] = WorkPlanField.created_at
+    updated_at: Optional[datetime] = WorkPlanField.updated_at
+    del_yn: Optional[str] = WorkPlanField.del_yn
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
@@ -140,15 +136,16 @@ class  UpdateWorkPlanModel(BaseModel):
         json_schema_extra={
             "example": {
                 "userId": "6690cf7fa4897bf6b90541c1",
-                "requestPlanId": "작업계획서(ObjectID)",
-                "contactNm": "담당자 이름(Maven)",
-                "requestTitle": "요청 제목",
-                "customerNm": "고객 이름",
-                "requestDate": "임시저장 == NULL",
-                "content": "작업 내용",
-                "file": "파일 명",
-                "status": "승인",
-                "delYn": "삭제 여부"
+                "acceptorId": "작업요청자 수신자 id(ObjectID)",
+                "requestId": "작업계획서(ObjectID)",
+                "planTitle": "계획서 제목",
+                "planContent": "계획서 내용",
+                "planDate": "2024-08-05 00:00:00",
+                "filePath": "파일ID(ObjectID)",
+                "status": "요청",
+                "statusContent": "승인내용",
+                "createdAt": "2024-08-05 00:00:00",
+                "updatedAt": "2024-08-05 00:00:00"
             }
         }
     )
@@ -199,7 +196,6 @@ class UpdateDelYnWorkPlanModel(BaseModel):
         }
     )
 
-# "_id": 1, "user_id": 1, "plan_title": 1, "acceptor_Id": 1, "acceptor_nm": 1, "plan_date": 1, "status": 1
 class ResponsePlanListModel(BaseModel):
     id: str = Field(alias="_id")
     user_id: str = Field(alias="userId")

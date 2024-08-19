@@ -400,7 +400,7 @@ async def get_dtl(match: dict, projection: dict, db_collection: any, response_mo
                       "company_id": "$customer_field.company_id",
                       "company_nm": "$company_field.company_nm",
                       "file_origin_nm": {"$ifNull": ["$file_field.origin", None]},
-                      "file_url": {"$concat": [file_url, "$file_field.uuid"]}
+                      "file_url": {"$concat": [file_url, "$file_field.user_id", "/", "$file_field.uuid"]}
                   }
             },
             {

@@ -43,8 +43,15 @@ async def update_plan_status_accept(request: Request, item: UpdatePlanStatusAcce
     return await work_plan_service.update_plan_status_accept(request, item)
     
 @router.post(CREATE_PLAN, status_code=status.HTTP_200_OK, response_model_by_alias=False)       
-async def create_plan(request: Request, item: CreateWorkPlanModel):
-    return await work_plan_service.create_plan(request, item)
+async def create_plan(request: Request) -> JSONResponse:
+    req_body = await request.form()
+    file = req_body.get("file_name")
+    if file:
+        request_data = {key: value for key, value in req_body.items() if key != "files"}
+    else:
+        request_data = {key: value for key, value in req_body.items()}
+
+    return await work_plan_service.create_plan(request_data, file)
 
 @router.get(SELECT_PLAN_TEMPORARY, status_code=status.HTTP_200_OK, response_model_by_alias=False)
 async def get_temporary_list(request: Request):
@@ -54,29 +61,16 @@ async def get_temporary_list(request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post(CREATE_PLAN_TEMPORARY, status_code=status.HTTP_201_CREATED, response_model_by_alias=False)       
-async def create_temporary(request: Request, item: CreateWorkPlanModel):
-    try:
-        return await work_plan_service.create_temporary(request, item)
-    
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 @router.put(UPDATE_PLAN, status_code=status.HTTP_200_OK, response_model_by_alias=False)       
-async def update_work_plan(request: Request, item: UpdateWorkPlanModel):
-    try:
-        return await work_plan_service.update_plan(request, item)
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+async def update_work_plan(request: Request):
+    req_body = await request.form()
+    file = req_body.get("file_name")
+    if file:
+        request_data = {key: value for key, value in req_body.items() if key != "files"}
+    else:
+        request_data = {key: value for key, value in req_body.items()}
 
-@router.put(UPDATE_PLAN_TEMPORARY, status_code=status.HTTP_200_OK, response_model_by_alias=False)       
-async def update_temporary(request: Request, item: UpdateWorkPlanModel):
-    try:
-        return await work_plan_service.update_temporary(request, item)
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return await work_plan_service.update_plan(request, request_data, file)
 
 @router.delete(DELETE_PLAN_TEMPORARY, status_code=status.HTTP_200_OK)
 async def delete_temporary(request: Request, item: DeletePlanTempraryModel):
