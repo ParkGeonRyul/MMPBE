@@ -100,7 +100,6 @@ async def proxy(request: Request, path: str):
 
         if user_response.status_code == 200:
             user_data = user_response.json()
-            print(user_data)
             document = {
                 "sign_status": "valid",
                 "userId": str(user_token['user_id']),
