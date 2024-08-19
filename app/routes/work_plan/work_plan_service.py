@@ -64,56 +64,44 @@ async def get_plan_dtl(request: Request) -> JSONResponse:
     id = str(req_data['tokenData']['userId'])
     role = str(req_data['role'])
     plan_id = request.query_params.get("_id")
+    projection = {
+                        "_id": 1,
+                        "user_id": 1,
+                        "requestor_nm": 1,
+                        "request_id": 1,
+                        'company_id': 1,
+                        'company_nm': 1,
+                        "wr_title": 1,
+                        "acceptor_id": 1,
+                        "acceptor_nm": 1,
+                        "plan_title": 1,
+                        "plan_content": 1,
+                        "plan_date": 1,
+                        "file_origin_nm": 1,
+                        "file_url": 1,
+                        "status": 1,
+                        "status_content": 1,
+                        "updated_at": 1        
+                    }
     
+    find_data = {"_id": ObjectId(plan_id)}    
+
     if role == "user":
-        projection = {
-                        "_id": 1,
-                        "user_id": 1,
-                        "requestor_nm": 1,
-                        "request_id": 1,
-                        "wr_title": 1,
-                        "acceptor_id": 1,
-                        "acceptor_nm": 1,
-                        "plan_title": 1,
-                        "plan_content": 1,
-                        "plan_date": 1,
-                        "file_path": 1,
-                        "status": 1,
-                        "status_content": 1,
-                        "updated_at": 1        
-                    }
-        get_plan = work_plan_collection.find_one({"_id": ObjectId(plan_id), "acceptor_id": id})        
+        
+        del projection['company_id']
+        del projection['company_nm']
+        find_data['acceptor_id'] = id
     
-        if not get_plan:
-            
-            raise HTTPException(status_code=404, detail="plan not found")
-    
-    elif role == "admin" or role == "system admin":
-        projection = {
-                        "_id": 1,
-                        "user_id": 1,
-                        "requestor_nm": 1,
-                        "request_id": 1,
-                        "wr_title": 1,
-                        "company_id": 1,
-                        "company_nm": 1,
-                        "acceptor_id": 1,
-                        "acceptor_nm": 1,
-                        "plan_title": 1,
-                        "plan_content": 1,
-                        "plan_date": 1,
-                        "file_path": 1,
-                        "status": 1,
-                        "status_content": 1,
-                        "updated_at": 1        
-                    }
-        if role == "admin":
-            get_plan = work_plan_collection.find_one({"_id": ObjectId(plan_id), "user_id": id})
-        if role == "system admin":
-            get_plan = work_plan_collection.find_one({"_id": ObjectId(plan_id)})
-        if not get_plan:
-            raise HTTPException(status_code=404, detail="plan not found")
-    
+    elif role == "admin":
+
+        find_data['user_id'] = id
+        
+    get_plan = work_plan_collection.find_one(find_data)
+
+    if not get_plan:
+
+        raise HTTPException(status_code=404, detail="plan not found")
+
     match = {
         "_id": ObjectId(plan_id)
     }
