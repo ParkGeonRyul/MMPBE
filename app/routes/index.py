@@ -131,19 +131,26 @@ async def proxy(request: Request, path: str):
         get_role = role_collection.find_one({"_id": ObjectId(get_user_info['role'])})
                 
         if req_body:
-            req_data = await request.form()
-            file = req_data.get("files")
-            if file:
-                req_json = {key: value for key, value in req_data.items() if key != "files"}
-                file_status = {'file_name': (file.filename, await file.read(), file.content_type)}
-            else:
-                req_json = {key: value for key, value in req_data.items()}
-                file_status = None
+            content_type = request.headers.get("Content-Type")
+            
+            if content_type.startswith("multipart/form-data"):
+                req_data = await request.form()
+                file = req_data.get("files")
+                if file:
+                    req_json = {key: value for key, value in req_data.items() if key != "files"}
+                    file_status = {'file_name': (file.filename, await file.read(), file.content_type)}
+                else:
+                    req_json = {key: value for key, value in req_data.items()}
+                    file_status = None
 
-            for key, value in document.items():
-                req_json[key] = value
+                for key, value in document.items():
+                    req_json[key] = value
 
-            response = await client.request(method, backend_url, data=req_json, cookies=request.cookies, files=file_status)
+                response = await client.request(method, backend_url, data=req_json, cookies=request.cookies, files=file_status)
+
+            elif content_type == "application/json" :
+                req_data = await request.body()
+                response = await client.request(method, backend_url, content=req_data, cookies=request.cookies)
             
             return Response(content=response.content, status_code=response.status_code, headers=dict(response.headers))
 
