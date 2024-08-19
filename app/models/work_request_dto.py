@@ -177,6 +177,7 @@ class CreateWorkRequestModel(BaseModel): # fe -> be
     )
 
 class  UpdateWorkRequestModel(BaseModel):
+    id: str = WorkRequestField.id
     solution_id: Optional[str] = WorkRequestField.solution_id # 계약 ID
     wr_title: Optional[str] = WorkRequestField.wr_title # 필수
     content: Optional[str] = WorkRequestField.content

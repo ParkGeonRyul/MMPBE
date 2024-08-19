@@ -158,6 +158,7 @@ class  UpdateWorkPlanModel(BaseModel):
     )
 
 class  UpdatePlanStatusAcceptModel(BaseModel):
+    id: Optional[str] = WorkPlanField.id
     status: Optional[str] = None
     status_content: Optional[str] = WorkPlanField.status_content
     updated_at: Optional[datetime] = WorkPlanField.updated_at

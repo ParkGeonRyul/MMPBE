@@ -134,9 +134,9 @@ async def get_approve_wr_list(request: Request, is_temp: bool) -> JSONResponse:
     return response_content
 
 async def update_plan_status(request: Request, item: UpdatePlanStatusAcceptModel) -> JSONResponse:
-    _id = request.query_params.get("_id")
-    if(_id != ""):
-        work_plan_collection.update_one({"_id": ObjectId(_id)}, {"$set": item.model_dump()})
+    plan_id = item('_id')
+    if(plan_id != ""):
+        work_plan_collection.update_one({"_id": ObjectId(plan_id)}, {"$set": item.model_dump()})
         response_content = {"result": "success"}
     else:
         response_content = {"result": "fail"}
@@ -144,9 +144,9 @@ async def update_plan_status(request: Request, item: UpdatePlanStatusAcceptModel
     return response_content
 
 async def update_plan_status_accept(request: Request, item: UpdatePlanStatusAcceptModel) -> JSONResponse:
-    _id = request.query_params.get("_id")
-    if(_id != ""):
-        work_plan_collection.update_one({"_id": ObjectId(_id)}, {"$set": item.model_dump()})
+    plan_id = item('_id')
+    if(plan_id != ""):
+        work_plan_collection.update_one({"_id": ObjectId(plan_id)}, {"$set": item.model_dump()})
         response_content = {"result": "success"}
     else:
         response_content = {"result": "fail"}
@@ -173,8 +173,8 @@ async def create_plan(item: dict, file: None | UploadFile = File(...)) -> JSONRe
     return response_content
 
 async def update_plan(request: Request, item: dict, file: None | UploadFile = File(...)) -> JSONResponse:
-    request_id = request.query_params.get("requestId")
-    document = dict(CreateWorkPlanModel(**item))
+    plan_id = item['id']
+    document = dict(UpdateWorkPlanModel(**item))
     document['user_id'] = item['userId']
 
     try: 
@@ -182,7 +182,7 @@ async def update_plan(request: Request, item: dict, file: None | UploadFile = Fi
              file_data = await upload_file(item['userId'], file)
              document['file_path'] = file_data['file_id']
 
-        work_plan_collection.update_one({"_id": ObjectId(request_id)}, {"$set": document})
+        work_plan_collection.update_one({"_id": ObjectId(plan_id)}, {"$set": document})
 
     except Exception as e:
             
