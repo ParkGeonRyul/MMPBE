@@ -207,6 +207,7 @@ class ResponsePlanListModel(BaseModel):
     id: str = Field(alias="_id")
     user_id: str = Field(alias="userId")
     plan_title: str = Field(alias="planTitle")
+    wr_title: str = Field(alias="wrTitle")
     acceptor_id: Optional[str] = Field(None, alias="acceptorId")
     acceptor_nm: Optional[str] = Field(None, alias="acceptorNm")
     company_nm: Optional[str] = Field(None, alias="companyNm")
@@ -271,6 +272,22 @@ async def get_list(match: dict, projection: dict, db_collection: any, response_m
                 },
                 {
                   "$lookup": {
+                        "from": "workRequest",
+                        "let": { "requestId": "$request_id" },
+                        "pipeline": [
+                          {
+                              "$match": {
+                                  "$expr": {
+                                      "$eq": [ {"$toString": "$_id"}, "$$requestId"]
+                                  }
+                              }
+                          }
+                      ],
+                      "as": "request_field"
+                  }
+                },
+                {
+                  "$lookup": {
                         "from": "users",
                         "let": { "acceptorId": "$acceptor_id" },
                         "pipeline": [
@@ -303,6 +320,12 @@ async def get_list(match: dict, projection: dict, db_collection: any, response_m
                 },
                 {
                     "$unwind": {
+                        "path": "$request_field",
+                        "preserveNullAndEmptyArrays": False
+                        }
+                },
+                {
+                    "$unwind": {
                         "path": "$acceptor_field",
                         "preserveNullAndEmptyArrays": True
                         }
@@ -317,7 +340,8 @@ async def get_list(match: dict, projection: dict, db_collection: any, response_m
                     "$set": {
                         "acceptor_id": {"$toString": "$acceptor_field._id"},
                         "acceptor_nm": "$acceptor_field.user_nm",
-                        "requestor_nm": "$user_field.user_nm"
+                        "requestor_nm": "$user_field.user_nm",
+                        "wr_title": "$request_field.wr_title"
                     }
                 },
                 {
