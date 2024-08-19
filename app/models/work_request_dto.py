@@ -10,6 +10,7 @@ import json
 import os
 
 from utils.pymongo_object_id import PyObjectId
+from utils.snake_by_camel import convert_keys_to_camel_case
 
 load_dotenv()
 
@@ -121,11 +122,7 @@ class ResponseRequestDtlModel(BaseModel):
     content: Optional[str]
     status: Optional[str]
     status_content: Optional[str] = Field(alias="statusContent")
-    file_id: Optional[str] = Field(alias="fileId")
-    file_origin_nm: Optional[str] = Field(None, alias="fileOriginNm")
-    file_url: Optional[str] = Field(None, alias="fileUrl")
-    file_size: Optional[str] = Field(None, alias="fileSize")
-    file_type: Optional[str] = Field(None, alias="fileType")
+    file: dict = Field(None)
     model_config = ConfigDict(
         extra='allow',
         from_attributes=True,
@@ -400,11 +397,13 @@ async def get_dtl(match: dict, projection: dict, db_collection: any, response_mo
                       "customer_nm": "$customer_field.user_nm",
                       "company_id": "$customer_field.company_id",
                       "company_nm": "$company_field.company_nm",
-                      "file_id": "$file_path",
-                      "file_origin_nm": {"$ifNull": ["$file_field.origin", None]},
-                      "file_url": {"$concat": [file_url, "$file_field.uuid"]},
-                      "file_size": {"$toString": {"$multiply": [{"$ceil": {"$multiply": [{"$divide": ["$file_field.size", 1048576]}, 10]}}, 0.1]}},
-                      "file_type": "$file_field.extension"
+                      "file": { "$ifNull": [{
+                        "fileId": "$file_path",
+                        "fileOriginNm": {"$ifNull": ["$file_field.origin", None]},
+                        "fileUrl": {"$concat": [file_url, "$file_field.uuid"]},
+                        "fileSize": {"$toString": {"$multiply": [{"$ceil": {"$multiply": [{"$divide": ["$file_field.size", 1048576]}, 10]}}, 0.1]}},
+                        "fileType": "$file_field.extension"
+                        }, None]}
                   }
             },
             {
@@ -422,9 +421,9 @@ async def get_dtl(match: dict, projection: dict, db_collection: any, response_mo
         item['wr_date'] = str(item['wr_date'])
 
         if response_model == ResponseRequestDtlModel:
+
             model_instance = ResponseRequestDtlModel(**item)
-        # elif response_model == ResponsePlanDtlModel:
-        #     model_instance = ResponsePlanDtlModel(**item)
+
         else:
             raise ValueError("Unknown response model type")
         model_dict = model_instance.model_dump(by_alias=True, exclude_unset=True)

@@ -99,10 +99,7 @@ async def get_request_dtl(request: Request) -> JSONResponse:
         "status": 1,
         "file_id": 1,
         "status_content": 1,
-        "file_origin_nm": 1,
-        "file_url": 1,
-        "file_size": 1,
-        "file_type": 1
+        "file": 1,
         }
     wr_dtl = await list_module.get_collection_dtl(
         match,
