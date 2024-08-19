@@ -29,11 +29,13 @@ async def upload_file(id: str, file: UploadFile = File(...)):
 
     with open(file_path, "wb") as buffer:
         buffer.write(await file.read())
+    
+    type = file_extension.split('.')
 
     file_data = {
         'origin': file.filename,
         'uuid': uuid_file,
-        'extension': file_extension,
+        'extension': type[1],
         'size': file.size,
         'user_id': id
         }
