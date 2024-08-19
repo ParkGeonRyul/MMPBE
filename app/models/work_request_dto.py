@@ -55,8 +55,8 @@ class WorkRequestField:
         alias="wrDate"
     )
     file_path = Field(
+        None,
         description="파일 경로",
-        default=None,
         alias="filePath"
     )
     status = Field(

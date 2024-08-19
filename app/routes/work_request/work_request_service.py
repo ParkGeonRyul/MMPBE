@@ -173,7 +173,6 @@ async def delete_request(request: Request) -> JSONResponse:
 async def update_request_status(request: Request, item: UpdateRequestStatusAcceptModel) -> JSONResponse:
     request_id = request.query_params.get("_id")
     try:
-
         work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set":item.model_dump()})
 
     except Exception as e:

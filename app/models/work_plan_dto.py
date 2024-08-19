@@ -1,12 +1,19 @@
 from pydantic import BaseModel, Field, ConfigDict, ValidationError
-from utils.pymongo_object_id import PyObjectId
-
-from pydantic.functional_validators import AfterValidator
-from datetime import datetime
+from dotenv import load_dotenv
 from typing import Any, List, Optional
 from typing_extensions import Annotated
 from bson import ObjectId
+from datetime import datetime
 from pydantic.alias_generators import to_camel
+
+import os
+
+from utils.pymongo_object_id import PyObjectId
+
+
+load_dotenv()
+
+file_url = os.getenv("FILE_URL")
 
 
 class WorkPlanField:
@@ -227,17 +234,15 @@ class ResponsePlanListModel(BaseModel):
 class ResponsePlanDtlModel(BaseModel):
     id: str = Field(alias="_id")
     user_id: str = Field(alias="requestorId")
-    requestor_nm: str = Field(alias="requestorNm")
     request_id: str = Field(alias="requestId")
     wr_title: str = Field(alias="wrTitle")
-    company_id: Optional[str] = Field(None, alias="companyId")
-    company_nm: Optional[str] = Field(None, alias="companyNm")
-    acceptor_id: str = Field(alias="acceptorId")
-    acceptor_nm: Optional[str] = Field(None, alias="acceptorNm")
+    requestor_data: dict
+    acceptor_data: dict
     plan_title: str = Field(alias='planTitle')
     plan_content: str = Field(alias='planContent')
     plan_date: datetime = Field(alias="planDate")
-    file_path: str = Field(alias="filePath")
+    file_origin_nm: Optional[str] = Field(None, alias="fileOriginNm")
+    file_url: Optional[str] = Field(None, alias="fileUrl")
     status: str
     status_content: Optional[str] = Field(None, alias="statusContent")
     updated_at: Optional[datetime] = Field(None, alias="updatedAt")
@@ -412,6 +417,22 @@ async def get_dtl(match: dict, projection: dict, db_collection: any, response_mo
                   }
               },
               {
+                "$lookup": {
+                    "from": "files",
+                    "let": { "fileId": "$file_path" },
+                    "pipeline": [
+                        {
+                            "$match": {
+                                "$expr": {
+                                    "$eq": [ {"$toString": "$_id"}, "$$fileId"]
+                                }
+                            }
+                        }
+                    ],
+                    "as": "file_field"
+                  }
+              },
+              {
                   "$unwind": "$acceptor_field"
               },
               {
@@ -419,6 +440,11 @@ async def get_dtl(match: dict, projection: dict, db_collection: any, response_mo
               },
               {
                   "$unwind": "$request_field"
+              },
+              {
+                  "$unwind": {
+                  "path": "$file_field",
+                  "preserveNullAndEmptyArrays": True}
               },
               {
                 "$lookup": {
@@ -441,14 +467,27 @@ async def get_dtl(match: dict, projection: dict, db_collection: any, response_mo
             },
             {
                   "$set": {
-                      "requestor_nm": "$user_field.user_nm",
                       "wr_title": "$request_field.wr_title",
-                      "company_id": "$acceptor_field.company_id",
-                      "company_nm": "$company_field.company_nm",
-                      "customer_nm": "$customer_field.user_nm",
-                      "acceptor_nm": "$acceptor_field.user_nm",
-                      "company_nm": "$company_field.company_nm",
-                      "file_path": "file"
+                      "requestor_data": {
+                        "_id": "$user_field._id",
+                        "name": "$user_field.user_nm",
+                        "rank": "$user_field.rank",
+                        "email": "$user_field.email",
+                        "companyContact": "$user_field.company_contact",
+                        "mobileContact": "$user_field.mobile_contact"
+                      },
+                      "acceptor_data": {
+                          "_id": "$acceptor_field._id",
+                          "name": "$acceptor_field.user_nm",
+                          "rank": "$acceptor_field.rank",
+                          "companyId": "$company_field._id",
+                          "companyNm": "$company_field.company_nm",
+                          "email": "acceptor_field.email",
+                          "companyContact": "$acceptor_field.company_contact",
+                          "mobileContact": "$acceptor_field.mobile_contact",
+                      },
+                      "file_origin_nm": {"$ifNull": ["$file_field.origin", None]},
+                      "file_url": {"$concat": [file_url, "$file_field.user_id", "/", "$file_field.uuid"]}
                   }
             },
               {
