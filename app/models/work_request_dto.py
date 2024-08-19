@@ -404,7 +404,7 @@ async def get_dtl(match: dict, projection: dict, db_collection: any, response_mo
                       "file": { "$ifNull": [{
                         "id": "$file_path",
                         "name": {"$ifNull": ["$file_field.origin", None]},
-                        "url": {"$concat": [file_url, "$file_field.uuid"]},
+                        "url": {"$concat": [file_url,"$file_field.user_id","/", "$file_field.uuid"]},
                         "size": {"$toString": "$file_field.size"},
                         "type": "$file_field.extension"
                         }, None]}
