@@ -120,7 +120,7 @@ async def get_approve_wr_list(request: Request, is_temp: bool) -> JSONResponse:
         match,
         work_request_collection,
         projection,
-        ResponseRequestListModel,
+        ResponseRequestCategoryModel,
         work_request_dto
         )
     
