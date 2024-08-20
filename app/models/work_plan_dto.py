@@ -507,7 +507,7 @@ async def get_dtl(match: dict, projection: dict, db_collection: any, response_mo
                           "companyContact": "$acceptor_field.company_contact",
                           "mobileContact": "$acceptor_field.mobile_contact",
                       },
-                      "file": { "$ifNull": [{
+                      "files": { "$ifNull": [{
                         "id": "$file_path",
                         "name": {"$ifNull": ["$file_field.origin", None]},
                         "url": {"$concat": [file_url, "$file_field.uuid"]},
