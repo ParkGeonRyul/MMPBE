@@ -37,7 +37,7 @@ async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
 
         match['customer_id'] = id
           
-    projection = {"_id": 1, "wr_title": 1, "sales_representative_nm": 1, "customer_nm": 1, "company_nm": 1, "contract_title":1, "wr_date": 1, "status": 1}
+    projection = {"_id": 1, "wr_title": 1, "sales_representative_nm": 1, "contract_title": 1, "customer_nm": 1, "company_nm": 1, "contract_title":1, "wr_date": 1, "status": 1}
     
     wr_list = await list_module.get_collection_list(
         match,

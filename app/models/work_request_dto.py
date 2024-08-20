@@ -87,6 +87,7 @@ class ResponseRequestListModel(BaseModel):
     id: str = Field(alias="_id")
     wr_title: str = Field(alias="wrTitle")
     sales_representative_nm: str = Field(alias="salesRepresentativeNm")
+    contract_title: Optional[str] = Field(alias="contractTitle")
     customer_id: Optional[str] = Field(None, alias="customerId")
     customer_nm: Optional[str] = Field(None, alias="customerNm")
     company_nm: Optional[str] = Field(None, alias="companyNm")
@@ -288,6 +289,7 @@ async def get_list(match: dict, projection: dict, db_collection: any, response_m
             {
                 "$set": {
                     "sales_representative_nm": "$contract_field.sales_representative_nm",
+                    "contract_title": "$contract_field.contract_title",
                     "customer_nm": "$customer_field.user_nm",
                     "company_nm": "$company_field.company_nm"
                 }
@@ -400,11 +402,11 @@ async def get_dtl(match: dict, projection: dict, db_collection: any, response_mo
                       "company_id": "$customer_field.company_id",
                       "company_nm": "$company_field.company_nm",
                       "file": { "$ifNull": [{
-                        "fileId": "$file_path",
-                        "fileOriginNm": {"$ifNull": ["$file_field.origin", None]},
-                        "fileUrl": {"$concat": [file_url, "$file_field.uuid"]},
-                        "fileSize": {"$toString": {"$multiply": [{"$ceil": {"$multiply": [{"$divide": ["$file_field.size", 1048576]}, 10]}}, 0.1]}},
-                        "fileType": "$file_field.extension"
+                        "id": "$file_path",
+                        "name": {"$ifNull": ["$file_field.origin", None]},
+                        "url": {"$concat": [file_url,"$file_field.user_id","/", "$file_field.uuid"]},
+                        "size": {"$toString": "$file_field.size"},
+                        "type": "$file_field.extension"
                         }, None]}
                   }
             },
