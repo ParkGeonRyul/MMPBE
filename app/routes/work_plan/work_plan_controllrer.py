@@ -63,6 +63,7 @@ async def get_temporary_list(request: Request):
 
 @router.put(UPDATE_PLAN, status_code=status.HTTP_200_OK, response_model_by_alias=False)       
 async def update_work_plan(request: Request):
+    print("controller request json :::::::: ")
     req_body = await request.form()
     file = req_body.get("file_name")
     if file:

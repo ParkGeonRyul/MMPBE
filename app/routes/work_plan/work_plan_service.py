@@ -145,6 +145,7 @@ async def update_plan_status(request: Request, item: UpdatePlanStatusAcceptModel
     return response_content
 
 async def update_plan_status_accept(request: Request, item: UpdatePlanStatusAcceptModel) -> JSONResponse:
+    
     req_body = await request.json()
     plan_id = req_body['id']
     if(plan_id != ""):
