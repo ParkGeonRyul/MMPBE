@@ -240,8 +240,7 @@ class ResponsePlanDtlModel(BaseModel):
     plan_title: str = Field(alias='planTitle')
     plan_content: str = Field(alias='planContent')
     plan_date: datetime = Field(alias="planDate")
-    file_origin_nm: Optional[str] = Field(None, alias="fileOriginNm")
-    file_url: Optional[str] = Field(None, alias="fileUrl")
+    file: Optional[dict] = None
     status: str
     status_content: Optional[str] = Field(None, alias="statusContent")
     updated_at: Optional[datetime] = Field(None, alias="updatedAt")
@@ -508,8 +507,13 @@ async def get_dtl(match: dict, projection: dict, db_collection: any, response_mo
                           "companyContact": "$acceptor_field.company_contact",
                           "mobileContact": "$acceptor_field.mobile_contact",
                       },
-                      "file_origin_nm": {"$ifNull": ["$file_field.origin", None]},
-                      "file_url": {"$concat": [file_url, "$file_field.user_id", "/", "$file_field.uuid"]}
+                      "file": { "$ifNull": [{
+                        "id": "$file_path",
+                        "name": {"$ifNull": ["$file_field.origin", None]},
+                        "url": {"$concat": [file_url, "$file_field.uuid"]},
+                        "size": {"$toString": {"$multiply": [{"$ceil": {"$multiply": [{"$divide": ["$file_field.size", 1048576]}, 10]}}, 0.1]}},
+                        "type": "$file_field.extension"
+                        }, None]}
                   }
             },
               {

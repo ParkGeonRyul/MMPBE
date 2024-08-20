@@ -65,8 +65,7 @@ async def get_plan_dtl(request: Request) -> JSONResponse:
                         "plan_title": 1,
                         "plan_content": 1,
                         "plan_date": 1,
-                        "file_origin_nm": 1,
-                        "file_url": 1,
+                        "file": 1,
                         "status": 1,
                         "status_content": 1,
                         "updated_at": 1        
@@ -145,7 +144,6 @@ async def update_plan_status(request: Request, item: UpdatePlanStatusAcceptModel
     return response_content
 
 async def update_plan_status_accept(request: Request, item: UpdatePlanStatusAcceptModel) -> JSONResponse:
-    
     req_body = await request.json()
     plan_id = req_body['id']
     if(plan_id != ""):
