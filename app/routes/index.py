@@ -145,7 +145,7 @@ async def proxy(request: Request, path: str):
 
                 for key, value in document.items():
                     req_json[key] = value
-
+                    
                 response = await client.request(method, backend_url, data=req_json, cookies=request.cookies, files=file_status)
 
             elif content_type == "application/json" :

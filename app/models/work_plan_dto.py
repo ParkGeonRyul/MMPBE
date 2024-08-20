@@ -133,7 +133,6 @@ class  UpdateWorkPlanModel(BaseModel):
     file_path: Optional[str] = WorkPlanField.file_path
     status: Optional[str] = WorkPlanField.status
     status_content : Optional[str] = WorkPlanField.status_content
-    created_at: Optional[datetime] = WorkPlanField.created_at
     updated_at: Optional[datetime] = WorkPlanField.updated_at
     del_yn: Optional[str] = WorkPlanField.del_yn
     model_config = ConfigDict(
@@ -151,7 +150,6 @@ class  UpdateWorkPlanModel(BaseModel):
                 "filePath": "파일ID(ObjectID)",
                 "status": "요청",
                 "statusContent": "승인내용",
-                "createdAt": "2024-08-05 00:00:00",
                 "updatedAt": "2024-08-05 00:00:00"
             }
         }
