@@ -136,7 +136,7 @@ async def proxy(request: Request, path: str):
             if content_type.startswith("multipart/form-data"):
                 req_data = await request.form()
                 file = req_data.get("files")
-                if file:
+                if file and hasattr(file, 'filename') and hasattr(file, 'read') and hasattr(file, 'content_type'):
                     req_json = {key: value for key, value in req_data.items() if key != "files"}
                     file_status = {'file_name': (file.filename, await file.read(), file.content_type)}
                 else:
