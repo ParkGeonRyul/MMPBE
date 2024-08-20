@@ -65,7 +65,7 @@ async def get_plan_dtl(request: Request) -> JSONResponse:
                         "plan_title": 1,
                         "plan_content": 1,
                         "plan_date": 1,
-                        "file": 1,
+                        "files": 1,
                         "status": 1,
                         "status_content": 1,
                         "updated_at": 1        

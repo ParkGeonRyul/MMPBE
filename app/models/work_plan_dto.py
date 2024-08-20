@@ -510,8 +510,8 @@ async def get_dtl(match: dict, projection: dict, db_collection: any, response_mo
                       "files": { "$ifNull": [{
                         "id": "$file_path",
                         "name": {"$ifNull": ["$file_field.origin", None]},
-                        "url": {"$concat": [file_url, "$file_field.uuid"]},
-                        "size": {"$toString": {"$multiply": [{"$ceil": {"$multiply": [{"$divide": ["$file_field.size", 1048576]}, 10]}}, 0.1]}},
+                        "url": {"$concat": [file_url,"$file_field.user_id","/", "$file_field.uuid"]},
+                        "size": {"$toString": "$file_field.size"},
                         "type": "$file_field.extension"
                         }, None]}
                   }
