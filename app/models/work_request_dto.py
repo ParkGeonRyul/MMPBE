@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field, ConfigDict
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 from bson import ObjectId
 from pydantic.alias_generators import to_camel
@@ -72,11 +72,11 @@ class WorkRequestField:
     )
     created_at = Field(
         description="생성 날짜(UTC + 0)",
-        default=datetime.now()
+        default=datetime.now(timezone.utc)
     )
     updated_at = Field(
         description="정보 업데이트 된 마지막 날짜(UTC + 0)",
-        default=datetime.now()
+        default=datetime.now(timezone.utc)
     )
     del_yn = Field(
         description="삭제된 여부",

@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from typing import Any, List, Optional
 from typing_extensions import Annotated
 from bson import ObjectId
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic.alias_generators import to_camel
 
 import os
@@ -51,7 +51,7 @@ class WorkPlanField:
     )
     plan_date = Field(
         description="요청 일자(UTC + 0), 임시저장 일때는 NULL",
-        default=datetime.now(),
+        default=datetime.now(timezone.utc),
         alias="planDate"
     )
     file_path = Field(
@@ -74,12 +74,12 @@ class WorkPlanField:
     )
     created_at = Field(
         description="생성 날짜(UTC + 0)",
-        default=datetime.now(),
+        default=datetime.now(timezone.utc),
         alias="createdAt"
     )
     updated_at = Field(
         description="유저 정보 업데이트 된 마지막 날짜(UTC + 0)",
-        default=datetime.now(),
+        default=datetime.now(timezone.utc),
         alias="updatedAt"
     )
     del_yn = Field(
