@@ -275,7 +275,10 @@ async def get_list(match: dict, projection: dict, db_collection: any, response_m
                           {
                               "$match": {
                                   "$expr": {
-                                      "$eq": [ {"$toString": "$_id"}, "$$requestId"]
+                                        "$and": [
+                                            { "$eq": [{ "$toString": "$_id" }, "$$requestId"] },
+                                            { "$eq": ["$status", "승인"] }
+                                        ]
                                   }
                               }
                           }
