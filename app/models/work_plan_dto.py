@@ -503,7 +503,7 @@ async def get_dtl(match: dict, projection: dict, db_collection: any, response_mo
                           "rank": "$acceptor_field.rank",
                           "companyId": "$company_field._id",
                           "companyNm": "$company_field.company_nm",
-                          "email": "acceptor_field.email",
+                          "email": "$acceptor_field.email",
                           "companyContact": "$acceptor_field.company_contact",
                           "mobileContact": "$acceptor_field.mobile_contact",
                       },
