@@ -111,6 +111,33 @@ class ResponseRequestListModel(BaseModel):
         }
     )
 
+class ResponseRequestCategoryModel(BaseModel):
+    id: str = Field(alias="_id")
+    wr_title: str = Field(alias="wrTitle")
+    sales_representative_nm: str = Field(alias="salesRepresentativeNm")
+    customer_id: Optional[str] = Field(None, alias="customerId")
+    customer_nm: Optional[str] = Field(None, alias="customerNm")
+    company_nm: Optional[str] = Field(None, alias="companyNm")
+    wr_date: Optional[str] = Field(None, alias="wrDate")
+    status: str
+    model_config = ConfigDict(
+        extra='allow',
+        from_attributes=True,
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+        alias_generator=to_camel,
+        json_schema_extra={
+            "example": {
+                "_id": "ObjectId",
+                "requestTitle": "요청 제목",
+                "salesRepresentative": "영업담당자",
+                "wrDate": "임시저장 == NULL",
+                "status": "승인, 반려, 요청, 회수"
+            }
+        }
+    )
+
 class ResponseRequestDtlModel(BaseModel):
     id: str = Field(alias="_id")
     solution_id: str = Field(alias="solutionId")

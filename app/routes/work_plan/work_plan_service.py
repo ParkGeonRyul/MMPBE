@@ -38,7 +38,7 @@ async def get_plan_list(request: Request, is_temp: bool) -> JSONResponse:
 
         match['user_id'] = id
 
-    projection = {"_id": 1, "user_id": 1, "plan_title": 1, "acceptor_id": 1, "acceptor_nm": 1, "company_nm": 1,"requestor_nm":1, "plan_date": 1, "status": 1}   
+    projection = {"_id": 1, "user_id": 1, "plan_title": 1, "acceptor_id": 1, "acceptor_nm": 1, "company_nm": 1, "wr_title": 1, "requestor_nm":1, "plan_date": 1, "status": 1}   
     plan_list = await list_module.get_collection_list(match, work_plan_collection, projection, ResponsePlanListModel, work_plan_dto)
         
     content = {
@@ -65,8 +65,7 @@ async def get_plan_dtl(request: Request) -> JSONResponse:
                         "plan_title": 1,
                         "plan_content": 1,
                         "plan_date": 1,
-                        "file_origin_nm": 1,
-                        "file_url": 1,
+                        "files": 1,
                         "status": 1,
                         "status_content": 1,
                         "updated_at": 1        
@@ -121,7 +120,7 @@ async def get_approve_wr_list(request: Request, is_temp: bool) -> JSONResponse:
         match,
         work_request_collection,
         projection,
-        ResponseRequestListModel,
+        ResponseRequestCategoryModel,
         work_request_dto
         )
     
@@ -134,9 +133,10 @@ async def get_approve_wr_list(request: Request, is_temp: bool) -> JSONResponse:
     return response_content
 
 async def update_plan_status(request: Request, item: UpdatePlanStatusAcceptModel) -> JSONResponse:
-    _id = request.query_params.get("_id")
-    if(_id != ""):
-        work_plan_collection.update_one({"_id": ObjectId(_id)}, {"$set": item.model_dump()})
+    req_body = await request.json()
+    plan_id = req_body['id']
+    if(plan_id != ""):
+        work_plan_collection.update_one({"_id": ObjectId(plan_id)}, {"$set": item.model_dump()})
         response_content = {"result": "success"}
     else:
         response_content = {"result": "fail"}
@@ -144,9 +144,10 @@ async def update_plan_status(request: Request, item: UpdatePlanStatusAcceptModel
     return response_content
 
 async def update_plan_status_accept(request: Request, item: UpdatePlanStatusAcceptModel) -> JSONResponse:
-    _id = request.query_params.get("_id")
-    if(_id != ""):
-        work_plan_collection.update_one({"_id": ObjectId(_id)}, {"$set": item.model_dump()})
+    req_body = await request.json()
+    plan_id = req_body['id']
+    if(plan_id != ""):
+        work_plan_collection.update_one({"_id": ObjectId(plan_id)}, {"$set": item.model_dump()})
         response_content = {"result": "success"}
     else:
         response_content = {"result": "fail"}
@@ -173,8 +174,8 @@ async def create_plan(item: dict, file: None | UploadFile = File(...)) -> JSONRe
     return response_content
 
 async def update_plan(request: Request, item: dict, file: None | UploadFile = File(...)) -> JSONResponse:
-    request_id = request.query_params.get("requestId")
-    document = dict(CreateWorkPlanModel(**item))
+    plan_id = item['id']
+    document = dict(UpdateWorkPlanModel(**item))
     document['user_id'] = item['userId']
 
     try: 
@@ -182,7 +183,7 @@ async def update_plan(request: Request, item: dict, file: None | UploadFile = Fi
              file_data = await upload_file(item['userId'], file)
              document['file_path'] = file_data['file_id']
 
-        work_plan_collection.update_one({"_id": ObjectId(request_id)}, {"$set": document})
+        work_plan_collection.update_one({"_id": ObjectId(plan_id)}, {"$set": document})
 
     except Exception as e:
             
@@ -200,7 +201,8 @@ async def delete_temporary(request: Request, item: DeletePlanTempraryModel):
     return response_content
 
 async def del_yn_plan(request: Request):
-    request_id = request.query_params.get("requestId")
+    req_body = await request.json()
+    request_id = req_body['id']
     test = work_plan_collection.find_one({"_id": ObjectId(request_id)})
     if test['del_yn'] == "N":
         work_plan_collection.update_one({"_id": ObjectId(request_id)}, {"$set":{"del_yn": "Y"}})

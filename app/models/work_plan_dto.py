@@ -133,7 +133,6 @@ class  UpdateWorkPlanModel(BaseModel):
     file_path: Optional[str] = WorkPlanField.file_path
     status: Optional[str] = WorkPlanField.status
     status_content : Optional[str] = WorkPlanField.status_content
-    created_at: Optional[datetime] = WorkPlanField.created_at
     updated_at: Optional[datetime] = WorkPlanField.updated_at
     del_yn: Optional[str] = WorkPlanField.del_yn
     model_config = ConfigDict(
@@ -151,7 +150,6 @@ class  UpdateWorkPlanModel(BaseModel):
                 "filePath": "파일ID(ObjectID)",
                 "status": "요청",
                 "statusContent": "승인내용",
-                "createdAt": "2024-08-05 00:00:00",
                 "updatedAt": "2024-08-05 00:00:00"
             }
         }
@@ -207,6 +205,7 @@ class ResponsePlanListModel(BaseModel):
     id: str = Field(alias="_id")
     user_id: str = Field(alias="userId")
     plan_title: str = Field(alias="planTitle")
+    wr_title: str = Field(alias="wrTitle")
     acceptor_id: Optional[str] = Field(None, alias="acceptorId")
     acceptor_nm: Optional[str] = Field(None, alias="acceptorNm")
     company_nm: Optional[str] = Field(None, alias="companyNm")
@@ -241,8 +240,7 @@ class ResponsePlanDtlModel(BaseModel):
     plan_title: str = Field(alias='planTitle')
     plan_content: str = Field(alias='planContent')
     plan_date: datetime = Field(alias="planDate")
-    file_origin_nm: Optional[str] = Field(None, alias="fileOriginNm")
-    file_url: Optional[str] = Field(None, alias="fileUrl")
+    file: Optional[dict] = None
     status: str
     status_content: Optional[str] = Field(None, alias="statusContent")
     updated_at: Optional[datetime] = Field(None, alias="updatedAt")
@@ -268,6 +266,22 @@ async def get_list(match: dict, projection: dict, db_collection: any, response_m
     pipeline = [
                 {
                     "$match": match
+                },
+                {
+                  "$lookup": {
+                        "from": "workRequest",
+                        "let": { "requestId": "$request_id" },
+                        "pipeline": [
+                          {
+                              "$match": {
+                                  "$expr": {
+                                      "$eq": [ {"$toString": "$_id"}, "$$requestId"]
+                                  }
+                              }
+                          }
+                      ],
+                      "as": "request_field"
+                  }
                 },
                 {
                   "$lookup": {
@@ -303,6 +317,12 @@ async def get_list(match: dict, projection: dict, db_collection: any, response_m
                 },
                 {
                     "$unwind": {
+                        "path": "$request_field",
+                        "preserveNullAndEmptyArrays": False
+                        }
+                },
+                {
+                    "$unwind": {
                         "path": "$acceptor_field",
                         "preserveNullAndEmptyArrays": True
                         }
@@ -317,7 +337,8 @@ async def get_list(match: dict, projection: dict, db_collection: any, response_m
                     "$set": {
                         "acceptor_id": {"$toString": "$acceptor_field._id"},
                         "acceptor_nm": "$acceptor_field.user_nm",
-                        "requestor_nm": "$user_field.user_nm"
+                        "requestor_nm": "$user_field.user_nm",
+                        "wr_title": "$request_field.wr_title"
                     }
                 },
                 {
@@ -482,12 +503,17 @@ async def get_dtl(match: dict, projection: dict, db_collection: any, response_mo
                           "rank": "$acceptor_field.rank",
                           "companyId": "$company_field._id",
                           "companyNm": "$company_field.company_nm",
-                          "email": "acceptor_field.email",
+                          "email": "$acceptor_field.email",
                           "companyContact": "$acceptor_field.company_contact",
                           "mobileContact": "$acceptor_field.mobile_contact",
                       },
-                      "file_origin_nm": {"$ifNull": ["$file_field.origin", None]},
-                      "file_url": {"$concat": [file_url, "$file_field.user_id", "/", "$file_field.uuid"]}
+                      "files": { "$ifNull": [{
+                        "id": "$file_path",
+                        "name": {"$ifNull": ["$file_field.origin", None]},
+                        "url": {"$concat": [file_url,"$file_field.user_id","/", "$file_field.uuid"]},
+                        "size": {"$toString": "$file_field.size"},
+                        "type": "$file_field.extension"
+                        }, None]}
                   }
             },
               {
