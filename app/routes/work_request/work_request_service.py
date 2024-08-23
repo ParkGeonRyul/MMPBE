@@ -79,7 +79,7 @@ async def get_request_dtl(request: Request) -> JSONResponse:
             
             raise HTTPException(status_code=404, detail="request not found")
         
-        get_sales = contract_collection.find_one({"_id": ObjectId(contract['solution_id']),"sales_representative_nm": req_data['tokenData']['userData']['name']})
+        get_sales = contract_collection.find_one({"_id": ObjectId(contract['solution_id']),"sales_representative_nm": req_data['tokenData']['name']})
 
         if not get_sales:
             
