@@ -123,7 +123,7 @@ class CreateWorkPlanModel(BaseModel): # fe -> be
         }
     )
 
-class  UpdateWorkPlanModel(BaseModel):
+class UpdateWorkPlanModel(BaseModel):
     user_id: Optional[str] = WorkPlanField.user_id
     acceptor_id: str = WorkPlanField.acceptor_id
     request_id: str = WorkPlanField.request_id

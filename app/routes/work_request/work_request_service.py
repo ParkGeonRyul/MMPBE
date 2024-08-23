@@ -31,11 +31,15 @@ async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
 
     if role != "system admin":
         
-        match['del_yn']= "N"
+        match['del_yn'] = "N"
         
     if role == "user":
 
         match['customer_id'] = id
+
+    elif role == 'admin':
+         
+         match['status'] = {"$ne" : "회수"}
           
     projection = {"_id": 1, "wr_title": 1, "sales_representative_nm": 1, "contract_title": 1, "customer_nm": 1, "company_nm": 1, "contract_title":1, "wr_date": 1, "status": 1}
     
