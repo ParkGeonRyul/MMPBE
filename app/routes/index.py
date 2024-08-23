@@ -71,28 +71,17 @@ async def proxy(request: Request, path: str):
 
     async with AsyncClient() as client:
         method = request.method
-        headers = request.headers
-        # req_body = await request.body()
 
         if not access_token_cookie: # 토큰 없는 경우
+            if path == "auth/login" or path == "auth/oauth/callback":    
+                return RedirectResponse(url=backend_url)
 
             RedirectResponse(url=f"{MAIN_URL}{LOGIN_WITH_MS}")
 
         user_token = auth_collection.find_one({"access_token": access_token_cookie})
 
-        if not user_token: # DB에 토큰이 없는 경우
-            
-            if path == "auth/login" or path == "auth/oauth/callback":
-                
-                return RedirectResponse(url=backend_url)
-            
-            response = RedirectResponse(url=f"{MAIN_URL}{LOGIN_WITH_MS}")
-            response.delete_cookie(COOKIES_KEY_NAME)
-
-            return response
-
         # 토큰 있고 브라우저도 토큰이 있다.
-        # validatel
+        # validate
         user_response = await client.get(
             MS_USER_INFO_URL,
             headers={"Authorization": f"Bearer {access_token_cookie}"}
@@ -109,8 +98,14 @@ async def proxy(request: Request, path: str):
                 "mobilePhone": user_data.get("mobilePhone")
                 }
         else:  # 401
-            find_user = user_collection.find_one({"_id": user_token['user_id']})
+            try:
+                find_user = user_collection.find_one({"_id": user_token['user_id']})
+            
+            except Exception as e:
+                raise HTTPException(status_code=404, detail=str(e))
+        
             if find_user:
+
                 reissue_token = msal_app.acquire_token_by_refresh_token(user_token["refresh_token"], scopes=["User.Read"])
                 await access_token_manager(True, True, reissue_token['access_token'], reissue_token['refresh_token'], user_token['user_id'], user_token['email'])
                 document = {
@@ -121,7 +116,11 @@ async def proxy(request: Request, path: str):
                     "jobTitle": find_user['rank'],
                     "mobilePhone": find_user['mobile_contact']
                     }
+                
+                request.cookies[COOKIES_KEY_NAME] = reissue_token['access_token']
+
             else:
+
                 response = RedirectResponse(url=f"{MAIN_URL}{LOGIN_WITH_MS}")
                 response.delete_cookie(COOKIES_KEY_NAME)
 
@@ -151,8 +150,6 @@ async def proxy(request: Request, path: str):
             elif content_type == "application/json" :
                 req_data = await request.body()
                 response = await client.request(method, backend_url, content=req_data, cookies=request.cookies)
-            
-            return Response(content=response.content, status_code=response.status_code, headers=dict(response.headers))
 
         else:
             body_data = {'role': get_role['role_nm']}
@@ -160,4 +157,4 @@ async def proxy(request: Request, path: str):
             modified_body = json.dumps(body_data).encode('utf-8')
             response = await client.request(method, backend_url, content=modified_body, cookies=request.cookies)
             
-            return Response(content=response.content, status_code=response.status_code, headers=dict(response.headers))
+        return Response(content=response.content, status_code=response.status_code, headers=dict(response.headers))

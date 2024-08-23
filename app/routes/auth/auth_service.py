@@ -1,4 +1,3 @@
-
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, Response, Request
 from fastapi.responses import JSONResponse, RedirectResponse
@@ -10,6 +9,7 @@ import msal
 from routes._path.ms_paths import MS_AUTHORITY, MS_CLIENT_ID, MS_CLIENT_SECRET, MS_PROFILE_PHOTO, MS_REDIRECT_URI, MS_TOKEN_URL, MS_USER_INFO_URL, REDIRECT_URL_HOME
 from routes._path.api_paths import CREATE_USER
 from routes._path.main_path import MAIN_URL
+from models.user_dto import UserModel
 from constants import COOKIES_KEY_NAME
 from db.context import auth_collection, user_collection, role_collection
 from utils.objectId_convert import objectId_convert
@@ -115,19 +115,17 @@ async def auth_callback(code):
             return response
         
         else:
-            document = {
+            user_dict = {
                 "user_nm": user_data['displayName'],
                 "rank": user_data['jobTitle'],
                 "mobile_contact": user_data['mobilePhone'],
-                "email": user_data['mail']
+                "email": user_data['mail'],
             }
 
-            async with AsyncClient() as client:
-                insert_user_by_document = await client.post(
-                    f"{MAIN_URL}{CREATE_USER}",
-                    json=document
-                )
-                user_id = insert_user_by_document.json()
+            document = dict(UserModel(**user_dict))
+            user_create = user_collection.insert_one(document)
+            user_id = user_create.inserted_id
+
             user_token = await access_token_manager(is_user, check_token_existence, access_token, refresh_token, ObjectId(user_id), user_data['mail'])
             response = RedirectResponse(url=REDIRECT_URL_HOME)
             response.set_cookie(key=COOKIES_KEY_NAME, value=user_token['access_token'], httponly=True)
