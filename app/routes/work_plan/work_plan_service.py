@@ -60,6 +60,8 @@ async def get_plan_dtl(request: Request) -> JSONResponse:
                         "user_id": 1,
                         "request_id": 1,
                         'requestor_data': 1,
+                        'company_id': 1,
+                        "company_nm": 1,
                         'acceptor_data': 1,
                         "wr_title": 1,
                         "plan_title": 1,

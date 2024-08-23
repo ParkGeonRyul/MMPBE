@@ -71,14 +71,13 @@ async def proxy(request: Request, path: str):
 
     async with AsyncClient() as client:
         method = request.method
+        user_token = auth_collection.find_one({"access_token": access_token_cookie})
 
-        if not access_token_cookie: # 토큰 없는 경우
+        if not access_token_cookie or not user_token: # 토큰 없는 경우
             if path == "auth/login" or path == "auth/oauth/callback":    
                 return RedirectResponse(url=backend_url)
 
             RedirectResponse(url=f"{MAIN_URL}{LOGIN_WITH_MS}")
-
-        user_token = auth_collection.find_one({"access_token": access_token_cookie})
 
         # 토큰 있고 브라우저도 토큰이 있다.
         # validate
