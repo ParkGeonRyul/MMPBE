@@ -20,7 +20,7 @@ class UsersFields:
     )
     company_id = Field(
         description="회사 ID(ObjectID)",
-        default=None,
+        default="66a98cab9adf7a6e2805e6d3",
         alias="companyId"
     )
     user_nm = Field(
@@ -58,7 +58,7 @@ class UsersFields:
     role = Field(
         description = "역할 ID(INDEX)",
         example="client, admin, system admin",
-        default="66a83409be3a5f7919351fbf"
+        default="66a83425be3a5f7919351fc1"
     )
     created_at = Field(
         description="오늘 날짜(UTC + 0)",
