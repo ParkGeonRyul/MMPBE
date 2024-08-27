@@ -44,3 +44,4 @@ pymongo
 alembic
 apscheduler
 aiofiles
+asyncio

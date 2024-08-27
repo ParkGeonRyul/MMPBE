@@ -2,6 +2,7 @@ from fastapi import APIRouter, Response
 from fastapi.requests import Request
 from fastapi.responses import RedirectResponse
 from httpx import AsyncClient
+from contextvars import ContextVar
 
 import json
 import msal
@@ -11,10 +12,13 @@ from routes._path.main_path import MAIN_URL, API_URL
 from db.context import auth_collection, user_collection, role_collection
 from routes._path.api_paths import *
 from routes._path.ms_paths import *
+from routes.auth.auth_service import *
 from models.work_request_dto import *
 
 router = APIRouter()
 
+
+current_request_status = ContextVar("current_request_status", default=None)
 
 class Router:
     def __init__(self):
@@ -26,58 +30,30 @@ msal_app = msal.ConfidentialClientApplication(
     client_credential=MS_CLIENT_SECRET
 )
 
-async def insert_token(access_token: str, refresh_token: str, user_id: ObjectId, email: str):
-    document = {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "user_id": user_id,
-        "email": email,
-        "updated_at": datetime.now()
-    }
-    auth_collection.insert_one(document)
-    user_token = auth_collection.find_one({"user_id": user_id})
-
-    return user_token
-
-async def access_token_manager(is_user:bool, check_token_existence:bool, access_token: str, refresh_token: str, user_id: ObjectId, email: str):                       
-    if is_user == True:
-        document = {
-            "access_token": access_token,
-            "refresh_token": refresh_token,
-            "updated_at": datetime.now()
-        }
-        filter = {"user_id": user_id}
-        if check_token_existence:
-            auth_collection.update_one(filter,{"$set":document})
-            user_token = auth_collection.find_one({"user_id": user_id})
- 
-            return user_token
-        else:
-
-            return await insert_token(access_token, refresh_token, user_id, email)
-        
-    else:
-        
-        return await insert_token(access_token, refresh_token, user_id, email)
-
 @router.api_route("/v1/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", 'HEAD', 'PATCH'])
 async def proxy(request: Request, path: str):
     req_body = await request.body()
     backend_url = f"{API_URL}{path}"
     access_token_cookie = request.cookies.get(COOKIES_KEY_NAME)
-   
+
+    current_request_status.set(True)
+
     if request.query_params:
         backend_url += f"?{request.url.query}"
 
     async with AsyncClient() as client:
         method = request.method
         user_token = auth_collection.find_one({"access_token": access_token_cookie})
-
         if not access_token_cookie or not user_token: # 토큰 없는 경우
             if path == "auth/login" or path == "auth/oauth/callback":    
                 return RedirectResponse(url=backend_url)
+            
+            if current_request_status.get():
+                raise HTTPException(status_code=400, detail="Request is already being processed")
 
-            RedirectResponse(url=f"{MAIN_URL}{LOGIN_WITH_MS}")
+            return RedirectResponse(url=f"{MAIN_URL}{LOGIN_WITH_MS}")
+        
+        current_request_status.set(None)
 
         # 토큰 있고 브라우저도 토큰이 있다.
         # validate
@@ -96,6 +72,9 @@ async def proxy(request: Request, path: str):
                 "jobTitle": user_data.get("jobTitle"),
                 "mobilePhone": user_data.get("mobilePhone")
                 }
+            
+            cookies_data = request.cookies
+
         else:  # 401
             try:
                 find_user = user_collection.find_one({"_id": user_token['user_id']})
@@ -116,14 +95,7 @@ async def proxy(request: Request, path: str):
                     "mobilePhone": find_user['mobile_contact']
                     }
                 
-                request.cookies[COOKIES_KEY_NAME] = reissue_token['access_token']
-
-            else:
-
-                response = RedirectResponse(url=f"{MAIN_URL}{LOGIN_WITH_MS}")
-                response.delete_cookie(COOKIES_KEY_NAME)
-
-                return response
+                cookies_data = {**request.cookies, COOKIES_KEY_NAME: reissue_token['access_token']}
 
         get_user_info = user_collection.find_one({"_id": ObjectId(document['userId'])})
         get_role = role_collection.find_one({"_id": ObjectId(get_user_info['role'])})
@@ -144,16 +116,21 @@ async def proxy(request: Request, path: str):
                 for key, value in document.items():
                     req_json[key] = value
                     
-                response = await client.request(method, backend_url, data=req_json, cookies=request.cookies, files=file_status)
+                response_data = await client.request(method, backend_url, data=req_json, cookies=cookies_data, files=file_status)
 
             elif content_type == "application/json" :
                 req_data = await request.body()
-                response = await client.request(method, backend_url, content=req_data, cookies=request.cookies)
+                response_data = await client.request(method, backend_url, content=req_data, cookies=cookies_data)
 
         else:
             body_data = {'role': get_role['role_nm']}
             body_data['tokenData'] = document
             modified_body = json.dumps(body_data).encode('utf-8')
-            response = await client.request(method, backend_url, content=modified_body, cookies=request.cookies)
+            response_data = await client.request(method, backend_url, content=modified_body, cookies=cookies_data)
             
-        return Response(content=response.content, status_code=response.status_code, headers=dict(response.headers))
+        new_token = cookies_data.get(COOKIES_KEY_NAME)
+        current_request_status.set(None)
+        response = Response(content=response_data.content, status_code=response_data.status_code, headers=dict(response_data.headers))
+        response.set_cookie(key=COOKIES_KEY_NAME, value=new_token)
+            
+        return response

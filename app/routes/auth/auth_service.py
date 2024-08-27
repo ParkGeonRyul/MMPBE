@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException, Response, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from httpx import AsyncClient
 from bson import ObjectId
+from contextvars import ContextVar
 
 import msal
 
@@ -22,6 +23,8 @@ msal_app = msal.ConfidentialClientApplication(
     authority=MS_AUTHORITY,
     client_credential=MS_CLIENT_SECRET
 )
+
+current_request_status = ContextVar("current_request_status", default=None)
 
 async def insert_token(access_token: str, refresh_token: str, user_id: ObjectId, email: str):
     document = {
@@ -63,6 +66,8 @@ async def access_token_manager(is_user:bool, check_token_existence:bool, access_
         return await insert_token(access_token, refresh_token, user_id, email)
 
 async def login():
+    if current_request_status.get():
+        raise HTTPException(status_code=400, detail="Request is already being processed")
     url = msal_app.get_authorization_request_url(
         scopes=["User.Read", "https://accountmgmtservice.dce.mp.microsoft.com/user_impersonation"],
         redirect_uri=MS_REDIRECT_URI
@@ -180,9 +185,6 @@ async def validate_token(access_token: str):
                 }
 
                 return document
-            
-            else:
-                RedirectResponse(url=REDIRECT_URL_HOME)
 
 async def validate(request: Request) -> JSONResponse:
     access_token = request.cookies.get(COOKIES_KEY_NAME)
@@ -190,14 +192,13 @@ async def validate(request: Request) -> JSONResponse:
     if valid_token['status'] == "valid":
         objectId_convert(valid_token, "userId")
 
-        return JSONResponse(content=valid_token)
+        return valid_token
     
     else:
         access_token = auth_collection.find_one({"user_id": valid_token['userId']})
-        response = JSONResponse(content=valid_token)
-        response.set_cookie(key=COOKIES_KEY_NAME, value=valid_token['access_token'], httponly=True)
+        # response.set_cookie(key=COOKIES_KEY_NAME, value=valid_token['access_token'], httponly=True)
 
-        return response
+        return valid_token
 
 async def get_user_profile_image(request: Request) -> Response:
     access_token = request.cookies.get(COOKIES_KEY_NAME)
