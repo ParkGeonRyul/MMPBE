@@ -9,11 +9,13 @@ import msal
 
 from constants import COOKIES_KEY_NAME
 from routes._path.main_path import MAIN_URL, API_URL
-from db.context import auth_collection, user_collection, role_collection
+from routes._modules.jwt import *
 from routes._path.api_paths import *
 from routes._path.ms_paths import *
 from routes.auth.auth_service import *
+from db.context import auth_collection
 from models.work_request_dto import *
+
 
 router = APIRouter()
 
@@ -34,71 +36,24 @@ msal_app = msal.ConfidentialClientApplication(
 async def proxy(request: Request, path: str):
     req_body = await request.body()
     backend_url = f"{API_URL}{path}"
-    access_token_cookie = request.cookies.get(COOKIES_KEY_NAME)
-
-    current_request_status.set(True)
+    token_cookie = request.cookies.get(COOKIES_KEY_NAME)
 
     if request.query_params:
         backend_url += f"?{request.url.query}"
 
     async with AsyncClient() as client:
         method = request.method
-        user_token = auth_collection.find_one({"access_token": access_token_cookie})
-        if not access_token_cookie or not user_token: # 토큰 없는 경우
+        token_key = await parse_token(token_cookie)
+        user_token = auth_collection.find_one({"_id": ObjectId(token_key)})
+        
+        if not token_cookie or not user_token:
             if path == "auth/login" or path == "auth/oauth/callback":    
                 return RedirectResponse(url=backend_url)
-            
-            if current_request_status.get():
-                raise HTTPException(status_code=400, detail="Request is already being processed")
-
+                
             return RedirectResponse(url=f"{MAIN_URL}{LOGIN_WITH_MS}")
         
-        current_request_status.set(None)
-
-        # 토큰 있고 브라우저도 토큰이 있다.
-        # validate
-        user_response = await client.get(
-            MS_USER_INFO_URL,
-            headers={"Authorization": f"Bearer {access_token_cookie}"}
-        )
-
-        if user_response.status_code == 200:
-            user_data = user_response.json()
-            document = {
-                "sign_status": "valid",
-                "userId": str(user_token['user_id']),
-                "name": user_data.get("displayName"),
-                "email": user_data.get("mail"),
-                "jobTitle": user_data.get("jobTitle"),
-                "mobilePhone": user_data.get("mobilePhone")
-                }
-            
-            cookies_data = request.cookies
-
-        else:  # 401
-            try:
-                find_user = user_collection.find_one({"_id": user_token['user_id']})
-            
-            except Exception as e:
-                raise HTTPException(status_code=404, detail=str(e))
-        
-            if find_user:
-
-                reissue_token = msal_app.acquire_token_by_refresh_token(user_token["refresh_token"], scopes=["User.Read"])
-                await access_token_manager(True, True, reissue_token['access_token'], reissue_token['refresh_token'], user_token['user_id'], user_token['email'])
-                document = {
-                    "sign_status": "refresh",
-                    "userId": str(user_token['user_id']),
-                    "name": find_user['user_nm'],
-                    "email": find_user['email'],
-                    "jobTitle": find_user['rank'],
-                    "mobilePhone": find_user['mobile_contact']
-                    }
-                
-                cookies_data = {**request.cookies, COOKIES_KEY_NAME: reissue_token['access_token']}
-
-        get_user_info = user_collection.find_one({"_id": ObjectId(document['userId'])})
-        get_role = role_collection.find_one({"_id": ObjectId(get_user_info['role'])})
+        token_data = await validate_token(token_key)
+        del token_data['accessToken']
                 
         if req_body:
             content_type = request.headers.get("Content-Type")
@@ -113,24 +68,20 @@ async def proxy(request: Request, path: str):
                     req_json = {key: value for key, value in req_data.items()}
                     file_status = None
 
-                for key, value in document.items():
+                for key, value in token_data.items():
                     req_json[key] = value
                     
-                response_data = await client.request(method, backend_url, data=req_json, cookies=cookies_data, files=file_status)
+                response_data = await client.request(method, backend_url, data=req_json, cookies=request.cookies, files=file_status)
 
             elif content_type == "application/json" :
                 req_data = await request.body()
-                response_data = await client.request(method, backend_url, content=req_data, cookies=cookies_data)
+                response_data = await client.request(method, backend_url, content=req_data, cookies=request.cookies)
 
         else:
-            body_data = {'role': get_role['role_nm']}
-            body_data['tokenData'] = document
+            body_data = token_data
             modified_body = json.dumps(body_data).encode('utf-8')
-            response_data = await client.request(method, backend_url, content=modified_body, cookies=cookies_data)
-            
-        new_token = cookies_data.get(COOKIES_KEY_NAME)
-        current_request_status.set(None)
+            response_data = await client.request(method, backend_url, content=modified_body, cookies=request.cookies)
+        
         response = Response(content=response_data.content, status_code=response_data.status_code, headers=dict(response_data.headers))
-        response.set_cookie(key=COOKIES_KEY_NAME, value=new_token)
             
         return response

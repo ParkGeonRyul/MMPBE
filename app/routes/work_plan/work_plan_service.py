@@ -1,10 +1,10 @@
-from fastapi import HTTPException, Request, Response, UploadFile, File
+from fastapi import HTTPException, Request, UploadFile, File
 from fastapi.responses import JSONResponse
+from bson import ObjectId
 
 import json
 
 from db.context import work_plan_collection, work_request_collection
-from bson import ObjectId
 from models import work_plan_dto
 from models.work_plan_dto import *
 from models.work_request_dto import *
@@ -15,9 +15,9 @@ from routes._modules.file_server import *
     
 async def get_plan_list(request: Request, is_temp: bool) -> JSONResponse:
     req_data = json.loads(await request.body())
-    id = str(req_data['tokenData']['userId'])
     menu = request.query_params.get("menu")
-    role = str(req_data['role'])
+    id = str(req_data['userId'])
+    role = str(req_data['userData']['role'])
     temporary_value = await is_temporary(is_temp)
     
     match = {
@@ -52,8 +52,8 @@ async def get_plan_list(request: Request, is_temp: bool) -> JSONResponse:
 
 async def get_plan_dtl(request: Request) -> JSONResponse:
     req_data = json.loads(await request.body())
-    id = str(req_data['tokenData']['userId'])
-    role = str(req_data['role'])
+    id = str(req_data['userId'])
+    role = str(req_data['userData']['role'])
     plan_id = request.query_params.get("_id")
     projection = {
                         "_id": 1,

@@ -44,4 +44,4 @@ pymongo
 alembic
 apscheduler
 aiofiles
-asyncio
+pyjwt

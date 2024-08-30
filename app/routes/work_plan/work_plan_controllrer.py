@@ -1,18 +1,10 @@
-from fastapi import APIRouter, HTTPException, status, Response, Cookie, UploadFile
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi import APIRouter, HTTPException, status, UploadFile
+from fastapi.responses import JSONResponse
 from fastapi.requests import Request
 from routes._path.api_paths import SELECT_APPROVE_WR_LIST, SELECT_PLAN, SELECT_PLAN_TEMPORARY, SELECT_PLAN_DETAIL, CREATE_PLAN, CREATE_PLAN_TEMPORARY, UPDATE_PLAN, UPDATE_PLAN_STATUS_ACCEPT, UPDATE_PLAN_TEMPORARY, DELETE_PLAN, DELETE_PLAN_TEMPORARY, UPDATE_PLAN_STATUS
 
-import os
-import asyncio
-from datetime import datetime, timezone
-from utils import formating
 from routes.work_plan import work_plan_service
-from utils import dependencies
-from constants import COOKIES_KEY_NAME, SESSION_TIME
 from models.work_plan_dto import *
-from httpx import AsyncClient
-from typing import List, Optional
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -63,7 +55,6 @@ async def get_temporary_list(request: Request):
 
 @router.put(UPDATE_PLAN, status_code=status.HTTP_200_OK, response_model_by_alias=False)       
 async def update_work_plan(request: Request):
-    print("controller request json :::::::: ")
     req_body = await request.form()
     file = req_body.get("file_name")
     if file:
