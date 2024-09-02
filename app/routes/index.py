@@ -2,7 +2,6 @@ from fastapi import APIRouter, Response
 from fastapi.requests import Request
 from fastapi.responses import RedirectResponse
 from httpx import AsyncClient
-from contextvars import ContextVar
 
 import json
 import msal
@@ -18,9 +17,6 @@ from models.work_request_dto import *
 
 
 router = APIRouter()
-
-
-current_request_status = ContextVar("current_request_status", default=None)
 
 class Router:
     def __init__(self):
@@ -43,9 +39,10 @@ async def proxy(request: Request, path: str):
     async with AsyncClient() as client:
         method = request.method
         token_key = await parse_token(request.cookies.get(COOKIES_KEY_NAME))
+        token_valid = auth_collection.find_one({"_id": ObjectId(token_key)})
         
-        if not token_key:
-            if path == "auth/login" or path == "auth/oauth/callback":    
+        if not token_valid:
+            if path == "auth/login" or path == "auth/oauth/callback":
                 return RedirectResponse(url=backend_url)
                 
             return RedirectResponse(url=f"{MAIN_URL}{LOGIN_WITH_MS}")
@@ -75,7 +72,7 @@ async def proxy(request: Request, path: str):
                 req_data = await request.body()
                 for key, value in token_data.items():
                     req_json[key] = value
-                                    
+
                 response_data = await client.request(method, backend_url, content=req_data, cookies=request.cookies)
 
         else:
