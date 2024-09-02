@@ -15,7 +15,7 @@ async def get_category(request: Request) -> List[dict]:
     dict_for_find = {}
 
     if role == 'user':
-        get_user = user_collection.find_one({"_id": ObjectId(req_data['userData']['userId'])})
+        get_user = user_collection.find_one({"_id": ObjectId(req_data['userId'])})
         dict_for_find = {"company_id": get_user['company_id']}
     
     elif role == 'admin':

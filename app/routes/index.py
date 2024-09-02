@@ -48,6 +48,8 @@ async def proxy(request: Request, path: str):
             return RedirectResponse(url=f"{MAIN_URL}{LOGIN_WITH_MS}")
         
         token_data = await validate_token(token_key)
+        user_data = token_data['userData']
+
                 
         if req_body:
             content_type = request.headers.get("Content-Type")
@@ -62,8 +64,9 @@ async def proxy(request: Request, path: str):
                 else:
                     req_json = {key: value for key, value in req_data.items()}
                     file_status = None
-
-                for key, value in token_data.items():
+                
+                req_json['user_id'] = token_data['userId']
+                for key, value in user_data.items():
                     req_json[key] = value
 
                 response_data = await client.request(method, backend_url, data=req_json, cookies=request.cookies, files=file_status)

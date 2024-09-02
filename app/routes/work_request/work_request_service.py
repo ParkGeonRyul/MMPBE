@@ -19,8 +19,8 @@ upload_path = os.getenv("UPLOAD_PATH")
 
 async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
     req_data = json.loads(await request.body())
-    id = str(req_data['userId'])
-    role = str(req_data['userData']['role'])
+    id = str(req_data['user_id'])
+    role = str(req_data['role'])
     temporary_value = await is_temporary(is_temp)
 
     match = {
@@ -119,11 +119,11 @@ async def get_request_dtl(request: Request) -> JSONResponse:
 
 async def create_request(item: dict, file: None | UploadFile = File(...)) -> JSONResponse:
     document = dict(CreateWorkRequestModel(**item))
-    document['customer_id'] = item['userId']
+    document['customer_id'] = item['user_id']
 
     try: 
         if file:
-             file_data = await upload_file(item['userId'], file)
+             file_data = await upload_file(item['user_id'], file)
              document['file_path'] = file_data['file_id']
 
         work_request_collection.insert_one(document)
@@ -138,10 +138,10 @@ async def create_request(item: dict, file: None | UploadFile = File(...)) -> JSO
 
 async def update_request(request: Request, item: dict, file: None | UploadFile = File(...)) -> JSONResponse:
     document = dict(UpdateWorkRequestModel(**item))
-    document['customer_id'] = item['userId']
+    document['customer_id'] = item['user_id']
     try:
         if file:
-             file_data = await upload_file(item['userId'], file)
+             file_data = await upload_file(item['user_id'], file)
              document['file_path'] = file_data['file_id']
 
         work_request_collection.update_one({"_id": ObjectId(document['id'])}, {"$set": document})
