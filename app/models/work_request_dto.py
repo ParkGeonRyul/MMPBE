@@ -254,9 +254,6 @@ class UpdateRequestStatusAcceptModel(BaseModel):
 async def get_list(match: dict, projection: dict, db_collection: any, response_model: any): #skip: int, 
     pipeline = [
             {
-                "$match": match,
-            },
-            {
                 "$lookup": {
                     "from": "contract",
                     "let": { "solutionId": "$solution_id" },
@@ -320,6 +317,9 @@ async def get_list(match: dict, projection: dict, db_collection: any, response_m
                     "customer_nm": "$customer_field.user_nm",
                     "company_nm": "$company_field.company_nm"
                 }
+            },
+            {
+                "$match": match,
             },
             {
                 "$project": projection

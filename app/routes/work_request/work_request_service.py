@@ -31,13 +31,14 @@ async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
         
         match['del_yn'] = "N"
         
-    if role == "user":
+        if role == "user":
 
-        match['customer_id'] = id
+            match['customer_id'] = id
 
-    elif role == 'admin':
-         
-         match['status'] = {"$ne" : "회수"}
+        elif role == 'admin':
+            
+            match['status'] = {"$ne" : "회수"}
+            match['sales_representative_nm'] = req_data['userData']['name']
           
     projection = {"_id": 1, "wr_title": 1, "sales_representative_nm": 1, "contract_title": 1, "customer_nm": 1, "company_nm": 1, "contract_title":1, "wr_date": 1, "status": 1}
     
@@ -81,7 +82,7 @@ async def get_request_dtl(request: Request) -> JSONResponse:
             
             raise HTTPException(status_code=404, detail="request not found")
         
-        get_sales = contract_collection.find_one({"_id": ObjectId(contract['solution_id']),"sales_representative_nm": req_data['tokenData']['name']})
+        get_sales = contract_collection.find_one({"_id": ObjectId(contract['solution_id']),"sales_representative_nm": req_data['userData']['name']})
 
         if not get_sales:
             

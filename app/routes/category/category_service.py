@@ -15,11 +15,11 @@ async def get_category(request: Request) -> List[dict]:
     dict_for_find = {}
 
     if role == 'user':
-        get_user = user_collection.find_one({"_id": ObjectId(req_data['tokenData']['userId'])})
+        get_user = user_collection.find_one({"_id": ObjectId(req_data['userData']['userId'])})
         dict_for_find = {"company_id": get_user['company_id']}
     
     elif role == 'admin':
-        dict_for_find = {"sales_representative_nm": req_data['tokenData']['name']}
+        dict_for_find = {"sales_representative_nm": req_data['userData']['name']}
         
     get_contract_by_user = contract_collection.find(dict_for_find, projection)
     content = []
