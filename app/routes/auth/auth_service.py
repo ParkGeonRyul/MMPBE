@@ -153,8 +153,7 @@ async def validate_token(token: str):
                     "jobTitle": user_data.get("jobTitle"),
                     "mobilePhone": user_data.get("mobilePhone"),
                     "role": role_nm
-                },
-                "accessToken": token
+                }
             }
 
             return document
@@ -175,8 +174,7 @@ async def validate_token(token: str):
                         "jobTitle": find_user['rank'],
                         "mobilePhone": find_user['mobile_contact'],
                         "role": role_nm
-                    },
-                    "accessToken": token
+                    }
                 }
 
                 return document
@@ -185,7 +183,6 @@ async def validate(request: Request) -> JSONResponse:
     cookie_token = request.cookies.get(COOKIES_KEY_NAME)
     access_token = await parse_token(cookie_token)
     valid_token = await validate_token(access_token)
-    del valid_token['accessToken']
 
     if valid_token['sign_status'] == "valid":
         objectId_convert(valid_token, "userId")
