@@ -62,6 +62,8 @@ stages:
                                       --env API_URL=$(API_URL) \
                                       --env FILE_URL=$(FILE_URL) \
                                       --env UPLOAD_PATH=$(UPLOAD_PATH) \
+                                      --env SECRET_KEY=$(SECRET_KEY) \
+                                      --env ALGORITHM=$(ALGORITHM) \
                                       -v $(LOCAL_PATH):$(DOCKER_PATH) \
                                       $(containerRegistry)/$(imageRepository):$(tag)
                 EOF

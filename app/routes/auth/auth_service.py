@@ -1,16 +1,15 @@
-from datetime import datetime
 from fastapi import APIRouter, HTTPException, Response, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from httpx import AsyncClient
 from bson import ObjectId
+from datetime import datetime, timezone
 
 import msal
 
-from routes._path.ms_paths import MS_AUTHORITY, MS_CLIENT_ID, MS_CLIENT_SECRET, MS_PROFILE_PHOTO, MS_REDIRECT_URI, MS_TOKEN_URL, MS_USER_INFO_URL, REDIRECT_URL_HOME
-from routes._path.api_paths import CREATE_USER
-from routes._path.main_path import MAIN_URL
-from models.user_dto import UserModel
 from constants import COOKIES_KEY_NAME
+from routes._path.ms_paths import MS_AUTHORITY, MS_CLIENT_ID, MS_CLIENT_SECRET, MS_PROFILE_PHOTO, MS_REDIRECT_URI, MS_TOKEN_URL, MS_USER_INFO_URL, REDIRECT_URL_HOME
+from routes._modules.jwt import *
+from models.user_dto import UserModel
 from db.context import auth_collection, user_collection, role_collection
 from utils.objectId_convert import objectId_convert
 
@@ -29,7 +28,7 @@ async def insert_token(access_token: str, refresh_token: str, user_id: ObjectId,
         "refresh_token": refresh_token,
         "user_id": user_id,
         "email": email,
-        "updated_at": datetime.now()
+        "updated_at": datetime.now(timezone.utc)
     }
     auth_collection.insert_one(document)
     user_token = auth_collection.find_one({"user_id": user_id})
@@ -42,12 +41,13 @@ async def get_role(user_id: str):
 
             return get_role['role_nm']
 
-async def access_token_manager(is_user:bool, check_token_existence:bool, access_token: str, refresh_token: str, user_id: ObjectId, email: str):                       
-    if is_user:
+async def access_token_manager(is_user:bool, check_token_existence:bool, access_token: str, refresh_token: str, backup_token: None | str, user_id: ObjectId, email: str):                       
+    if is_user == True:
         document = {
             "access_token": access_token,
             "refresh_token": refresh_token,
-            "updated_at": datetime.now()
+            "backup_token": backup_token,
+            "updated_at": datetime.now(timezone.utc)
         }
         filter = {"user_id": user_id}
         if check_token_existence:
@@ -108,9 +108,10 @@ async def auth_callback(code):
         check_token_existence = True if find_token else False
 
         if is_user:
-            user_token = await access_token_manager(is_user, check_token_existence, access_token, refresh_token, find_user["_id"], find_user["email"])
+            user_token = await access_token_manager(is_user, check_token_existence, access_token, refresh_token, None, find_user["_id"], find_user["email"])
+            token_key = await create_access_token(str(user_token['_id']))
             response = RedirectResponse(url=REDIRECT_URL_HOME)
-            response.set_cookie(key=COOKIES_KEY_NAME, value=user_token['access_token'], httponly=True)
+            response.set_cookie(key=COOKIES_KEY_NAME, value=token_key, httponly=True)
 
             return response
         
@@ -125,30 +126,27 @@ async def auth_callback(code):
             document = dict(UserModel(**user_dict))
             user_create = user_collection.insert_one(document)
             user_id = user_create.inserted_id
-
+            token_key = await create_access_token(str(user_token['_id']))
             user_token = await access_token_manager(is_user, check_token_existence, access_token, refresh_token, ObjectId(user_id), user_data['mail'])
             response = RedirectResponse(url=REDIRECT_URL_HOME)
-            response.set_cookie(key=COOKIES_KEY_NAME, value=user_token['access_token'], httponly=True)
+            response.set_cookie(key=COOKIES_KEY_NAME, value=token_key, httponly=True)
 
             return response
 
-async def validate_token(access_token: str):
-    user_token = auth_collection.find_one({"access_token": access_token})
+async def validate_token(token: str):
+    user_token = auth_collection.find_one({"_id": ObjectId(token)})
     async with AsyncClient() as client:
         user_response = await client.get(
             MS_USER_INFO_URL,
-            headers={"Authorization": f"Bearer {access_token}"}
+            headers={"Authorization": f"Bearer {user_token['access_token']}"}
         )
-        if not user_token:
-            raise HTTPException(status_code=404, detail="There is no token")
         
         if user_response.status_code == 200:
-            user_token = auth_collection.find_one({"access_token": access_token})
             role_nm = await get_role(user_token['user_id'])
             user_data = user_response.json()
             document = {
-                "status": "valid",
-                "userId": user_token['user_id'],
+                "sign_status": "valid",
+                "userId": str(user_token['user_id']),
                 "userData": {
                     "name": user_data.get("displayName"),
                     "email": user_data.get("mail"),
@@ -164,50 +162,48 @@ async def validate_token(access_token: str):
             find_user = user_collection.find_one({"_id": user_token['user_id']})
             if find_user:
                 reissue_token = msal_app.acquire_token_by_refresh_token(user_token["refresh_token"], scopes=["User.Read"])
-                await access_token_manager(True, True, reissue_token['access_token'], reissue_token['refresh_token'], user_token['user_id'], user_token['email'])
+                await access_token_manager(True, True, reissue_token['access_token'], reissue_token['refresh_token'], None, user_token['user_id'], user_token['email'])
                 user_token = auth_collection.find_one({"access_token": reissue_token['access_token']})
                 role_nm = await get_role(user_token['user_id'])
                 document = {
-                    "status": "refresh",
-                    "userId": user_token['user_id'],
+                    "sign_status": "refresh",
+                    "userId": str(user_token['user_id']),
                     "user": {
                         "name": find_user['user_nm'],
                         "email": find_user['email'],
                         "jobTitle": find_user['rank'],
                         "mobilePhone": find_user['mobile_contact'],
                         "role": role_nm
-                    }                
+                    }
                 }
 
                 return document
-            
-            else:
-                RedirectResponse(url=REDIRECT_URL_HOME)
 
 async def validate(request: Request) -> JSONResponse:
-    access_token = request.cookies.get(COOKIES_KEY_NAME)
+    cookie_token = request.cookies.get(COOKIES_KEY_NAME)
+    access_token = await parse_token(cookie_token)
     valid_token = await validate_token(access_token)
-    if valid_token['status'] == "valid":
+
+    if valid_token['sign_status'] == "valid":
         objectId_convert(valid_token, "userId")
 
-        return JSONResponse(content=valid_token)
+        return valid_token
     
-    else:
+    elif valid_token['sign_status'] == "refresh":
         access_token = auth_collection.find_one({"user_id": valid_token['userId']})
-        response = JSONResponse(content=valid_token)
-        response.set_cookie(key=COOKIES_KEY_NAME, value=valid_token['access_token'], httponly=True)
 
-        return response
+        return valid_token
 
 async def get_user_profile_image(request: Request) -> Response:
-    access_token = request.cookies.get(COOKIES_KEY_NAME)
+    token_data = await parse_token(request.cookies.get(COOKIES_KEY_NAME))
+    access_token = auth_collection.find_one({"_id": ObjectId(token_data)})
     if not access_token:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     async with AsyncClient() as client:
         user_response = await client.get(
             MS_PROFILE_PHOTO,
-            headers={"Authorization": f"Bearer {access_token}"}
+            headers={"Authorization": f"Bearer {access_token['access_token']}"}
         )
 
     if user_response.status_code != 200:

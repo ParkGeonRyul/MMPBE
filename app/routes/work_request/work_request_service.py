@@ -1,19 +1,17 @@
-from fastapi import Request, Response, UploadFile, File
+from fastapi import Request, UploadFile, File
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
+from bson import ObjectId
 
 import json
-import uuid
 import os
 
-from db.context import work_request_collection, contract_collection, auth_collection, file_collection
-from datetime import datetime
-from bson import ObjectId
 from models.work_request_dto import *
 from routes._modules import list_module
 from routes._modules.list_module import is_temporary
 from routes._modules.file_server import *
 from models import work_request_dto
+from db.context import work_request_collection, contract_collection
 
 load_dotenv()
 
@@ -21,8 +19,8 @@ upload_path = os.getenv("UPLOAD_PATH")
 
 async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
     req_data = json.loads(await request.body())
-    id = str(req_data['tokenData']['userId'])
-    role = str(req_data['role'])
+    id = str(req_data['userId'])
+    role = str(req_data['userData']['role'])
     temporary_value = await is_temporary(is_temp)
 
     match = {
@@ -60,10 +58,10 @@ async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
     return response_content
 
 async def get_request_dtl(request: Request) -> JSONResponse:
-    req_data = json.loads(await request.body())
-    id = str(req_data['tokenData']['userId'])
     request_id = request.query_params.get("_id")
-    role = str(req_data['role'])
+    req_data = json.loads(await request.body())
+    id = str(req_data['userId'])
+    role = str(req_data['userData']['role'])
     match = {
         "_id": ObjectId(request_id)
     }
@@ -175,7 +173,7 @@ async def delete_request(request: Request) -> JSONResponse:
 async def update_request_status(request: Request, item: UpdateRequestStatusAcceptModel) -> JSONResponse:
     req_body = await request.json()
     request_id = req_body["_id"]
-    print(request_id)
+
     try:
         work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set":item.model_dump()})
 

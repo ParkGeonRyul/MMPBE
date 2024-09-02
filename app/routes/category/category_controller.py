@@ -1,9 +1,9 @@
 from fastapi import APIRouter, status
 from fastapi.requests import Request
 
+from models.work_request_dto import *
 from routes._path.api_paths import CATEGORY
 from routes.category import category_service
-from models.work_request_dto import *
 
 
 router = APIRouter()

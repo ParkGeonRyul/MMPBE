@@ -1,9 +1,8 @@
-from fastapi import APIRouter, HTTPException, status, Response, Request
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, status, Response, Request
+from fastapi.responses import JSONResponse, RedirectResponse
 
 from constants import COOKIES_KEY_NAME
 
-from fastapi.responses import RedirectResponse
 from routes.auth import auth_service
 from constants import COOKIES_KEY_NAME
 from dotenv import load_dotenv
