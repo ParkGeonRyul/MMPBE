@@ -31,8 +31,8 @@ class Router:
 
 @router.get("/bi-embeded", status_code=status.HTTP_200_OK, response_model_by_alias=True)
 async def get_request_list(request: Request) -> JSONResponse:
-    groups = request.query_params.get("_id")
-    reports = request.query_params.get("_id")
+    groups = request.query_params.get("groups")
+    reports = request.query_params.get("reports")
     token_key = await parse_token(request.cookies.get(COOKIES_KEY_NAME))
 
     auth_data = auth_collection.find_one({"_id": ObjectId(token_key)})
@@ -63,5 +63,6 @@ async def get_request_list(request: Request) -> JSONResponse:
     }
 
     get_token = requests.post(f"https://api.powerbi.com/v1.0/myorg/groups/{groups}/reports/{reports}/GenerateToken", headers=headers, data=data)
+    token_json = get_token.json()
 
-    return JSONResponse(content=get_token['token'])
+    return JSONResponse(content=token_json['token'])
