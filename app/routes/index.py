@@ -72,11 +72,12 @@ async def proxy(request: Request, path: str):
 
             elif content_type == "application/json" :
                 req_json = await request.body()
+                req_json = json.loads(req_json.decode('utf-8'))
                 req_json['user_id'] = token_data['userId']
                 for key, value in user_data.items():
                     req_json[key] = value
 
-                response_data = await client.request(method, backend_url, content=req_json, cookies=request.cookies)
+                response_data = await client.request(method, backend_url, json=req_json, cookies=request.cookies)
 
         else:
             body_data = {'user_id': token_data['userId']}
