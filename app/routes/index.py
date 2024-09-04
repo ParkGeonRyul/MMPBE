@@ -48,6 +48,7 @@ async def proxy(request: Request, path: str):
             return RedirectResponse(url=f"{MAIN_URL}{LOGIN_WITH_MS}")
         
         token_data = await validate_token(token_key)
+        user_data = token_data['userData']
                 
         if req_body:
             content_type = request.headers.get("Content-Type")
@@ -62,22 +63,27 @@ async def proxy(request: Request, path: str):
                 else:
                     req_json = {key: value for key, value in req_data.items()}
                     file_status = None
-
-                for key, value in token_data.items():
+                
+                req_json['user_id'] = token_data['userId']
+                for key, value in user_data.items():
                     req_json[key] = value
 
                 response_data = await client.request(method, backend_url, data=req_json, cookies=request.cookies, files=file_status)
 
             elif content_type == "application/json" :
-                req_data = await request.body()
-                for key, value in token_data.items():
+                req_json = await request.body()
+                req_json = json.loads(req_json.decode('utf-8'))
+                req_json['user_id'] = token_data['userId']
+                for key, value in user_data.items():
                     req_json[key] = value
 
-                response_data = await client.request(method, backend_url, content=req_data, cookies=request.cookies)
+                response_data = await client.request(method, backend_url, json=req_json, cookies=request.cookies)
 
         else:
-            body_data = token_data
-            modified_body = json.dumps(body_data).encode('utf-8')
-            response_data = await client.request(method, backend_url, content=modified_body, cookies=request.cookies)
+            body_data = {'user_id': token_data['userId']}
+            for key, value in user_data.items():
+                body_data[key] = value
+            req_json = json.dumps(body_data).encode('utf-8')
+            response_data = await client.request(method, backend_url, content=req_json, cookies=request.cookies)
         
         return Response(content=response_data.content, status_code=response_data.status_code, headers=dict(response_data.headers))

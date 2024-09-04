@@ -6,11 +6,11 @@ from bson import ObjectId
 import json
 import os
 
-from models.work_request_dto import *
 from routes._modules import list_module
 from routes._modules.list_module import is_temporary
 from routes._modules.file_server import *
 from models import work_request_dto
+from models.work_request_dto import *
 from db.context import work_request_collection, contract_collection
 
 load_dotenv()
@@ -19,8 +19,8 @@ upload_path = os.getenv("UPLOAD_PATH")
 
 async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
     req_data = json.loads(await request.body())
-    id = str(req_data['userId'])
-    role = str(req_data['userData']['role'])
+    id = str(req_data['user_id'])
+    role = str(req_data['role'])
     temporary_value = await is_temporary(is_temp)
 
     match = {
@@ -61,8 +61,8 @@ async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
 async def get_request_dtl(request: Request) -> JSONResponse:
     request_id = request.query_params.get("_id")
     req_data = json.loads(await request.body())
-    id = str(req_data['userId'])
-    role = str(req_data['userData']['role'])
+    id = str(req_data['user_id'])
+    role = str(req_data['role'])
     match = {
         "_id": ObjectId(request_id)
     }
@@ -72,20 +72,19 @@ async def get_request_dtl(request: Request) -> JSONResponse:
 
     if role == "user":
         get_wr = work_request_collection.find_one({"_id": ObjectId(request_id), "customer_id": id})
-        if not get_wr:
-            
+
+        if not get_wr:            
             raise HTTPException(status_code=404, detail="request not found")
     
     elif role == "admin":
         contract = work_request_collection.find_one({"_id": ObjectId(request_id)})
-        if not contract:
-            
+
+        if not contract:            
             raise HTTPException(status_code=404, detail="request not found")
         
         get_sales = contract_collection.find_one({"_id": ObjectId(contract['solution_id']),"sales_representative_nm": req_data['userData']['name']})
 
-        if not get_sales:
-            
+        if not get_sales:            
             raise HTTPException(status_code=404, detail="request by contract not found")
         
     projection = {
@@ -119,11 +118,11 @@ async def get_request_dtl(request: Request) -> JSONResponse:
 
 async def create_request(item: dict, file: None | UploadFile = File(...)) -> JSONResponse:
     document = dict(CreateWorkRequestModel(**item))
-    document['customer_id'] = item['userId']
+    document['customer_id'] = item['user_id']
 
     try: 
         if file:
-             file_data = await upload_file(item['userId'], file)
+             file_data = await upload_file(item['user_id'], file)
              document['file_path'] = file_data['file_id']
 
         work_request_collection.insert_one(document)
@@ -138,10 +137,10 @@ async def create_request(item: dict, file: None | UploadFile = File(...)) -> JSO
 
 async def update_request(request: Request, item: dict, file: None | UploadFile = File(...)) -> JSONResponse:
     document = dict(UpdateWorkRequestModel(**item))
-    document['customer_id'] = item['userId']
+    document['customer_id'] = item['user_id']
     try:
         if file:
-             file_data = await upload_file(item['userId'], file)
+             file_data = await upload_file(item['user_id'], file)
              document['file_path'] = file_data['file_id']
 
         work_request_collection.update_one({"_id": ObjectId(document['id'])}, {"$set": document})
@@ -184,35 +183,3 @@ async def update_request_status(request: Request, item: UpdateRequestStatusAccep
     response_content = {"message": "Status modify success"}
 
     return response_content
-
-# async def create_temporary(request: Request, item: CreateWorkRequestModel) -> JSONResponse:
-#     work_request_collection.insert_one(item.model_dump())
-#     response_content = {"message": "Temporary Request Created"}
-
-#     return response_content
-
-# async def update_temporary(request: Request, item: UpdateWorkRequestModel) -> JSONResponse:
-#     request_id = request.query_params.get("requestId")
-#     work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set": item.model_dump()})
-#     response_content = {"message": "Temporary Request Updated"}
-
-#     return response_content
-
-# async def delete_temporary(request: Request, item: DeleteRequestTempraryModel):
-#     object_ids = [ObjectId(id) for id in item]
-#     work_request_collection.delete_many({"_id": {"$in": object_ids}})
-#     response_content = {"message": "Temporary Deleted"}
-
-#     return response_content
-
-# async def del_yn_request(request: Request):
-#     request_id = request.query_params.get("requestId")
-#     test = work_request_collection.find_one({"_id": ObjectId(request_id)})
-#     if test['del_yn'] == "N":
-#         work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set":{"del_yn": "Y"}})
-#     else:
-#         work_request_collection.update_one({"_id": ObjectId(request_id)}, {"$set":{"del_yn": "N"}})
-
-#     response_content = {"message": "Request delete processing completed"}
-
-#     return response_content

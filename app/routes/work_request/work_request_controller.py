@@ -59,29 +59,3 @@ async def delete_work_request(request: Request):
 async def update_request_status(request: Request, item: UpdateRequestStatusAcceptModel):
 
     return await work_request_service.update_request_status(request, item)
-
-
-# @router.post(CREATE_REQUEST_TEMPORARY, status_code=status.HTTP_201_CREATED, response_model_by_alias=False)       
-# async def create_temporary(request: Request, item: CreateWorkRequestModel):
-
-#     return await work_request_service.create_temporary(request, item)
-
-# @router.put(CREATE_REQUEST, status_code=status.HTTP_200_OK, response_model_by_alias=False)       
-# async def update_temporary(request: Request, item: UpdateWorkRequestModel):
-        
-#     return await work_request_service.update_temporary(request, item)
-
-# @router.put(UPDATE_REQUEST_TEMPORARY, status_code=status.HTTP_200_OK, response_model_by_alias=False)       
-# async def update_temporary(request: Request, item: UpdateWorkRequestModel):
-        
-#     return await work_request_service.update_temporary(request, item)
-
-# @router.delete(DELETE_REQUEST_TEMPORARY, status_code=status.HTTP_200_OK)
-# async def delete_temporary(request: Request, item: DeleteRequestTempraryModel):
-        
-#     return await work_request_service.delete_temporary(request, item)
-
-# @router.put(DELETE_REQUEST, status_code=status.HTTP_200_OK)
-# async def delete_request(request: Request):
-        
-#     return await work_request_service.del_yn_request(request)

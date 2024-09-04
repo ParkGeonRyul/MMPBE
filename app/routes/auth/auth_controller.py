@@ -2,16 +2,11 @@ from fastapi import APIRouter, status, Response, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from constants import COOKIES_KEY_NAME
-
 from routes.auth import auth_service
-from constants import COOKIES_KEY_NAME
-from dotenv import load_dotenv
-from db.context import auth_collection, user_collection
 from routes._path.api_paths import AUTH_CALLBACK, CHECK_SESSION, LOGIN_WITH_MS, LOGOUT, USER_INFO
 
-load_dotenv()
-router = APIRouter()
 
+router = APIRouter()
 
 @router.get(LOGIN_WITH_MS)
 async def login():
