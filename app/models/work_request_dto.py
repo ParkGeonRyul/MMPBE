@@ -183,7 +183,6 @@ class CreateWorkRequestModel(BaseModel): # fe -> be
     wr_date: Optional[datetime] = WorkRequestField.wr_date # None == 임시저장, 사용자가 요청 이후에 수정이 안 됨.
     status: Optional[str] = WorkRequestField.status # 승인, 반려, 요청, 회수(시스템 관리자만 볼 수 있음)
     status_content: Optional[str] = WorkRequestField.status_content
-    file_path: str = WorkRequestField.file_path
     created_at: Optional[datetime] = WorkRequestField.created_at # 최초 이후 수정이 안 됨
     del_yn: Optional[str] = WorkRequestField.del_yn # 시스템 관리자를 위한
     model_config = ConfigDict(
@@ -196,10 +195,7 @@ class CreateWorkRequestModel(BaseModel): # fe -> be
                 "solutionId": "계약 ID(ObjectID)",
                 "wrTitle": "작업 요청 제목",
                 "content": "작업 요청 내용",
-                "wrDate": "작업 요청 날짜",
-                "status": "요청 상태",
-                "statusContent": "상태 관련 답변",
-                "filePath": "파일 경로"
+                "wrDate": "작업 요청 날짜"
             }
         }
     )

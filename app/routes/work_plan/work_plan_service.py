@@ -16,8 +16,8 @@ from routes._modules.file_server import *
 async def get_plan_list(request: Request, is_temp: bool) -> JSONResponse:
     req_data = json.loads(await request.body())
     menu = request.query_params.get("menu")
-    id = str(req_data['userId'])
-    role = str(req_data['userData']['role'])
+    id = str(req_data['user_id'])
+    role = str(req_data['role'])
     temporary_value = await is_temporary(is_temp)
     
     match = {
@@ -52,8 +52,8 @@ async def get_plan_list(request: Request, is_temp: bool) -> JSONResponse:
 
 async def get_plan_dtl(request: Request) -> JSONResponse:
     req_data = json.loads(await request.body())
-    id = str(req_data['userId'])
-    role = str(req_data['userData']['role'])
+    id = req_data['user_id']
+    role = req_data['role']
     plan_id = request.query_params.get("_id")
     projection = {
                         "_id": 1,
@@ -158,7 +158,7 @@ async def update_plan_status_accept(request: Request, item: UpdatePlanStatusAcce
 
 async def create_plan(item: dict, file: None | UploadFile = File(...)) -> JSONResponse:
     document = dict(CreateWorkPlanModel(**item))
-    document['user_id'] = item['userId']
+    document['user_id'] = item['user_id']
 
     try: 
         if file:
@@ -178,7 +178,7 @@ async def create_plan(item: dict, file: None | UploadFile = File(...)) -> JSONRe
 async def update_plan(request: Request, item: dict, file: None | UploadFile = File(...)) -> JSONResponse:
     plan_id = item['id']
     document = dict(UpdateWorkPlanModel(**item))
-    document['user_id'] = item['userId']
+    document['user_id'] = item['user_id']
 
     try: 
         if file:
