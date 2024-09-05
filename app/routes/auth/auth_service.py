@@ -158,7 +158,7 @@ async def validate_token(token: str):
             return document
         
         else:
-            find_user = user_collection.find_one({"_id": user_token['user_id']})
+            find_user = user_collection.find_one({"_id": ObjectId(user_token['user_id'])})
             if find_user:
                 reissue_token = msal_app.acquire_token_by_refresh_token(user_token["refresh_token"], scopes=["User.Read"])
                 await access_token_manager(True, True, reissue_token['access_token'], reissue_token['refresh_token'], user_token['user_id'], user_token['email'])
@@ -167,7 +167,7 @@ async def validate_token(token: str):
                 document = {
                     "sign_status": "refresh",
                     "userId": user_token['user_id'],
-                    "user": {
+                    "userData": {
                         "name": find_user['user_nm'],
                         "email": find_user['email'],
                         "jobTitle": find_user['rank'],
