@@ -167,7 +167,7 @@ async def validate_token(token: str):
                 document = {
                     "sign_status": "refresh",
                     "userId": user_token['user_id'],
-                    "user": {
+                    "userData": {
                         "name": find_user['user_nm'],
                         "email": find_user['email'],
                         "jobTitle": find_user['rank'],
