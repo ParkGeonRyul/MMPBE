@@ -1,7 +1,6 @@
-from pydantic import BaseModel, Field, ConfigDict, ValidationError
+from pydantic import BaseModel, Field, ConfigDict
 from dotenv import load_dotenv
-from typing import Any, List, Optional
-from typing_extensions import Annotated
+from typing import List, Optional
 from bson import ObjectId
 from datetime import datetime, timezone
 from pydantic.alias_generators import to_camel

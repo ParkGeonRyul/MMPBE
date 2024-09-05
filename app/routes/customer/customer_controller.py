@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Request
 
-from routes.customer import customer_service
-from routes.customer import customer_service
 from routes._path.api_paths import SELECT_CUSTOMER, SELECT_CUSTOMER_DETAIL
+from routes.customer import customer_service
 
 
 router = APIRouter()

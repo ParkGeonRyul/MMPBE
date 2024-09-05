@@ -7,6 +7,7 @@ from routes.work_plan import work_plan_service
 from models.work_plan_dto import *
 from dotenv import load_dotenv
 
+
 load_dotenv()
 router = APIRouter()
 

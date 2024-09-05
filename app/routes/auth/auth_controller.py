@@ -2,8 +2,8 @@ from fastapi import APIRouter, status, Response, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from constants import COOKIES_KEY_NAME
-from routes.auth import auth_service
 from routes._path.api_paths import AUTH_CALLBACK, CHECK_SESSION, LOGIN_WITH_MS, LOGOUT, USER_INFO
+from routes.auth import auth_service
 
 
 router = APIRouter()
