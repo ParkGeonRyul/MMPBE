@@ -1,12 +1,8 @@
-from pydantic import BaseModel, Field, ConfigDict, ValidationError
+from pydantic import BaseModel, Field, ConfigDict
 from utils.pymongo_object_id import PyObjectId
 
-import re
-
-from pydantic.functional_validators import AfterValidator
 from datetime import datetime
-from typing import Any, List, Optional
-from typing_extensions import Annotated
+from typing import List, Optional
 from bson import ObjectId
 from pydantic.alias_generators import to_camel
 from utils.snake_by_camel import *

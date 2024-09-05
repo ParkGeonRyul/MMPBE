@@ -6,8 +6,9 @@ import json
 
 from db.context import user_collection
 from models.user_dto import *
-from routes._modules import list_module
 from models import user_dto
+from routes._modules import list_module
+
 
 async def get_customer_list() -> JSONResponse:
     match = {

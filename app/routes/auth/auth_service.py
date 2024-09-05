@@ -7,10 +7,10 @@ from datetime import datetime, timezone
 import msal
 
 from constants import COOKIES_KEY_NAME
+from db.context import auth_collection, user_collection, role_collection
+from models.user_dto import UserModel
 from routes._path.ms_paths import MS_AUTHORITY, MS_CLIENT_ID, MS_CLIENT_SECRET, MS_PROFILE_PHOTO, MS_REDIRECT_URI, MS_TOKEN_URL, MS_USER_INFO_URL, REDIRECT_URL_HOME
 from routes._modules.jwt import *
-from models.user_dto import UserModel
-from db.context import auth_collection, user_collection, role_collection
 
 
 router = APIRouter()

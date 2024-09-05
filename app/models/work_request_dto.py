@@ -1,4 +1,3 @@
-from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime, timezone
 from typing import List, Optional
@@ -6,7 +5,6 @@ from bson import ObjectId
 from pydantic.alias_generators import to_camel
 from dotenv import load_dotenv
 
-import json
 import os
 
 from utils.pymongo_object_id import PyObjectId
