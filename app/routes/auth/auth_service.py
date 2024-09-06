@@ -11,7 +11,6 @@ from routes._path.ms_paths import MS_AUTHORITY, MS_CLIENT_ID, MS_CLIENT_SECRET, 
 from routes._modules.jwt import *
 from models.user_dto import UserModel
 from db.context import auth_collection, user_collection, role_collection
-from utils.objectId_convert import objectId_convert
 
 
 router = APIRouter()
@@ -22,7 +21,7 @@ msal_app = msal.ConfidentialClientApplication(
     client_credential=MS_CLIENT_SECRET
 )
 
-async def insert_token(access_token: str, refresh_token: str, user_id: ObjectId, email: str):
+async def insert_token(access_token: str, refresh_token: str, user_id: str, email: str):
     document = {
         "access_token": access_token,
         "refresh_token": refresh_token,
@@ -36,17 +35,16 @@ async def insert_token(access_token: str, refresh_token: str, user_id: ObjectId,
     return user_token
 
 async def get_role(user_id: str):
-            get_user_info = user_collection.find_one({"_id": user_id})
+            get_user_info = user_collection.find_one({"_id": ObjectId(user_id)})
             get_role = role_collection.find_one({"_id": ObjectId(get_user_info['role'])})
 
             return get_role['role_nm']
 
-async def access_token_manager(is_user:bool, check_token_existence:bool, access_token: str, refresh_token: str, backup_token: None | str, user_id: ObjectId, email: str):                       
+async def access_token_manager(is_user:bool, check_token_existence:bool, access_token: str, refresh_token: str, user_id: str, email: str):                       
     if is_user == True:
         document = {
             "access_token": access_token,
             "refresh_token": refresh_token,
-            "backup_token": backup_token,
             "updated_at": datetime.now(timezone.utc)
         }
         filter = {"user_id": user_id}
@@ -87,12 +85,13 @@ async def auth_callback(code):
             },
             headers={"Content-Type": "application/x-www-form-urlencoded"}
         )
+
         if token_response.status_code != 200:
             raise HTTPException(status_code=token_response.status_code, detail=token_response.text)
 
         token_data = token_response.json()
-        access_token = token_data.get("access_token")
-        refresh_token = token_data.get("refresh_token")
+        access_token = token_data['access_token']
+        refresh_token = token_data['refresh_token']
         
         user_response = await client.get(
             MS_USER_INFO_URL,
@@ -108,7 +107,7 @@ async def auth_callback(code):
         check_token_existence = True if find_token else False
 
         if is_user:
-            user_token = await access_token_manager(is_user, check_token_existence, access_token, refresh_token, None, find_user["_id"], find_user["email"])
+            user_token = await access_token_manager(is_user, check_token_existence, access_token, refresh_token, str(find_user["_id"]), find_user["email"])
             token_key = await create_access_token(str(user_token['_id']))
             response = RedirectResponse(url=REDIRECT_URL_HOME)
             response.set_cookie(key=COOKIES_KEY_NAME, value=token_key, httponly=True)
@@ -127,7 +126,7 @@ async def auth_callback(code):
             user_create = user_collection.insert_one(document)
             user_id = user_create.inserted_id
             token_key = await create_access_token(str(user_token['_id']))
-            user_token = await access_token_manager(is_user, check_token_existence, access_token, refresh_token, ObjectId(user_id), user_data['mail'])
+            user_token = await access_token_manager(is_user, check_token_existence, access_token, refresh_token, str(user_id), user_data['mail'])
             response = RedirectResponse(url=REDIRECT_URL_HOME)
             response.set_cookie(key=COOKIES_KEY_NAME, value=token_key, httponly=True)
 
@@ -146,7 +145,7 @@ async def validate_token(token: str):
             user_data = user_response.json()
             document = {
                 "sign_status": "valid",
-                "userId": str(user_token['user_id']),
+                "userId": user_token['user_id'],
                 "userData": {
                     "name": user_data.get("displayName"),
                     "email": user_data.get("mail"),
@@ -159,16 +158,16 @@ async def validate_token(token: str):
             return document
         
         else:
-            find_user = user_collection.find_one({"_id": user_token['user_id']})
+            find_user = user_collection.find_one({"_id": ObjectId(user_token['user_id'])})
             if find_user:
                 reissue_token = msal_app.acquire_token_by_refresh_token(user_token["refresh_token"], scopes=["User.Read"])
-                await access_token_manager(True, True, reissue_token['access_token'], reissue_token['refresh_token'], None, user_token['user_id'], user_token['email'])
+                await access_token_manager(True, True, reissue_token['access_token'], reissue_token['refresh_token'], user_token['user_id'], user_token['email'])
                 user_token = auth_collection.find_one({"access_token": reissue_token['access_token']})
                 role_nm = await get_role(user_token['user_id'])
                 document = {
                     "sign_status": "refresh",
-                    "userId": str(user_token['user_id']),
-                    "user": {
+                    "userId": user_token['user_id'],
+                    "userData": {
                         "name": find_user['user_nm'],
                         "email": find_user['email'],
                         "jobTitle": find_user['rank'],
@@ -184,15 +183,8 @@ async def validate(request: Request) -> JSONResponse:
     access_token = await parse_token(cookie_token)
     valid_token = await validate_token(access_token)
 
-    if valid_token['sign_status'] == "valid":
-        objectId_convert(valid_token, "userId")
+    return valid_token
 
-        return valid_token
-    
-    elif valid_token['sign_status'] == "refresh":
-        access_token = auth_collection.find_one({"user_id": valid_token['userId']})
-
-        return valid_token
 
 async def get_user_profile_image(request: Request) -> Response:
     token_data = await parse_token(request.cookies.get(COOKIES_KEY_NAME))

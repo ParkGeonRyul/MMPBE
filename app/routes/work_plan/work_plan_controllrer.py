@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, UploadFile
 from fastapi.responses import JSONResponse
 from fastapi.requests import Request
-from routes._path.api_paths import SELECT_APPROVE_WR_LIST, SELECT_PLAN, SELECT_PLAN_TEMPORARY, SELECT_PLAN_DETAIL, CREATE_PLAN, CREATE_PLAN_TEMPORARY, UPDATE_PLAN, UPDATE_PLAN_STATUS_ACCEPT, UPDATE_PLAN_TEMPORARY, DELETE_PLAN, DELETE_PLAN_TEMPORARY, UPDATE_PLAN_STATUS
+from routes._path.api_paths import SELECT_APPROVE_WR_LIST, SELECT_PLAN, SELECT_PLAN_TEMPORARY, SELECT_PLAN_DETAIL, CREATE_PLAN, UPDATE_PLAN, UPDATE_PLAN_STATUS_ACCEPT, DELETE_PLAN, DELETE_PLAN_TEMPORARY, UPDATE_PLAN_STATUS
 
 from routes.work_plan import work_plan_service
 from models.work_plan_dto import *

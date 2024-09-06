@@ -1,15 +1,15 @@
 from fastapi import Request
 from fastapi.responses import JSONResponse
+from bson import ObjectId
 
 import json
 
 from db.context import user_collection
-from bson import ObjectId
 from models.user_dto import *
 from routes._modules import list_module
 from models import user_dto
 
-async def get_customer_list(request: Request) -> JSONResponse:
+async def get_customer_list() -> JSONResponse:
     match = {
         "role" : '66a83425be3a5f7919351fc1'
     }
