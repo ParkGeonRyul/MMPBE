@@ -66,3 +66,30 @@ async def get_request_list(request: Request) -> JSONResponse:
     token_json = get_token.json()
 
     return JSONResponse(content=token_json['token'])
+
+
+@router.get("/tested", status_code=status.HTTP_200_OK, response_model_by_alias=True)
+async def get_request_list(request: Request) -> JSONResponse:
+    groupId = request.query_params.get("groupId")
+    reportId = request.query_params.get("reportId")
+    token_key = await parse_token(request.cookies.get(COOKIES_KEY_NAME))
+
+    auth_data = auth_collection.find_one({"_id": ObjectId(token_key)})
+    refresh_token = auth_data['refresh_token']
+
+    async with AsyncClient() as client:
+        gra_token_response = await client.post(
+            MS_TOKEN_URL,
+            data={
+                "client_id": MS_CLIENT_ID,
+                "client_secret": MS_CLIENT_SECRET,
+                "refresh_token": refresh_token,
+                "grant_type": "refresh_token",
+                "scope": 'https://monitoring.azure.com/.default'
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"}
+        )
+
+        token_json = gra_token_response.json()
+
+    return token_json
