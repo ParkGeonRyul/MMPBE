@@ -1,3 +1,4 @@
+import socket
 from fastapi import APIRouter, HTTPException, Response, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from httpx import AsyncClient
@@ -10,8 +11,8 @@ from constants import COOKIES_KEY_NAME
 from routes._path.ms_paths import MS_AUTHORITY, MS_CLIENT_ID, MS_CLIENT_SECRET, MS_PROFILE_PHOTO, MS_REDIRECT_URI, MS_TOKEN_URL, MS_USER_INFO_URL, REDIRECT_URL_HOME
 from routes._modules.jwt import *
 from models.user_dto import UserModel
-from db.context import auth_collection, user_collection, role_collection
-
+from models.log_dto import LoginLogModel
+from db.context import auth_collection, user_collection, role_collection, login_log_collection
 
 router = APIRouter()
 
@@ -68,8 +69,24 @@ async def login():
 
     return RedirectResponse(url)
 
-async def auth_callback(code):
+async def log_callback(log_in_out : str,user_email : str,success_YN : str, client_ip: str, user_agent:str):
+    log_dic = {
+        "log_in_out" : log_in_out,
+        "user_email" : user_email,
+        "user_agent" : user_agent,
+        "success_YN" : success_YN,
+        "client_ip" : client_ip,
+    }
+    log_document = dict(LoginLogModel(**log_dic))
+    result = login_log_collection.insert_one(log_document)
+    print("result ::::: ", result)
+        
+async def auth_callback(code,request: Request):
+    print("auth_callback 실행")
+    client_ip = request.client.host
+    user_agent = request.headers.get('User-Agent')
     if not code:
+        await log_callback('LOGIN',"NULL","N",client_ip, user_agent)
         raise HTTPException(status_code=400, detail="Code not found")
 
     async with AsyncClient() as client:
@@ -101,6 +118,7 @@ async def auth_callback(code):
             raise HTTPException(status_code=user_response.status_code, detail=user_response.text)
 
         user_data = user_response.json()
+        await log_callback('LOGIN',user_data['mail'],"Y",client_ip, user_agent)
         find_user = user_collection.find_one({"email": user_data['mail']})
         find_token = auth_collection.find_one({"email": user_data['mail']})
         is_user = True if find_user else False
@@ -121,7 +139,7 @@ async def auth_callback(code):
                 "mobile_contact": user_data['mobilePhone'],
                 "email": user_data['mail'],
             }
-
+            
             document = dict(UserModel(**user_dict))
             user_create = user_collection.insert_one(document)
             user_id = user_create.inserted_id
