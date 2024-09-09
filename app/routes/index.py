@@ -14,7 +14,7 @@ from routes._path.ms_paths import *
 from routes.auth.auth_service import *
 from db.context import auth_collection
 from models.work_request_dto import *
-
+from utils.logger_handler import work_log_callback
 
 router = APIRouter()
 
@@ -49,9 +49,12 @@ async def proxy(request: Request, path: str):
         
         token_data = await validate_token(token_key)
         user_data = token_data['userData']
-                
+        
+        await work_log_callback(path, method, request.client.host, request.headers.get('User-Agent'),token_data['userId'])
+        print("userId :::: ", token_data['userId'])
         if req_body:
             content_type = request.headers.get("Content-Type")
+            
             
             if content_type.startswith("multipart/form-data"):
                 req_data = await request.form()

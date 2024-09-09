@@ -7,27 +7,27 @@ from typing import Optional
 from utils.snake_by_camel import *
 
 class LoginLogModel(BaseModel):
-    log_in_out: Optional[str] = Field(
+    log_in_out: str = Field(
         description="LOGIN/LOGOUT",
         alias="loginInOut"
     )
-    user_email: Optional[str] = Field(
+    user_email: str = Field(
         description="접속자 이메일",
         alias="userEmail"
     )
-    user_agent: Optional[str] = Field(
+    user_agent: str = Field(
         description="접속자 PC정보",
         alias="userAgent"
     )
-    client_ip: Optional[str] = Field(
+    client_ip: str = Field(
         description="접속자 IP정보",
         alias="clientIP"
     )
-    success_YN: Optional[str] = Field(
+    success_YN: str = Field(
         description="성공 여부",
         alias="successYN"
     )
-    created_at: Optional[datetime] = Field(
+    created_at: datetime = Field(
         default_factory=datetime.now,
         description="접속 날짜"
     )
