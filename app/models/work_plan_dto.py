@@ -8,6 +8,7 @@ from pydantic.alias_generators import to_camel
 
 import os
 
+from db.context import work_plan_collection
 from utils.pymongo_object_id import PyObjectId
 
 
@@ -262,7 +263,7 @@ class ResponsePlanDtlModel(BaseModel):
         }
     )
        
-async def get_list(match: dict, projection: dict, db_collection: any, response_model: any):
+async def get_list(match: dict, projection: dict, response_model: BaseModel):
     pipeline = [
                 {
                     "$match": match
@@ -375,7 +376,7 @@ async def get_list(match: dict, projection: dict, db_collection: any, response_m
                     "$project": projection
                 }
           ]
-    results = db_collection.aggregate(pipeline)
+    results = work_plan_collection.aggregate(pipeline)
     content=[]
     for item in results:
         item['_id'] = str(item['_id'])

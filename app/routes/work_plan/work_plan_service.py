@@ -39,7 +39,7 @@ async def get_plan_list(request: Request, is_temp: bool) -> JSONResponse:
         match['user_id'] = id
 
     projection = {"_id": 1, "user_id": 1, "plan_title": 1, "acceptor_id": 1, "acceptor_nm": 1, "company_nm": 1, "wr_title": 1, "requestor_nm":1, "plan_date": 1, "status": 1}   
-    plan_list = await list_module.get_collection_list(match, work_plan_collection, projection, ResponsePlanListModel, work_plan_dto)
+    plan_list = await list_module.get_collection_list(match, projection, ResponsePlanListModel, work_plan_dto, 1, 5)
         
     content = {
         "total": len(plan_list),

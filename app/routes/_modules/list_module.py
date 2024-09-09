@@ -10,8 +10,8 @@ async def is_temporary(value: bool):
       else: 
         return {'$ne': None}
 
-async def get_collection_list(match: dict, db_collection: str, projection: dict, response_model: any, dto: any) -> list: # page: int | None
-  get_list: list = await dto.get_list(match, projection, db_collection, response_model)
+async def get_collection_list(match: dict, projection: dict, response_model: any, dto: any, skip: int, limit: int) -> list: # page: int | None
+  get_list = await dto.get_list(match, projection, response_model, skip, limit)
 
   return get_list
 

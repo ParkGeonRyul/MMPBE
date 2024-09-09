@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 import json
 import os
 
+from db.context import work_request_collection
 from utils.mongo_join import *
 from utils.pymongo_object_id import PyObjectId
 from utils.snake_by_camel import convert_keys_to_camel_case
@@ -249,7 +250,7 @@ class UpdateRequestStatusAcceptModel(BaseModel):
     )
 
 
-async def get_list(match: dict, projection: dict, db_collection: any, response_model: any): #skip: int, 
+async def get_list(match: dict, projection: dict, response_model: BaseModel, skip: int, limit: int):
     contract = ("contract", "solution", "solution", "contract")
     customer = ("users", "customer", "customer", "customer")
     company = ("company", "company", "customer_field.company", "company")
@@ -259,8 +260,8 @@ async def get_list(match: dict, projection: dict, db_collection: any, response_m
                     "customer_nm": "$customer_field.user_nm",
                     "company_nm": "$company_field.company_nm"
                 }
-    pipeline = set_pipeline(match, projection, [contract, customer, company], set_data)
-    results = db_collection.aggregate(pipeline)
+    pipeline = set_pipeline(match, projection, [contract, customer, company], set_data, skip, limit)
+    results = work_request_collection.aggregate(pipeline)
     content=[]
     for item in results:
         item['_id'] = str(item['_id'])

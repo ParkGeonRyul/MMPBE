@@ -21,6 +21,8 @@ async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
     req_data = json.loads(await request.body())
     id = str(req_data['user_id'])
     role = str(req_data['role'])
+    # skip = int(request.query_params.get("page"))
+    # limit = int(request.query_params.get("limit"))
     temporary_value = await is_temporary(is_temp)
 
     match = {
@@ -42,12 +44,12 @@ async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
           
     projection = {"_id": 1, "wr_title": 1, "sales_representative_nm": 1, "contract_title": 1, "customer_nm": 1, "company_nm": 1, "contract_title":1, "wr_date": 1, "status": 1}
     
-    wr_list = await list_module.get_collection_list(
+    wr_list = await get_list(
         match,
-        work_request_collection,
         projection,
         ResponseRequestListModel,
-        work_request_dto
+        1,
+        5
         )
     
     content = {
