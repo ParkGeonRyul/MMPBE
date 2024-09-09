@@ -29,5 +29,23 @@ class DBHandler(logging.Handler):
 def setup_logger():
     # 여기에 DBHandler 추가하고 다른 파일에서 사용
     """ """
-    logger = logging.getLogger("slack_logger")
+    logger = logging.getLogger("db_logger")
+
+
+# 예외 처리기 (Exception이 호출될 때 Intercept)
+@app.exception_handler(HTTPException)
+async def custom_http_exception_handler(request: Request, exc: HTTPException):
+    async for db in get_db():
+        # 커스텀 핸들러를 로거에 추가
+        handler = DBHandler(db)
+        logger.addHandler(handler)
+        
+        # 예외 발생 시 로거에 로그 기록
+        logger.error(f"HTTP Exception: {exc.detail}")
+        
+        # 커스텀 응답 반환
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"message": f"Custom Exception: {exc.detail}"}
+        )
     
