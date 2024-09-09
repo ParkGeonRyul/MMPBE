@@ -8,7 +8,8 @@ from pydantic.alias_generators import to_camel
 
 import os
 
-from db.context import work_plan_collection
+from db.context import work_plan_collection, work_request_collection
+from routes._modules.mongo_join import *
 from utils.pymongo_object_id import PyObjectId
 
 
@@ -230,6 +231,7 @@ class ResponsePlanListModel(BaseModel):
             }
         }
     )
+
     
 class ResponsePlanDtlModel(BaseModel):
     id: str = Field(alias="_id")
@@ -262,279 +264,128 @@ class ResponsePlanDtlModel(BaseModel):
             }
         }
     )
+
+class ResponseRequestCategoryModel(BaseModel):
+    id: str = Field(alias="_id")
+    wr_title: str = Field(alias="wrTitle")
+    sales_representative_nm: str = Field(alias="salesRepresentativeNm")
+    customer_id: Optional[str] = Field(None, alias="customerId")
+    customer_nm: Optional[str] = Field(None, alias="customerNm")
+    company_nm: Optional[str] = Field(None, alias="companyNm")
+    wr_date: Optional[str] = Field(None, alias="wrDate")
+    status: str
+    model_config = ConfigDict(
+        extra='allow',
+        from_attributes=True,
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+        alias_generator=to_camel,
+        json_schema_extra={
+            "example": {
+                "_id": "ObjectId",
+                "requestTitle": "요청 제목",
+                "salesRepresentative": "영업담당자",
+                "wrDate": "임시저장 == NULL",
+                "status": "승인, 반려, 요청, 회수"
+            }
+        }
+    )
        
-async def get_list(match: dict, projection: dict, response_model: BaseModel):
-    pipeline = [
-                {
-                    "$match": match
-                },
-                {
-                  "$lookup": {
-                        "from": "workRequest",
-                        "let": { "requestId": "$request_id" },
-                        "pipeline": [
-                          {
-                              "$match": {
-                                  "$expr": {
-                                        "$and": [
-                                            { "$eq": [{ "$toString": "$_id" }, "$$requestId"] },
-                                            { "$eq": ["$status", "승인"] }
-                                        ]
-                                  }
-                              }
-                          }
-                      ],
-                      "as": "request_field"
-                  }
-                },
-                {
-                  "$lookup": {
-                        "from": "users",
-                        "let": { "acceptorId": "$acceptor_id" },
-                        "pipeline": [
-                          {
-                              "$match": {
-                                  "$expr": {
-                                      "$eq": [ {"$toString": "$_id"}, "$$acceptorId"]
-                                  }
-                              }
-                          }
-                      ],
-                      "as": "acceptor_field"
-                  }
-                },
-                {
-                  "$lookup": {
-                      "from": "users",
-                       "let": { "userId": "$user_id" },
-                      "pipeline": [
-                          {
-                              "$match": {
-                                  "$expr": {
-                                      "$eq": [ {"$toString": "$_id"}, "$$userId"]
-                                  }
-                              }
-                          }
-                      ],
-                      "as": "user_field"
-                  }
-                },
-                {
-                    "$unwind": {
-                        "path": "$request_field",
-                        "preserveNullAndEmptyArrays": False
-                        }
-                },
-                {
-                    "$unwind": {
-                        "path": "$acceptor_field",
-                        "preserveNullAndEmptyArrays": True
-                        }
-                },
-                {
-                    "$unwind": {
-                        "path": "$user_field",
-                        "preserveNullAndEmptyArrays": True
-                        }
-                },
-                {
-                    "$set": {
-                        "acceptor_id": {"$toString": "$acceptor_field._id"},
-                        "acceptor_nm": "$acceptor_field.user_nm",
-                        "requestor_nm": "$user_field.user_nm",
-                        "wr_title": "$request_field.wr_title"
-                    }
-                },
-                {
-                  "$lookup": {
-                        "from": "company",
-                        "let": { "companyId": "$acceptor_field.company_id" },
-                        "pipeline": [
-                          {
-                              "$match": {
-                                  "$expr": {
-                                      "$eq": [ {"$toString": "$_id"}, "$$companyId"]
-                                  }
-                              }
-                          }
-                      ],
-                      "as": "company_field"
-                  }
-                },
-                {
-                    "$unwind": {
-                        "path": "$company_field",
-                        "preserveNullAndEmptyArrays": True
-                        }
-                },
-                {
-                    "$set": {
-                        "company_nm": "$company_field.company_nm"
-                    }
-                },
-                {
-                    "$project": projection
+async def get_list(match: dict, projection: dict, skip: int, limit: int):
+    request = ("workRequest", "request", "request", "request", False)
+    acceptor = ("users", "acceptor", "acceptor", "acceptor", False)
+    user = ("users", "user", "user", "user", False)
+    company = ("company", "company", "acceptor_field.company", "company", False)
+    set_data = {                    
+                    "acceptor_id": {"$toString": "$acceptor_field._id"},
+                    "acceptor_nm": "$acceptor_field.user_nm",
+                    "requestor_nm": "$user_field.user_nm",
+                    "wr_title": "$request_field.wr_title",
+                    "company_nm": "$company_field.company_nm"
                 }
-          ]
+    
+    pipeline = set_pipeline(match, projection, [request, acceptor, user, company], set_data, skip, limit)
+
     results = work_plan_collection.aggregate(pipeline)
     content=[]
     for item in results:
         item['_id'] = str(item['_id'])
         if match['plan_date'] == {'$ne': None}:
             item['plan_date'] = str(item['plan_date'])
-        model_instance = response_model(**item)
+        model_instance = ResponsePlanListModel(**item)
         model_dict = model_instance.model_dump(by_alias=True, exclude_unset=True)
         content.append(model_dict)
 
     return content
 
-async def get_dtl(match: dict, projection: dict, db_collection: any, response_model: any):
-    pipeline = [
-              {
-                  "$match": match
-              },
-              {
-                  "$lookup": {
-                      "from": "users",
-                       "let": { "acceptorId": "$acceptor_id" },
-                      "pipeline": [
-                          {
-                              "$match": {
-                                  "$expr": {
-                                      "$eq": [ {"$toString": "$_id"}, "$$acceptorId"]
-                                  }
-                              }
-                          }
-                      ],
-                      "as": "acceptor_field"
-                  }
-              },
-              {
-                  "$lookup": {
-                      "from": "users",
-                       "let": { "userId": "$user_id" },
-                      "pipeline": [
-                          {
-                              "$match": {
-                                  "$expr": {
-                                      "$eq": [ {"$toString": "$_id"}, "$$userId"]
-                                  }
-                              }
-                          }
-                      ],
-                      "as": "user_field"
-                  }
-              },
-              {
-                  "$lookup": {
-                      "from": "workRequest",
-                       "let": { "requestId": "$request_id" },
-                      "pipeline": [
-                          {
-                              "$match": {
-                                  "$expr": {
-                                      "$eq": [ {"$toString": "$_id"}, "$$requestId"]
-                                  }
-                              }
-                          }
-                      ],
-                      "as": "request_field"
-                  }
-              },
-              {
-                "$lookup": {
-                    "from": "files",
-                    "let": { "fileId": "$file_path" },
-                    "pipeline": [
-                        {
-                            "$match": {
-                                "$expr": {
-                                    "$eq": [ {"$toString": "$_id"}, "$$fileId"]
-                                }
-                            }
-                        }
-                    ],
-                    "as": "file_field"
-                  }
-              },
-              {
-                  "$unwind": "$acceptor_field"
-              },
-              {
-                  "$unwind": "$user_field"
-              },
-              {
-                  "$unwind": "$request_field"
-              },
-              {
-                  "$unwind": {
-                  "path": "$file_field",
-                  "preserveNullAndEmptyArrays": True}
-              },
-              {
-                "$lookup": {
-                    "from": "company",
-                    "let": { "companyId": "$acceptor_field.company_id" },
-                    "pipeline": [
-                        {
-                            "$match": {
-                                "$expr": {
-                                    "$eq": [ {"$toString": "$_id"}, "$$companyId"]
-                                }
-                            }
-                        }
-                    ],
-                    "as": "company_field"
-                  }
-            },
-            {
-                "$unwind": "$company_field"
-            },
-            {
-                  "$set": {
-                      "wr_title": "$request_field.wr_title",
-                      "requestor_data": {
-                        "_id": "$user_field._id",
-                        "name": "$user_field.user_nm",
-                        "rank": "$user_field.rank",
-                        "email": "$user_field.email",
-                        "companyContact": "$user_field.company_contact",
-                        "mobileContact": "$user_field.mobile_contact"
-                      },
-                      "acceptor_data": {
-                          "_id": "$acceptor_field._id",
-                          "name": "$acceptor_field.user_nm",
-                          "rank": "$acceptor_field.rank",
-                          "companyId": "$company_field._id",
-                          "companyNm": "$company_field.company_nm",
-                          "email": "$acceptor_field.email",
-                          "companyContact": "$acceptor_field.company_contact",
-                          "mobileContact": "$acceptor_field.mobile_contact",
-                      },
-                      "files": { "$ifNull": [{
+async def get_category_list(match: dict, projection: dict):
+    contract = ("contract", "solution", "solution", "contract", False)
+    customer = ("users", "customer", "customer", "customer", False)
+    company = ("company", "company", "customer_field.company", "company", False)
+    set_data = {                    
+                    "sales_representative_nm": "$contract_field.sales_representative_nm",
+                    "contract_title": "$contract_field.contract_title",
+                    "customer_nm": "$customer_field.user_nm",
+                    "company_nm": "$company_field.company_nm"
+                }
+    pipeline = set_pipeline(match, projection, [contract, customer, company], set_data, None, None)
+    results = work_request_collection.aggregate(pipeline)
+    content=[]
+    for item in results:
+        item['_id'] = str(item['_id'])
+        item['wr_date'] = str(item['wr_date'])
+
+        model_instance = ResponseRequestCategoryModel(**item)
+        model_dict = model_instance.model_dump(by_alias=True, exclude_unset=True)
+        content.append(model_dict)
+
+    return content
+
+async def get_dtl(match: dict, projection: dict):
+    acceptor = ("users", "acceptor", "acceptor", "acceptor", False)
+    user = ("users", "user", "user", "user", False)
+    request = ("workRequest", "request", "request", "request", False)
+    files = ("files", "file", "file", "file", True)
+    company = ("company", "company", "acceptor_field.company", "company", False)
+    set_data = {                    
+                    "wr_title": "$request_field.wr_title",
+                    "requestor_data": {
+                    "_id": "$user_field._id",
+                    "name": "$user_field.user_nm",
+                    "rank": "$user_field.rank",
+                    "email": "$user_field.email",
+                    "companyContact": "$user_field.company_contact",
+                    "mobileContact": "$user_field.mobile_contact"
+                    },
+                    "acceptor_data": {
+                        "_id": "$acceptor_field._id",
+                        "name": "$acceptor_field.user_nm",
+                        "rank": "$acceptor_field.rank",
+                        "companyId": "$company_field._id",
+                        "companyNm": "$company_field.company_nm",
+                        "email": "$acceptor_field.email",
+                        "companyContact": "$acceptor_field.company_contact",
+                        "mobileContact": "$acceptor_field.mobile_contact",
+                    },
+                    "files": { "$ifNull": [{
                         "id": "$file_path",
                         "name": {"$ifNull": ["$file_field.origin", None]},
                         "url": {"$concat": [file_url,"$file_field.user_id","/", "$file_field.uuid"]},
                         "size": {"$toString": "$file_field.size"},
                         "type": "$file_field.extension"
-                        }, None]}
-                  }
-            },
-              {
-                  "$project": projection
-              },
-              {
-                  "$limit": 1
-              }
-          ]
-    result = db_collection.aggregate(pipeline)
+                    }, None]}
+                }
+    
+    pipeline = set_pipeline(match, projection, [request, acceptor, user, files, company], set_data, None, None)
+
+    result = work_plan_collection.aggregate(pipeline)
     content=[]
     for item in result:
         item['_id'] = str(item['_id'])
         item['plan_date'] = str(item['plan_date'])
-        model_instance = response_model(**item)
+        model_instance = ResponsePlanDtlModel(**item)
         model_dict = model_instance.model_dump(by_alias=True, exclude_unset=True)
         content.append(model_dict)
-        # content.append(item)
 
     return content[0]

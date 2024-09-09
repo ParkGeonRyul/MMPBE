@@ -4,42 +4,41 @@ from bson import ObjectId
 
 import json
 
-from db.context import work_plan_collection, work_request_collection
-from models import work_plan_dto
+from db.context import work_plan_collection
 from models.work_plan_dto import *
-from models.work_request_dto import *
-from models import work_request_dto
 from routes._modules import list_module
 from routes._modules.list_module import is_temporary
 from routes._modules.file_server import *
-    
+from routes._modules.mongo_join import *
+
+
 async def get_plan_list(request: Request, is_temp: bool) -> JSONResponse:
     req_data = json.loads(await request.body())
-    menu = request.query_params.get("menu")
     id = str(req_data['user_id'])
     role = str(req_data['role'])
+    skip = int(request.query_params.get("page"))
+    limit = int(request.query_params.get("limit"))
     temporary_value = await is_temporary(is_temp)
     
     match = {
         "plan_date": temporary_value,
     }
-    if menu == "user":
-            match['status'] = {"$ne" : "회수"}
 
     if role != "system admin":
         
         match['del_yn']= "N"
         
-    if role == "user":
+        if role == "user":
 
-        match['acceptor_id'] = id
-        
-    if role == "admin":
+            match['acceptor_id'] = id
+            match['status'] = {"$ne" : "회수"}
+            
+        if role == "admin":
 
-        match['user_id'] = id
+            match['user_id'] = id
 
     projection = {"_id": 1, "user_id": 1, "plan_title": 1, "acceptor_id": 1, "acceptor_nm": 1, "company_nm": 1, "wr_title": 1, "requestor_nm":1, "plan_date": 1, "status": 1}   
-    plan_list = await list_module.get_collection_list(match, projection, ResponsePlanListModel, work_plan_dto, 1, 5)
+    plan_list = await get_list(match, projection, skip, limit)
         
     content = {
         "total": len(plan_list),
@@ -55,52 +54,42 @@ async def get_plan_dtl(request: Request) -> JSONResponse:
     id = req_data['user_id']
     role = req_data['role']
     plan_id = request.query_params.get("_id")
-    projection = {
-                        "_id": 1,
-                        "user_id": 1,
-                        "request_id": 1,
-                        'requestor_data': 1,
-                        'company_id': 1,
-                        "company_nm": 1,
-                        'acceptor_data': 1,
-                        "wr_title": 1,
-                        "plan_title": 1,
-                        "plan_content": 1,
-                        "plan_date": 1,
-                        "files": 1,
-                        "status": 1,
-                        "status_content": 1,
-                        "updated_at": 1        
-                    }
-    
-    find_data = {"_id": ObjectId(plan_id)}    
-
-    if role == "user":
-        
-        del projection['company_id']
-        del projection['company_nm']
-        find_data['acceptor_id'] = id
-    
-    elif role == "admin":
-
-        find_data['user_id'] = id
-        
-    get_plan = work_plan_collection.find_one(find_data)
-
-    if not get_plan:
-
-        raise HTTPException(status_code=404, detail="plan not found")
-
     match = {
-        "_id": ObjectId(plan_id)
-    }
+                "_id": ObjectId(plan_id)
+            }
+    projection = {
+                    "_id": 1,
+                    "user_id": 1,
+                    "request_id": 1,
+                    'requestor_data': 1,
+                    'company_id': 1,
+                    "company_nm": 1,
+                    'acceptor_data': 1,
+                    "wr_title": 1,
+                    "plan_title": 1,
+                    "plan_content": 1,
+                    "plan_date": 1,
+                    "files": 1,
+                    "status": 1,
+                    "status_content": 1,
+                    "updated_at": 1        
+                }
+
+    if role != "system admin":
+        match['del_yn'] = "N"
+
+        if role == "user":            
+            del projection['company_id']
+            del projection['company_nm']
+            match['acceptor_id'] = id
+        
+        elif role == "admin":
+
+            match['user_id'] = id
     
     plan_dtl = await list_module.get_collection_dtl(
         match,
-        work_plan_collection,
-        projection,
-        ResponsePlanDtlModel,
-        work_plan_dto
+        projection
         )
     
     response_content=json.loads(json.dumps(plan_dtl, indent=1, default=str))
@@ -108,22 +97,16 @@ async def get_plan_dtl(request: Request) -> JSONResponse:
     return response_content
 
 
-async def get_approve_wr_list(request: Request, is_temp: bool) -> JSONResponse:
-    temporary_value = await is_temporary(is_temp)
-
+async def get_wr_list(request: Request) -> JSONResponse:
     match = {
-                "wr_date": temporary_value,
                 "status" : "승인"
             }
           
     projection = {"_id": 1, "wr_title": 1, "sales_representative_nm": 1, "customer_id" : 1, "customer_nm": 1, "company_nm": 1, "wr_date": 1, "status": 1}
     
-    wr_list = await list_module.get_collection_list(
+    wr_list = await get_category_list(
         match,
-        work_request_collection,
-        projection,
-        ResponseRequestCategoryModel,
-        work_request_dto
+        projection
         )
     
     content = {

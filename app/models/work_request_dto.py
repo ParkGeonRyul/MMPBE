@@ -6,11 +6,10 @@ from bson import ObjectId
 from pydantic.alias_generators import to_camel
 from dotenv import load_dotenv
 
-import json
 import os
 
-from db.context import work_request_collection
-from utils.mongo_join import *
+from db.context import work_request_collection, contract_collection
+from routes._modules.mongo_join import *
 from utils.pymongo_object_id import PyObjectId
 from utils.snake_by_camel import convert_keys_to_camel_case
 
@@ -112,34 +111,7 @@ class ResponseRequestListModel(BaseModel):
             }
         }
     )
-
-class ResponseRequestCategoryModel(BaseModel):
-    id: str = Field(alias="_id")
-    wr_title: str = Field(alias="wrTitle")
-    sales_representative_nm: str = Field(alias="salesRepresentativeNm")
-    customer_id: Optional[str] = Field(None, alias="customerId")
-    customer_nm: Optional[str] = Field(None, alias="customerNm")
-    company_nm: Optional[str] = Field(None, alias="companyNm")
-    wr_date: Optional[str] = Field(None, alias="wrDate")
-    status: str
-    model_config = ConfigDict(
-        extra='allow',
-        from_attributes=True,
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-        json_encoders={ObjectId: str},
-        alias_generator=to_camel,
-        json_schema_extra={
-            "example": {
-                "_id": "ObjectId",
-                "requestTitle": "요청 제목",
-                "salesRepresentative": "영업담당자",
-                "wrDate": "임시저장 == NULL",
-                "status": "승인, 반려, 요청, 회수"
-            }
-        }
-    )
-
+    
 class ResponseRequestDtlModel(BaseModel):
     id: str = Field(alias="_id")
     solution_id: str = Field(alias="solutionId")
@@ -249,11 +221,38 @@ class UpdateRequestStatusAcceptModel(BaseModel):
         }
     )
 
+class ResponseRequestCategoryModel(BaseModel):
+       id: str = Field(alias='_id')
+       contract_title: str = Field(alias='categoryTitle')
+       company_id: str = Field(alias='companyId')
+       inflow_path: str = Field(alias='inflowPath')
+       sales_representative_nm: Optional[str] = Field(None, alias='salesRepresentativeNm')
+       contract_date: datetime = Field(alias='contractDate')
+       model_config = ConfigDict(
+            extra='allow',
+            from_attributes=True,
+            populate_by_name=True,
+            arbitrary_types_allowed=True,
+            json_encoders={ObjectId: str},
+            alias_generator=to_camel
+            )
 
-async def get_list(match: dict, projection: dict, response_model: BaseModel, skip: int, limit: int):
-    contract = ("contract", "solution", "solution", "contract")
-    customer = ("users", "customer", "customer", "customer")
-    company = ("company", "company", "customer_field.company", "company")
+async def get_categoty_list(match: dict, projection: dict):
+    get_contract_by_user = contract_collection.find(match, projection)
+    content = []
+    for item in get_contract_by_user:
+        item['_id'] = str(item['_id'])
+        model_instance = ResponseRequestCategoryModel(**item)
+        model_dict = model_instance.model_dump(by_alias=True, exclude_unset=True)
+        content.append(model_dict)
+    
+    return content
+        
+
+async def get_list(match: dict, projection: dict, skip: int, limit: int):
+    contract = ("contract", "solution", "solution", "contract", False)
+    customer = ("users", "customer", "customer", "customer", False)
+    company = ("company", "company", "customer_field.company", "company", False)
     set_data = {                    
                     "sales_representative_nm": "$contract_field.sales_representative_nm",
                     "contract_title": "$contract_field.contract_title",
@@ -268,131 +267,38 @@ async def get_list(match: dict, projection: dict, response_model: BaseModel, ski
         if match['wr_date'] == {'$ne': None}:
             item['wr_date'] = str(item['wr_date'])
 
-        model_instance = response_model(**item)
+        model_instance = ResponseRequestListModel(**item)
         model_dict = model_instance.model_dump(by_alias=True, exclude_unset=True)
         content.append(model_dict)
-    # numbered_items = [{"number": skip + i + 1, **item, "_id": str(item["_id"])} for i, item in enumerate(content)]
 
     return content
 
-async def get_dtl(match: dict, projection: dict, db_collection: any, response_model: any):
-    pipeline = [
-              {
-                  "$match": match
-              },
-              {
-                  "$lookup": {
-                      "from": "contract",
-                       "let": { "solutionId": "$solution_id" },
-                      "pipeline": [
-                          {
-                              "$match": {
-                                  "$expr": {
-                                      "$eq": [ {"$toString": "$_id"}, "$$solutionId"]
-                                  }
-                              }
-                          }
-                      ],
-                      "as": "contract_field"
-                  }
-              },
-              {
-                  "$lookup": {
-                      "from": "users",
-                       "let": { "customerId": "$customer_id" },
-                      "pipeline": [
-                          {
-                              "$match": {
-                                  "$expr": {
-                                      "$eq": [ {"$toString": "$_id"}, "$$customerId"]
-                                  }
-                              }
-                          }
-                      ],
-                      "as": "customer_field"
-                  }
-              },
-              {
-                "$lookup": {
-                    "from": "files",
-                    "let": { "fileId": "$file_path" },
-                    "pipeline": [
+async def get_dtl(match: dict, projection: dict):
+    contract = ("contract", "solution", "solution", "contract", False)
+    customer = ("users", "customer", "customer", "customer", False)
+    files = ("files", "file", "file", "file", True)
+    company = ("company", "company", "customer_field.company", "company", False)
+    set_data = {                    
+                    "sales_representative_nm": "$contract_field.sales_representative_nm",
+                    "customer_nm": "$customer_field.user_nm",
+                    "company_id": "$customer_field.company_id",
+                    "company_nm": "$company_field.company_nm",
+                    "file": { "$ifNull": [
                         {
-                            "$match": {
-                                "$expr": {
-                                    "$eq": [ {"$toString": "$_id"}, "$$fileId"]
-                                }
-                            }
-                        }
-                    ],
-                    "as": "file_field"
-                  }
-              },
-              {
-                  "$unwind": "$contract_field"
-              },
-              {
-                  "$unwind": "$customer_field"
-              },
-              {
-                  "$unwind": {
-                  "path": "$file_field",
-                  "preserveNullAndEmptyArrays": True}
-              },
-              {
-                "$lookup": {
-                    "from": "company",
-                    "let": { "companyId": "$customer_field.company_id" },
-                    "pipeline": [
-                        {
-                            "$match": {
-                                "$expr": {
-                                    "$eq": [ {"$toString": "$_id"}, "$$companyId"]
-                                }
-                            }
-                        }
-                    ],
-                    "as": "company_field"
-                  }
-            },
-            {
-                "$unwind": "$company_field"
-            },
-            {
-                  "$set": {
-                      "sales_representative_nm": "$contract_field.sales_representative_nm",
-                      "customer_nm": "$customer_field.user_nm",
-                      "company_id": "$customer_field.company_id",
-                      "company_nm": "$company_field.company_nm",
-                      "file": { "$ifNull": [{
                         "id": "$file_path",
                         "name": {"$ifNull": ["$file_field.origin", None]},
                         "url": {"$concat": [file_url,"$file_field.user_id","/", "$file_field.uuid"]},
                         "size": {"$toString": "$file_field.size"},
                         "type": "$file_field.extension"
                         }, None]}
-                  }
-            },
-            {
-                  "$project": projection
-            },
-            {
-                  "$limit": 1
-            }
-          ]
-    
-    result = db_collection.aggregate(pipeline)
+                }
+    pipeline = set_pipeline(match, projection, [contract, customer, files, company], set_data, None, None)    
+    result = work_request_collection.aggregate(pipeline)
     content=[]
     for item in result:
         item['_id'] = str(item['_id'])
         item['wr_date'] = str(item['wr_date'])
-
-        if response_model == ResponseRequestDtlModel:
-
-            model_instance = ResponseRequestDtlModel(**item)
-
-        else:
-            raise ValueError("Unknown response model type")
+        model_instance = ResponseRequestDtlModel(**item)        
         model_dict = model_instance.model_dump(by_alias=True, exclude_unset=True)
         content.append(model_dict)
 

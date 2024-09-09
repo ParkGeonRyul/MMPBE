@@ -24,7 +24,7 @@ async def get_plan_dtl(request: Request):
 
 @router.get(SELECT_APPROVE_WR_LIST, status_code=status.HTTP_200_OK, response_model_by_alias=False)
 async def get_approve_wr_list(request:Request):
-    return await work_plan_service.get_approve_wr_list(request, False)
+    return await work_plan_service.get_wr_list(request)
 
 @router.post(UPDATE_PLAN_STATUS, status_code=status.HTTP_200_OK, response_model_by_alias=False)       
 async def update_plan_status(request: Request, item: UpdatePlanStatusModel):
@@ -45,14 +45,6 @@ async def create_plan(request: Request) -> JSONResponse:
 
     return await work_plan_service.create_plan(request_data, file)
 
-@router.get(SELECT_PLAN_TEMPORARY, status_code=status.HTTP_200_OK, response_model_by_alias=False)
-async def get_temporary_list(request: Request):
-    try:
-        return await work_plan_service.get_plan_list(request, True)
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 @router.put(UPDATE_PLAN, status_code=status.HTTP_200_OK, response_model_by_alias=False)       
 async def update_work_plan(request: Request):
     req_body = await request.form()
@@ -63,14 +55,6 @@ async def update_work_plan(request: Request):
         request_data = {key: value for key, value in req_body.items()}
 
     return await work_plan_service.update_plan(request, request_data, file)
-
-@router.delete(DELETE_PLAN_TEMPORARY, status_code=status.HTTP_200_OK)
-async def delete_temporary(request: Request, item: DeletePlanTempraryModel):
-    try:    
-        return await work_plan_service.delete_temporary(request, item)
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 @router.put(DELETE_PLAN, status_code=status.HTTP_200_OK)
 async def delete_plan(request: Request):

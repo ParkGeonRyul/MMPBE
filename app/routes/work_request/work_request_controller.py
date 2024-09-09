@@ -2,7 +2,7 @@ from fastapi import APIRouter, status, Query
 from fastapi.responses import JSONResponse
 from fastapi.requests import Request
 
-from routes._path.api_paths import READ_REQUEST, READ_REQUEST_TEMPORARY, READ_REQUEST_DETAIL, CREATE_REQUEST, UPDATE_REQUEST, DELETE_REQUEST, UPDATE_REQUEST_STATUS
+from routes._path.api_paths import READ_REQUEST, READ_REQUEST_TEMPORARY, READ_REQUEST_DETAIL, CREATE_REQUEST, UPDATE_REQUEST, DELETE_REQUEST, UPDATE_REQUEST_STATUS, CATEGORY
 from routes.work_request import work_request_service
 from models.work_request_dto import *
 
@@ -27,6 +27,11 @@ async def get_temporary_list(request: Request) -> JSONResponse:
 async def get_request_dtl(request: Request, _id: str = Query(...)) -> JSONResponse:
 
     return await work_request_service.get_request_dtl(request)
+
+@router.get(CATEGORY, status_code=status.HTTP_200_OK, response_model_by_alias=False)
+async def get_category(request: Request):
+       
+       return await work_request_service.get_wr_list(request)
 
 @router.post(CREATE_REQUEST, status_code=status.HTTP_200_OK, response_model_by_alias=False)       
 async def create_request(request: Request) -> JSONResponse:
