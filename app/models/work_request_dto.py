@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 import json
 import os
 
+from utils.mongo_join import *
 from utils.pymongo_object_id import PyObjectId
 from utils.snake_by_camel import convert_keys_to_camel_case
 
@@ -247,80 +248,18 @@ class UpdateRequestStatusAcceptModel(BaseModel):
         }
     )
 
+
 async def get_list(match: dict, projection: dict, db_collection: any, response_model: any): #skip: int, 
-    pipeline = [
-            {
-                "$lookup": {
-                    "from": "contract",
-                    "let": { "solutionId": "$solution_id" },
-                    "pipeline": [
-                        {
-                            "$match": {
-                                "$expr": {
-                                    "$eq": [ {"$toString": "$_id"}, "$$solutionId"]
-                                }
-                            }
-                        }
-                    ],
-                    "as": "contract_field"
-                }
-            },
-            {
-                "$lookup": {
-                    "from": "users",
-                    "let": { "customerId": "$customer_id" },
-                    "pipeline": [
-                        {
-                            "$match": {
-                                "$expr": {
-                                    "$eq": [ {"$toString": "$_id"}, "$$customerId"]
-                                }
-                            }
-                        }
-                    ],
-                    "as": "customer_field"
-                  }
-            },
-            {
-                "$unwind": "$contract_field"
-            },
-            {
-                "$unwind": "$customer_field"
-            },
-            {
-                "$lookup": {
-                    "from": "company",
-                    "let": { "companyId": "$customer_field.company_id" },
-                    "pipeline": [
-                        {
-                            "$match": {
-                                "$expr": {
-                                    "$eq": [ {"$toString": "$_id"}, "$$companyId"]
-                                }
-                            }
-                        }
-                    ],
-                    "as": "company_field"
-                  }
-            },
-            {
-                "$unwind": "$company_field"
-            },
-            {
-                "$set": {
+    contract = ("contract", "solution", "solution", "contract")
+    customer = ("users", "customer", "customer", "customer")
+    company = ("company", "company", "customer_field.company", "company")
+    set_data = {                    
                     "sales_representative_nm": "$contract_field.sales_representative_nm",
                     "contract_title": "$contract_field.contract_title",
                     "customer_nm": "$customer_field.user_nm",
                     "company_nm": "$company_field.company_nm"
                 }
-            },
-            {
-                "$match": match,
-            },
-            {
-                "$project": projection
-            }
-          ]
+    pipeline = set_pipeline(match, projection, [contract, customer, company], set_data)
     results = db_collection.aggregate(pipeline)
     content=[]
     for item in results:
