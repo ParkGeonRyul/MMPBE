@@ -51,7 +51,6 @@ async def proxy(request: Request, path: str):
         user_data = token_data['userData']
         
         await work_log_callback(path, method, request.client.host, request.headers.get('User-Agent'),token_data['userId'])
-        print("userId :::: ", token_data['userId'])
         if req_body:
             content_type = request.headers.get("Content-Type")
             

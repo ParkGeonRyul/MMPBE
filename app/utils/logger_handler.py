@@ -1,15 +1,15 @@
-import logging
+from fastapi import APIRouter, FastAPI, HTTPException, Request, logger
 
-from fastapi import HTTPException, Request, logger
-from fastapi.responses import JSONResponse
-
-# from app.config import Config
 from models.login_log_dto import LoginLogModel
 from models.work_log_dto import WorkLogModel
 from db.context import login_log_collection
 from db.context import work_log_collection
+from fastapi.responses import JSONResponse
+import logging
 
+app = FastAPI()
 
+logger = logging.getLogger("uvicorn.error")
 
 async def login_log_callback(log_in_out : str,user_email : str,success_YN : str, client_ip: str, user_agent:str):
     log_dic = {
@@ -33,58 +33,28 @@ async def work_log_callback(path : str, method : str, client_ip : str, user_agen
         "exception_result" :None
     }
     log_document = dict(WorkLogModel(**log_dic))
-    result = work_log_collection.insert_one(log_document)
-    print("work_log_callback result ::: ", result)
-    
-# 커스텀 핸들러
-class DBHandler(logging.Handler):
-    print("로깅로깅로깅 logging.Handler ::::", logging.Handler)
-    def __init__(self):
-        logging.Handler.__init__(self)
-        # self.db_controller = MongoController() 
+    work_log_collection.insert_one(log_document)
 
-    # def emit(self, record): 
-    #     # 이게 헨들러가 시작될 때 오는 것 같아요
-    #     # Log 기록할 때 Thread로 하고 (DB 저장할 때만)
-    #     # Local일 때는 print log, Server일 때는 DB Log 저장
-    #     log_entry = Log(level=record.levelname, message=record.msg) # 이건 로그 포멧
+async def exception_log_callback(request: Request, exc: HTTPException):
+    logger.error(f"Exception details: {exc}")
 
-    def record_db(self, record):
-        print("로깅로깅로깅 record :::: ", record)
-        print("로깅로깅로깅 self :::: ", self)
-        """
+    method = request.method
+    path = request.url.path
+    client_ip = request.client.host
+    user_agent = request.headers.get("User-Agent", "Unknown")
+    try:
+        body = await request.json()
+        user_id = body.get('user_id', 'ANONYMOUS')
+    except Exception as e:
+        user_id = 'ANONYMOUS' 
 
-        :param record:
-
-        """
-        # data = dict(record.__dict__)
-        # data["server"] = Config().get_env("SERVER_TYPE")
-        # # Remove non-serializable types or convert them to string
-        # for key, value in data.items():
-        #     if isinstance(value, Exception):
-        #         data[key] = str(value)
-        # self.db_controller.insert_one("log", data)
-
-# def setup_logger():
-#     # 여기에 DBHandler 추가하고 다른 파일에서 사용
-#     """ """
-#     logger = logging.getLogger("db_logger")
-
-
-# 예외 처리기 (Exception이 호출될 때 Intercept)
-# @app.exception_handler(HTTPException)
-# async def custom_http_exception_handler(request: Request, exc: HTTPException):
-#     async for db in get_db():
-#         # 커스텀 핸들러를 로거에 추가
-        
-#         handler = DBHandler(db)
-#         logger.addHandler(handler)
-        
-#         # 예외 발생 시 로거에 로그 기록
-#         logger.error(f"HTTP Exception: {exc.detail}")
-        
-#         # 커스텀 응답 반환
-#         return JSONResponse(
-#             status_code=exc.status_code,
-#             content={"message": f"Custom Exception: {exc.detail}"}
-#         )
+    log_dic = {
+        "path" : path,
+        "method" : method,
+        "user_agent" : user_agent,
+        "client_ip" : client_ip,
+        "user_id" : user_id,
+        "exception_result" : str(exc)
+    }
+    log_document = dict(WorkLogModel(**log_dic))
+    work_log_collection.insert_one(log_document)

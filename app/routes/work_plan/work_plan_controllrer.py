@@ -14,6 +14,10 @@ class Router:
     def __init__(self):
         pass
 
+@router.get("/example")
+async def example_endpoint():
+    raise HTTPException(status_code=500, detail="This is a test exception")
+
 @router.get(SELECT_PLAN, status_code=status.HTTP_200_OK, response_model_by_alias=False)
 async def get_plan_list(request: Request):
     return await work_plan_service.get_plan_list(request, False)
@@ -51,6 +55,7 @@ async def get_temporary_list(request: Request):
         return await work_plan_service.get_plan_list(request, True)
         
     except Exception as e:
+        print("예외")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.put(UPDATE_PLAN, status_code=status.HTTP_200_OK, response_model_by_alias=False)       
