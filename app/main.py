@@ -4,10 +4,10 @@ import json
 
 from fastapi.responses import JSONResponse
 
-from utils.logger_handler import exception_log_callback
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+from utils.logger_handler import exception_log_callback
 from fastapi import FastAPI, HTTPException, Request
 from utils import lifespan
 from routes.auth import auth_controller
