@@ -31,7 +31,8 @@ class UsersFields:
     )
     rank = Field(
         description="직급",
-        example="프로"
+        example="프로",
+        default="프로"
     )
     company_contact=Field(
         description="고객사 연락처",
@@ -42,7 +43,8 @@ class UsersFields:
     mobile_contact = Field(
         description="고객사 mobile",
         example="010-0000-0000",
-        alias="mobileContact"
+        alias="mobileContact",
+        default=None
     )
     email = Field(
         description="사용자 이메일",

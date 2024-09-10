@@ -199,6 +199,6 @@ async def get_user_profile_image(request: Request) -> Response:
         )
 
     if user_response.status_code != 200:
-        raise HTTPException(status_code=user_response.status_code, detail="Failed to fetch user profile image")
+        return Response(content=None, status_code=status.HTTP_200_OK)
 
     return Response(content=user_response.content, media_type="image/png")
