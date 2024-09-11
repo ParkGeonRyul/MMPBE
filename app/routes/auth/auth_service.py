@@ -121,11 +121,11 @@ async def auth_callback(code):
                 "mobile_contact": user_data['mobilePhone'],
                 "email": user_data['mail'],
             }
-
             document = dict(UserModel(**user_dict))
             user_create = user_collection.insert_one(document)
             user_id = user_create.inserted_id
             token_key = await create_access_token(str(user_token['_id']))
+            print(token_key)
             user_token = await access_token_manager(is_user, check_token_existence, access_token, refresh_token, str(user_id), user_data['mail'])
             response = RedirectResponse(url=REDIRECT_URL_HOME)
             response.set_cookie(key=COOKIES_KEY_NAME, value=token_key, httponly=True)
@@ -199,6 +199,7 @@ async def get_user_profile_image(request: Request) -> Response:
         )
 
     if user_response.status_code != 200:
-        raise HTTPException(status_code=user_response.status_code, detail="Failed to fetch user profile image")
+        # raise HTTPException(status_code=user_response.status_code, detail="Failed to fetch user profile image")
+        return Response(content=None, status_code=status.HTTP_200_OK)
 
     return Response(content=user_response.content, media_type="image/png")

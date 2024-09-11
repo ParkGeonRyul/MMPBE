@@ -118,6 +118,7 @@ class ResponseRequestDtlModel(BaseModel):
     wr_title: str = Field(alias="wrTitle")
     customer_id: str = Field(alias="customerId")
     customer_nm: str = Field(alias="customerNm")
+    sales_representative_id: str = Field(alias="salesRepresentativeId")
     sales_representative_nm: str = Field(alias="salesRepresentativeNm")
     company_id: Optional[str] = Field(None, alias="companyId")
     company_nm: Optional[str] = Field(None, alias="companyNm")
@@ -138,7 +139,8 @@ class ResponseRequestDtlModel(BaseModel):
                 "_id": "ObjectId",
                 "wrTitle": "요청 제목",
                 "customerId": "고객 ID(ObjectId)",
-                "salesRepresentativeMm": "판매 담당자 이름",
+                "salesRepresentativeId": "판매 담당자 ID",
+                "salesRepresentativeNm": "판매 담당자 이름",
                 "companyId": "고객사 ID(ObjectId)",
                 "companyNm": "고객사 이름",
                 "wrDate": "작업 요청 날짜",     
@@ -149,6 +151,23 @@ class ResponseRequestDtlModel(BaseModel):
             }
         }
     )
+
+class ResponseRequestCategoryModel(BaseModel):
+       id: str = Field(alias='_id')
+       contract_title: str = Field(alias='categoryTitle')
+       company_id: str = Field(alias='companyId')
+       inflow_path: str = Field(alias='inflowPath')
+       sales_representative_id: str = Field(alias='salesRepresentativeId')
+       sales_representative_nm: Optional[str] = Field(None, alias='salesRepresentativeNm')
+       contract_date: datetime = Field(alias='contractDate')
+       model_config = ConfigDict(
+            extra='allow',
+            from_attributes=True,
+            populate_by_name=True,
+            arbitrary_types_allowed=True,
+            json_encoders={ObjectId: str},
+            alias_generator=to_camel
+            )
 
 class CreateWorkRequestModel(BaseModel): # fe -> be
     solution_id: str = WorkRequestField.solution_id # 계약 ID
@@ -221,27 +240,18 @@ class UpdateRequestStatusAcceptModel(BaseModel):
         }
     )
 
-class ResponseRequestCategoryModel(BaseModel):
-       id: str = Field(alias='_id')
-       contract_title: str = Field(alias='categoryTitle')
-       company_id: str = Field(alias='companyId')
-       inflow_path: str = Field(alias='inflowPath')
-       sales_representative_nm: Optional[str] = Field(None, alias='salesRepresentativeNm')
-       contract_date: datetime = Field(alias='contractDate')
-       model_config = ConfigDict(
-            extra='allow',
-            from_attributes=True,
-            populate_by_name=True,
-            arbitrary_types_allowed=True,
-            json_encoders={ObjectId: str},
-            alias_generator=to_camel
-            )
-
 async def get_categoty_list(match: dict, projection: dict):
-    get_contract_by_user = contract_collection.find(match, projection)
+    sales_representative = ("users", "user", "sales_representative", "sales_representative", False)
+    set_data = {
+        "sales_representative_id": "$sales_representative_field._id",
+        "sales_representative_nm": "$sales_representative_field.user_nm"
+    }
+    pipeline = set_pipeline(match, projection, [sales_representative], set_data, None, None)
+    results = contract_collection.aggregate(pipeline)
     content = []
-    for item in get_contract_by_user:
+    for item in results:
         item['_id'] = str(item['_id'])
+        item['sales_representative_id'] = str(item['sales_representative_id'])
         model_instance = ResponseRequestCategoryModel(**item)
         model_dict = model_instance.model_dump(by_alias=True, exclude_unset=True)
         content.append(model_dict)
@@ -250,16 +260,17 @@ async def get_categoty_list(match: dict, projection: dict):
         
 
 async def get_list(match: dict, projection: dict, skip: int, limit: int):
-    contract = ("contract", "solution", "solution", "contract", False)
+    contract = ("contract", "solution", "solution", "contract", False) #collection key value"field_nm allow_empty
+    sales_representative = ("users", "user", "contract_field.sales_representative", "sales_representative", False)
     customer = ("users", "customer", "customer", "customer", False)
     company = ("company", "company", "customer_field.company", "company", False)
     set_data = {                    
-                    "sales_representative_nm": "$contract_field.sales_representative_nm",
+                    "sales_representative_nm": "$sales_representative_field.user_nm",
                     "contract_title": "$contract_field.contract_title",
                     "customer_nm": "$customer_field.user_nm",
                     "company_nm": "$company_field.company_nm"
                 }
-    pipeline = set_pipeline(match, projection, [contract, customer, company], set_data, skip, limit)
+    pipeline = set_pipeline(match, projection, [contract, sales_representative, customer, company], set_data, skip, limit)
     results = work_request_collection.aggregate(pipeline)
     content=[]
     for item in results:
@@ -275,11 +286,13 @@ async def get_list(match: dict, projection: dict, skip: int, limit: int):
 
 async def get_dtl(match: dict, projection: dict):
     contract = ("contract", "solution", "solution", "contract", False)
+    sales_representative = ("users", "user", "contract_field.sales_representative", "sales_representative", False)
     customer = ("users", "customer", "customer", "customer", False)
     files = ("files", "file", "file", "file", True)
     company = ("company", "company", "customer_field.company", "company", False)
-    set_data = {                    
-                    "sales_representative_nm": "$contract_field.sales_representative_nm",
+    set_data = {                  
+                    "sales_representative_id": "$sales_representative_field._id", 
+                    "sales_representative_nm": "$sales_representative_field.user_nm",
                     "customer_nm": "$customer_field.user_nm",
                     "company_id": "$customer_field.company_id",
                     "company_nm": "$company_field.company_nm",
@@ -292,7 +305,7 @@ async def get_dtl(match: dict, projection: dict):
                         "type": "$file_field.extension"
                         }, None]}
                 }
-    pipeline = set_pipeline(match, projection, [contract, customer, files, company], set_data, None, None)    
+    pipeline = set_pipeline(match, projection, [contract, sales_representative, customer, files, company], set_data, None, None)    
     result = work_request_collection.aggregate(pipeline)
     content=[]
     for item in result:

@@ -6,7 +6,6 @@ import json
 
 from db.context import work_plan_collection
 from models.work_plan_dto import *
-from routes._modules import list_module
 from routes._modules.list_module import is_temporary
 from routes._modules.file_server import *
 from routes._modules.mongo_join import *
@@ -87,7 +86,7 @@ async def get_plan_dtl(request: Request) -> JSONResponse:
 
             match['user_id'] = id
     
-    plan_dtl = await list_module.get_collection_dtl(
+    plan_dtl = await get_dtl(
         match,
         projection
         )

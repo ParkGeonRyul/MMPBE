@@ -1,4 +1,4 @@
-from fastapi import Request, UploadFile, File
+from fastapi import Request, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 from bson import ObjectId
@@ -6,10 +6,8 @@ from bson import ObjectId
 import json
 import os
 
-from routes._modules import list_module
 from routes._modules.list_module import is_temporary
 from routes._modules.file_server import *
-from models import work_request_dto
 from models.work_request_dto import *
 from db.context import work_request_collection, contract_collection, user_collection
 
@@ -40,7 +38,7 @@ async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
         elif role == 'admin':
             
             match['status'] = {"$ne" : "회수"}
-            match['sales_representative_nm'] = req_data['userData']['name']
+            match['sales_representative_id'] = id
           
     projection = {
                     "_id": 1,
@@ -60,7 +58,6 @@ async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
                                 skip,
                                 limit
                             )
-    
     content = {
                 "total": work_request_collection.count_documents({}),
                 "request": work_request_collection.count_documents({"status": "요청"}),
@@ -118,10 +115,10 @@ async def get_request_dtl(request: Request) -> JSONResponse:
                     "status_content": 1,
                     "file": 1,
                 }
-    wr_dtl = await work_request_dto.get_dtl(
-                                            match,
-                                            projection
-                                        )
+    wr_dtl = await get_dtl(
+                            match,
+                            projection
+                        )
     
     response_content=json.loads(json.dumps(wr_dtl, indent=1, default=str))
 
@@ -129,7 +126,7 @@ async def get_request_dtl(request: Request) -> JSONResponse:
 
 async def get_wr_list(request: Request) -> List[dict]:
     req_data = json.loads(await request.body())
-    projection = { "_id": 1, "contract_title": 1, "company_id": 1, "inflow_path": 1, "sales_representative_nm": 1, "contract_date": 1}
+    projection = { "_id": 1, "contract_title": 1, "company_id": 1, "inflow_path": 1, "sales_representative_id": 1 ,"sales_representative_nm": 1, "contract_date": 1}
     role = str(req_data['role'])
     match = {}
 
@@ -138,7 +135,7 @@ async def get_wr_list(request: Request) -> List[dict]:
         match = {"company_id": get_user['company_id']}
     
     elif role == 'admin':
-        match = {"sales_representative_nm": req_data['name']}
+        match = {"sales_representative_id": req_data['user_id']}
 
     wr_category = await get_categoty_list(match, projection)
     response_content=json.loads(json.dumps(wr_category, indent=1, default=str))

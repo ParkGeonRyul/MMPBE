@@ -321,10 +321,11 @@ async def get_list(match: dict, projection: dict, skip: int, limit: int):
 
 async def get_category_list(match: dict, projection: dict):
     contract = ("contract", "solution", "solution", "contract", False)
+    contract = ("users", "user", "contract_field.sales_representative", "sales_representative", False)
     customer = ("users", "customer", "customer", "customer", False)
     company = ("company", "company", "customer_field.company", "company", False)
     set_data = {                    
-                    "sales_representative_nm": "$contract_field.sales_representative_nm",
+                    "sales_representative_nm": "$sales_representative_field.sales_representative_nm",
                     "contract_title": "$contract_field.contract_title",
                     "customer_nm": "$customer_field.user_nm",
                     "company_nm": "$company_field.company_nm"

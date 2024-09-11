@@ -1,12 +1,9 @@
 from fastapi import File, UploadFile
-from fastapi.responses import StreamingResponse
-from fastapi.encoders import jsonable_encoder
 from dotenv import load_dotenv
 from bson import ObjectId
 
 import uuid
 import os
-import aiofiles
 
 from db.context import file_collection
 
