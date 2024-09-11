@@ -13,7 +13,8 @@ from routes.category import category_controller
 from routes.work_plan import work_plan_controllrer
 from routes.work_request import work_request_controller
 from routes import bi_embeded
-from routes import index
+from middlewares import api_auth
+# from routes import index
 
 from middlewares import cors_middleware
 # from middlewares import static_middleware
@@ -21,10 +22,10 @@ from middlewares import cors_middleware
 app = FastAPI(lifespan=lifespan.lifespan)
 
 cors_middleware.add(app)
-# app.add_middleware(rbac.TokenVerifyMiddleware)
 # static_middleware.add(app)
 
-app.include_router(index.router)
+# app.include_router(index.router)
+app.add_middleware(api_auth.get_user)
 app.include_router(auth_controller.router)
 app.include_router(page_controller.router)
 app.include_router(customer_controller.router)

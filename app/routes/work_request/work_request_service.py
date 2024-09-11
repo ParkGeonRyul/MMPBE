@@ -19,8 +19,9 @@ upload_path = os.getenv("UPLOAD_PATH")
 
 async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
     req_data = json.loads(await request.body())
-    id = str(req_data['user_id'])
-    role = str(req_data['role'])
+    req_user = request.state.user
+    id = str(req_user['user_id'])
+    role = str(req_user['userData']['role'])
     temporary_value = await is_temporary(is_temp)
 
     match = {
@@ -61,8 +62,9 @@ async def get_request_list(request: Request, is_temp: bool) -> JSONResponse:
 async def get_request_dtl(request: Request) -> JSONResponse:
     request_id = request.query_params.get("_id")
     req_data = json.loads(await request.body())
-    id = str(req_data['user_id'])
-    role = str(req_data['role'])
+    req_user = request.state.user
+    id = str(req_user['user_id'])
+    role = str(req_user['userData']['role'])
     match = {
         "_id": ObjectId(request_id)
     }

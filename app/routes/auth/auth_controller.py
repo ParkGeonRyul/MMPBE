@@ -8,6 +8,12 @@ from routes._path.api_paths import AUTH_CALLBACK, CHECK_SESSION, LOGIN_WITH_MS, 
 
 router = APIRouter()
 
+@router.get("/test_mid")
+async def test(request: Request):
+    test = request.state.user
+    print(type(test))
+    return None
+
 @router.get(LOGIN_WITH_MS)
 async def login():
     redirect_callback = await auth_service.login()

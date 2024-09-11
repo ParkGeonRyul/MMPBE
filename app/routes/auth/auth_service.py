@@ -183,7 +183,7 @@ async def validate(request: Request) -> JSONResponse:
     access_token = await parse_token(cookie_token)
     valid_token = await validate_token(access_token)
 
-    return valid_token
+    return JSONResponse(valid_token)
 
 
 async def get_user_profile_image(request: Request) -> Response:
