@@ -43,9 +43,18 @@ async def proxy(request: Request, path: str):
         
         if not token_valid:
             if path == "auth/login" or path == "auth/oauth/callback":
-                return RedirectResponse(url=backend_url)
-                
-            return RedirectResponse(url=f"{MAIN_URL}{LOGIN_WITH_MS}")
+                response = await client.request(method, backend_url)
+                return Response(content=response.content, status_code=response.status_code, headers=dict(response.headers))
+            
+            # 강제로 리다이렉션하는 부분
+            response = await client.request(method, f"{MAIN_URL}{LOGIN_WITH_MS}")
+            
+            # 리다이렉션 응답을 클라이언트에 그대로 전달
+            if response.status_code in [301, 302, 307, 308]:
+                redirect_url = response.headers.get("Location")
+                return RedirectResponse(redirect_url, status_code=response.status_code)
+            
+            return Response(content=response.content, status_code=response.status_code, headers=dict(response.headers))
         
         token_data = await validate_token(token_key)
         user_data = token_data['userData']
