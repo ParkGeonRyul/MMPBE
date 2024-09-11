@@ -202,3 +202,11 @@ async def get_user_profile_image(request: Request) -> Response:
         raise HTTPException(status_code=user_response.status_code, detail="Failed to fetch user profile image")
 
     return Response(content=user_response.content, media_type="image/png")
+
+async def logout(request: Request):
+    token_data = await parse_token(request.cookies.get(COOKIES_KEY_NAME))
+    auth_collection.delete_one({"_id": ObjectId(token_data)})
+    response = RedirectResponse(url=REDIRECT_URL_HOME)
+    response.delete_cookie(COOKIES_KEY_NAME)
+
+    return response

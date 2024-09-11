@@ -21,9 +21,9 @@ async def auth_callback(request: Request) -> RedirectResponse:
 
     return redirect
 
-@router.get(LOGOUT, status_code=status.HTTP_204_NO_CONTENT)
-async def logout(res: Response) -> JSONResponse:
-    res.delete_cookie(COOKIES_KEY_NAME)
+@router.post(LOGOUT, status_code=status.HTTP_204_NO_CONTENT)
+async def logout(request: Request):
+    return await auth_service.logout(request)
 
 @router.get(CHECK_SESSION)
 async def validate(request: Request) -> JSONResponse:
