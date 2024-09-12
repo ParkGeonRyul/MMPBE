@@ -6,7 +6,7 @@ V1 = ROOT + "v1"
 
 # Auth paths
 AUTH = V1 + SEPARATE + "auth"
-API_LOGIN = SEPARATE + "v1" + SEPARATE + "auth" + "login"
+API_LOGIN = SEPARATE + "v1" + SEPARATE + "auth" + SEPARATE + "login"
 LOGIN_WITH_MS = AUTH + SEPARATE + "login"
 AUTH_CALLBACK = AUTH + SEPARATE + "oauth" + SEPARATE + "callback"
 LOGOUT = AUTH + SEPARATE + "logout"
