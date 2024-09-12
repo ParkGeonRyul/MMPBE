@@ -9,17 +9,17 @@ from models.category_dto import ResponseCategoryModel
 
 
 async def get_category(request: Request) -> List[dict]:
-    req_data = json.loads(await request.body())
+    req_data = request.state.user
     projection = { "_id": 1, "contract_title": 1, "company_id": 1, "inflow_path": 1, "sales_representative_nm": 1, "contract_date": 1}
-    role = str(req_data['role'])
+    role = str(req_data['userData']['role'])
     dict_for_find = {}
 
     if role == 'user':
-        get_user = user_collection.find_one({"_id": ObjectId(req_data['user_id'])})
+        get_user = user_collection.find_one({"_id": ObjectId(req_data['userId'])})
         dict_for_find = {"company_id": get_user['company_id']}
     
     elif role == 'admin':
-        dict_for_find = {"sales_representative_nm": req_data['name']}
+        dict_for_find = {"sales_representative_nm": req_data['userData']['name']}
         
     get_contract_by_user = contract_collection.find(dict_for_find, projection)
     content = []
