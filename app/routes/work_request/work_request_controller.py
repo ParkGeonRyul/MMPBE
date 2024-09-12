@@ -37,7 +37,7 @@ async def create_request(request: Request) -> JSONResponse:
     else:
         request_data = {key: value for key, value in req_body.items()}
 
-    return await work_request_service.create_request(request_data, file)
+    return await work_request_service.create_request(request, request_data, file)
 
 @router.put(UPDATE_REQUEST, status_code=status.HTTP_200_OK, response_model_by_alias=False)       
 async def update_work_request(request: Request):

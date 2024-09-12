@@ -20,7 +20,7 @@ class get_user(BaseHTTPMiddleware):
         token_valid = auth_collection.find_one({"_id": ObjectId(token_key)})
 
         if not token or not token_valid:
-            if path == "/v1/auth/login" or path == "/vi/auth/callback":
+            if path == LOGIN_WITH_MS or path == AUTH_CALLBACK:
                 return await call_next(request)
             
             return RedirectResponse(url=f"{MAIN_URL}{API_LOGIN}")

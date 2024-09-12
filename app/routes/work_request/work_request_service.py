@@ -116,13 +116,14 @@ async def get_request_dtl(request: Request) -> JSONResponse:
     return response_content
 
 
-async def create_request(item: dict, file: None | UploadFile = File(...)) -> JSONResponse:
+async def create_request(request: Request, item: dict, file: None | UploadFile = File(...)) -> JSONResponse:
+    req_data = request.state.user
     document = dict(CreateWorkRequestModel(**item))
-    document['customer_id'] = item['user_id']
+    document['customer_id'] = req_data['userId']
 
     try: 
         if file:
-             file_data = await upload_file(item['user_id'], file)
+             file_data = await upload_file(req_data['userId'], file)
              document['file_path'] = file_data['file_id']
 
         work_request_collection.insert_one(document)
@@ -136,11 +137,12 @@ async def create_request(item: dict, file: None | UploadFile = File(...)) -> JSO
     return response_content
 
 async def update_request(request: Request, item: dict, file: None | UploadFile = File(...)) -> JSONResponse:
+    req_data = request.state.user
     document = dict(UpdateWorkRequestModel(**item))
-    document['customer_id'] = item['user_id']
+    document['customer_id'] = req_data['userId']
     try:
         if file:
-             file_data = await upload_file(item['user_id'], file)
+             file_data = await upload_file(req_data['userId'], file)
              document['file_path'] = file_data['file_id']
 
         work_request_collection.update_one({"_id": ObjectId(document['id'])}, {"$set": document})
