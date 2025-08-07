@@ -92,8 +92,8 @@ MMPBE/
 
 | 이름              | 역할 |
 |-------------------|------|
-| **Lucas Lee (이환주)** | 프로젝트 리드, 초기 구축, 인증 및 구조 설계, DevOps |
-| **Wade Park (박건률)** | 초기 구축, 작업 요청/계획서 개발, API Gateway 등 프록시 관련 개발, 파일 서버 구축, 테스트 코드 작성|
+| **Lucas Lee (이환주)** | 프로젝트 리드, 초기 프론트엔드 서버 구축, 초기 백엔드 서버 구축, 초기 DB서버 구축, Azure 기반 DevOps 구축, Azure DevOps Pipeline 기반 DockerFile, Docker Compose 구축, 인증 및 구조 설계|
+| **Wade Park (박건률)** | 초기 백엔드 서버 구축, DTO 설정 등 DB 작업, Azure DevOps Pipeline 기반 DockerFile, Docker Compose 구축, 작업 요청/계획서 개발, API Gateway 등 프록시 관련 개발, 파일 서버 구축, 테스트 코드 작성|
 | **Nova Lee (이은빈)** | 작업 계획서 기능 구현 |
 
 ---
@@ -104,3 +104,4 @@ MMPBE/
 - 관리자용 통계 기능 추가
 - 테넌시 기반 DB 분리 구조 도입
 - 버전 태깅 (v1.0.0) 및 정식 릴리즈
+
